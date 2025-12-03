@@ -66,6 +66,128 @@
       backdrop-filter: blur(4px);
     }
 
+    /* ========== -1장: Pre-intro 화면 (영상 + 터치 유도) ========== */
+
+    .preintro-screen {
+      position: absolute;
+      inset: 0;
+      z-index: 20;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #000;
+    }
+
+    .preintro-video-wrap {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      border-radius: 18px;
+      overflow: hidden;
+      background: #000;
+    }
+
+    .preintro-video-wrap video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .preintro-gradient {
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(
+          circle at top,
+          rgba(0, 0, 0, 0.15),
+          rgba(0, 0, 0, 0.7)
+        ),
+        linear-gradient(
+          to bottom,
+          rgba(0, 0, 0, 0.65),
+          rgba(0, 0, 0, 0.95)
+        );
+      pointer-events: none;
+    }
+
+    .preintro-touch-overlay {
+      position: absolute;
+      inset: 0;
+      cursor: pointer;
+      /* 살짝 유리 위에 손자국 느낌 */
+      background: transparent;
+    }
+
+    .preintro-ui {
+      position: absolute;
+      bottom: 20px;
+      left: 0;
+      right: 0;
+      padding: 0 16px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      pointer-events: none;
+    }
+
+    .preintro-hint-main {
+      font-size: 13px;
+      color: rgba(248, 247, 244, 0.9);
+      text-align: center;
+    }
+
+    .preintro-hint-sub {
+      font-size: 11px;
+      color: rgba(167, 165, 160, 0.9);
+      text-align: center;
+    }
+
+    .preintro-hint-main span {
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--accent-soft);
+    }
+
+    .preintro-progress {
+      width: 48px;
+      height: 3px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.1);
+      overflow: hidden;
+    }
+
+    .preintro-progress-inner {
+      width: 40%;
+      height: 100%;
+      border-radius: inherit;
+      background: rgba(245, 230, 184, 0.8);
+      animation: preintro-pulse 1.4s ease-in-out infinite;
+    }
+
+    @keyframes preintro-pulse {
+      0% {
+        transform: translateX(-60%);
+      }
+      50% {
+        transform: translateX(40%);
+      }
+      100% {
+        transform: translateX(-60%);
+      }
+    }
+
+    .preintro-fade-out {
+      animation: preintro-fade 0.5s ease forwards;
+    }
+
+    @keyframes preintro-fade {
+      to {
+        opacity: 0;
+        transform: scale(1.02);
+      }
+    }
+
     /* 머리카락 오버레이 (메인 화면에서만 사용) */
     .hair-overlay {
       pointer-events: auto;
@@ -544,6 +666,7 @@
 
     /* 음악 ON/OFF 캡슐 (음표 + meter) */
     .music-pill {
+      position: relative;
       width: 116px;
       padding: 5px 9px;
       border-radius: 999px;
@@ -560,6 +683,27 @@
         box-shadow 0.25s ease,
         opacity 0.25s ease,
         transform 0.15s ease;
+    }
+
+    /* 가로등 백글로우 */
+    .music-pill::before {
+      content: "";
+      position: absolute;
+      inset: -8px -16px;
+      border-radius: 999px;
+      background: radial-gradient(
+        circle at 10% -20%,
+        rgba(245, 230, 184, 0.55),
+        transparent 65%
+      );
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.35s ease;
+      z-index: -1;
+    }
+
+    .music-pill.music-off::before {
+      opacity: 0.6;
     }
 
     .music-pill:active {
@@ -907,11 +1051,39 @@
 </head>
 <body>
   <div class="app">
+    <!-- -1장: 터치 유도용 프리인트로 (영상) -->
+    <div class="preintro-screen" id="preIntroScreen">
+      <div class="preintro-video-wrap">
+        <video
+          id="preIntroVideo"
+          autoplay
+          muted
+          playsinline
+        >
+          <!-- 여기 src만 바꿔가면서 5개 콘셉트 테스트 -->
+          <source src="video/preintro_glass_fog.mp4" type="video/mp4" />
+        </video>
+        <div class="preintro-gradient"></div>
+        <div class="preintro-touch-overlay" id="preIntroOverlay"></div>
+        <div class="preintro-ui">
+          <div class="preintro-hint-main">
+            <span>brush the screen</span> to clear it
+          </div>
+          <div class="preintro-hint-sub">
+            nothing important yet, just letting your fingers arrive first
+          </div>
+          <div class="preintro-progress">
+            <div class="preintro-progress-inner"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- 0번째 화면 (사운드/자동재생 안내) -->
-    <div class="pre-screen" id="preScreen">
+    <div class="pre-screen hidden" id="preScreen">
       <div class="pre-title">Prelude</div>
       <p class="pre-sub">
-        This invitation is <strong>made for headphones</strong>.  
+        This invitation is <strong>made for headphones</strong>.<br />
         Short sounds, a single tuning note and the city around you will blend
         together. To do that, we need a little permission to speak.
       </p>
@@ -943,7 +1115,7 @@
       </div>
 
       <p class="pre-caption-small">
-        Your browser may ask you to allow audio the first time.  
+        Your browser may ask you to allow audio the first time.<br />
         There will be no sudden shouting, just tuning, ambience and a few
         whispered instructions.
       </p>
@@ -981,7 +1153,7 @@
               </div>
             </div>
 
-            <!-- TUNE SECTION: 히어로 캡션 아래 / 시간·장소 위 -->
+            <!-- TUNE SECTION -->
             <section class="tune-section">
               <div class="tune-header-row">
                 <div class="tune-title">Orchestra warm-up</div>
@@ -1239,6 +1411,10 @@
 
     const assignedInstrument = getAssignedInstrument();
 
+    const preIntroScreen = document.getElementById("preIntroScreen");
+    const preIntroOverlay = document.getElementById("preIntroOverlay");
+    const preIntroVideo = document.getElementById("preIntroVideo");
+
     const preScreen = document.getElementById("preScreen");
     const mainApp = document.getElementById("mainApp");
     const enterWithSoundBtn = document.getElementById("enterWithSound");
@@ -1267,13 +1443,15 @@
     // 현재 재생 중인 튜닝 오디오 인스턴스들 (테스트 모드는 겹쳐서 재생)
     const playingAudios = [];
 
-    // 배경 튜닝 레이어 (Tchaikovsky → orchestra tuning 파일로 변경)
+    // 배경 튜닝 레이어
     let bgAudio = null;
     let bgStarted = false;
 
     function initBgAudio() {
       if (bgAudio) return;
-      bgAudio = new Audio("audio/SI_Cac_fx_orchestra_tuning_one_shot_far_imaginative.wav");
+      bgAudio = new Audio(
+        "audio/SI_Cac_fx_orchestra_tuning_one_shot_far_imaginative.wav"
+      );
       bgAudio.loop = false;
       bgAudio.volume = muted ? 0 : 0.25;
     }
@@ -1300,9 +1478,11 @@
     }
 
     // 머리카락 쓸어내리기
-    hairOverlay.addEventListener("click", () => {
-      hairOverlay.classList.add("hair-gone");
-    });
+    if (hairOverlay) {
+      hairOverlay.addEventListener("click", () => {
+        hairOverlay.classList.add("hair-gone");
+      });
+    }
 
     function playRandomSample() {
       // 새 튜닝 음이 울릴 때마다 배경 튜닝 레이어는 바로 종료
@@ -1356,6 +1536,32 @@
       }
 
       updateMusicPillVisual();
+    }
+
+    // -1장 → 0장으로 진입
+    function enterPrelude() {
+      if (preIntroScreen) {
+        preIntroScreen.classList.add("preintro-fade-out");
+        setTimeout(() => {
+          preIntroScreen.classList.add("hidden");
+          if (preScreen) preScreen.classList.remove("hidden");
+          if (preIntroVideo) {
+            preIntroVideo.pause();
+          }
+        }, 450);
+      } else {
+        if (preScreen) preScreen.classList.remove("hidden");
+      }
+    }
+
+    if (preIntroOverlay) {
+      preIntroOverlay.addEventListener("click", enterPrelude);
+    }
+    if (preIntroVideo) {
+      preIntroVideo.addEventListener("ended", () => {
+        // 영상이 끝나도 자동으로 Prelude로 넘어가게 (안 넘기고 싶으면 이 부분 지워도 됨)
+        enterPrelude();
+      });
     }
 
     // 0번째 화면 → 메인 앱 진입
