@@ -1,0 +1,1403 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Sean’s Party Invitation · tuned in A</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;700&family=Manrope:wght@300;400;600&display=swap"
+    rel="stylesheet"
+  />
+
+  <style>
+    :root {
+      --bg: #05070a;
+      --accent: #f5e6b8;
+      --accent-soft: #f2e4c0;
+      --highlight: #fbd88f;
+      --text-main: #f8f7f4;
+      --text-soft: #a7a5a0;
+      --button-bg: #202331;
+      --button-border: rgba(245, 230, 184, 0.7);
+      --glow: rgba(245, 230, 184, 0.45);
+      --placeholder-border: rgba(248, 247, 244, 0.25);
+      --placeholder-bg: rgba(5, 7, 10, 0.45);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: "Manrope", system-ui, -apple-system, BlinkMacSystemFont,
+        "Segoe UI", sans-serif;
+      background: #000 url("picture/AlteOper.png") center/cover no-repeat fixed;
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    .app {
+      position: relative;
+      width: 100%;
+      max-width: 480px;
+      min-height: 100vh;
+      padding: 18px 18px 30px;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      background: radial-gradient(
+          circle at top,
+          rgba(15, 18, 30, 0.96) 0,
+          rgba(5, 7, 10, 0.97) 55%
+        );
+      backdrop-filter: blur(4px);
+    }
+
+    /* 머리카락 오버레이 (메인 화면에서만 사용) */
+    .hair-overlay {
+      pointer-events: auto;
+      position: absolute;
+      top: -40px;
+      left: 0;
+      width: 110%;
+      height: 120px;
+      background: radial-gradient(
+            circle at 10% 10%,
+            rgba(0, 0, 0, 0.9) 0,
+            transparent 55%
+          )
+          0 0 / 45% 100% no-repeat,
+        radial-gradient(
+            circle at 40% 0%,
+            rgba(0, 0, 0, 0.95) 0,
+            transparent 60%
+          )
+          40% 0 / 35% 100% no-repeat,
+        radial-gradient(
+            circle at 80% 10%,
+            rgba(0, 0, 0, 0.9) 0,
+            transparent 60%
+          )
+          80% 0 / 40% 100% no-repeat;
+      opacity: 0.75;
+      z-index: 5;
+      transition: opacity 0.6s ease, transform 0.6s ease;
+    }
+
+    .hair-overlay.hair-gone {
+      opacity: 0;
+      transform: translateY(-40px);
+      pointer-events: none;
+    }
+
+    /* ========== 0번째 화면 (프리롤 / 사운드 권한 안내) ========== */
+
+    .pre-screen {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      gap: 22px;
+      position: relative;
+      z-index: 10;
+    }
+
+    .pre-title {
+      font-family: "Playfair Display", serif;
+      font-size: 22px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--accent-soft);
+    }
+
+    .pre-sub {
+      font-size: 13px;
+      color: var(--text-soft);
+      max-width: 320px;
+      line-height: 1.7;
+    }
+
+    .pre-sub strong {
+      color: var(--accent-soft);
+      font-weight: 600;
+    }
+
+    .pre-visual {
+      width: 210px;
+      height: 210px;
+      border-radius: 999px;
+      border: 1px solid rgba(245, 230, 184, 0.5);
+      background: radial-gradient(
+          circle at top,
+          rgba(245, 230, 184, 0.45) 0,
+          rgba(5, 7, 10, 0.9) 55%
+        ),
+        rgba(5, 7, 10, 0.9);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      box-shadow: 0 18px 40px rgba(0, 0, 0, 0.65);
+    }
+
+    .pre-wave-ring {
+      position: absolute;
+      width: 85%;
+      height: 85%;
+      border-radius: 999px;
+      border: 1px dashed rgba(245, 230, 184, 0.35);
+      opacity: 0.5;
+    }
+
+    .pre-wave-ring.second {
+      width: 65%;
+      height: 65%;
+      opacity: 0.7;
+    }
+
+    .pre-icon-card {
+      width: 80px;
+      height: 120px;
+      border-radius: 18px;
+      background: linear-gradient(
+        145deg,
+        rgba(15, 18, 30, 0.95),
+        rgba(40, 42, 64, 0.95)
+      );
+      box-shadow: 0 12px 26px rgba(0, 0, 0, 0.7);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+    }
+
+    .pre-icon-phone {
+      width: 28px;
+      height: 44px;
+      border-radius: 10px;
+      border: 1px solid rgba(245, 230, 184, 0.45);
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .pre-icon-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 999px;
+      background: var(--accent-soft);
+      position: absolute;
+      top: 6px;
+      left: 50%;
+      transform: translateX(-50%);
+      opacity: 0.9;
+    }
+
+    .pre-icon-speaker {
+      width: 13px;
+      height: 13px;
+      border-radius: 4px;
+      border: 1px solid rgba(245, 230, 184, 0.7);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 9px;
+      color: var(--accent-soft);
+    }
+
+    .pre-icon-waves {
+      position: absolute;
+      right: -16px;
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+
+    .pre-wave-line {
+      width: 12px;
+      height: 2px;
+      border-radius: 999px;
+      background: rgba(245, 230, 184, 0.8);
+      opacity: 0.9;
+    }
+
+    .pre-label {
+      font-size: 9px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: rgba(245, 230, 184, 0.9);
+    }
+
+    .pre-buttons {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-top: 4px;
+    }
+
+    .pre-btn-main {
+      padding: 11px 24px;
+      border-radius: 999px;
+      border: 1px solid var(--button-border);
+      background: radial-gradient(
+        circle at top left,
+        #262a3f 0,
+        var(--button-bg) 60%
+      );
+      color: var(--text-main);
+      font-size: 12px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .pre-btn-main::after {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: -40%;
+      width: 40%;
+      height: 100%;
+      background: linear-gradient(
+        120deg,
+        rgba(245, 230, 184, 0.35),
+        transparent
+      );
+      transform: translateX(-100%);
+      transition: transform 0.6s ease;
+    }
+
+    .pre-btn-main:hover::after {
+      transform: translateX(180%);
+    }
+
+    .pre-btn-ghost {
+      padding: 8px 16px;
+      border-radius: 999px;
+      border: none;
+      background: transparent;
+      color: var(--text-soft);
+      font-size: 11px;
+      cursor: pointer;
+      opacity: 0.7;
+    }
+
+    .pre-caption-small {
+      font-size: 10px;
+      color: #8f8a7e;
+      max-width: 320px;
+      line-height: 1.5;
+    }
+
+    /* 메인 앱 영역 */
+    .app-inner {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+    }
+
+    /* 탭 네비게이션 */
+    .tabs {
+      position: relative;
+      z-index: 2;
+      display: flex;
+      gap: 6px;
+      margin-bottom: 10px;
+      background: rgba(5, 7, 10, 0.7);
+      border-radius: 999px;
+      padding: 4px;
+    }
+
+    .tab-btn {
+      flex: 1;
+      border-radius: 999px;
+      border: none;
+      padding: 6px 10px;
+      font-size: 11px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      cursor: pointer;
+      background: transparent;
+      color: var(--text-soft);
+      transition:
+        background 0.2s ease,
+        color 0.2s ease;
+    }
+
+    .tab-btn.active {
+      background: rgba(32, 35, 49, 0.9);
+      color: var(--accent-soft);
+    }
+
+    main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      z-index: 1;
+    }
+
+    .tab-panel {
+      display: none;
+      flex: 1;
+      flex-direction: column;
+      gap: 20px;
+      margin-top: 8px;
+    }
+
+    .tab-panel.active {
+      display: flex;
+    }
+
+    /* 공통 텍스트 */
+    .title {
+      font-family: "Playfair Display", serif;
+      font-size: 25px;
+      line-height: 1.3;
+      letter-spacing: 0.02em;
+    }
+
+    .title span.accent {
+      color: var(--accent);
+      letter-spacing: 0.16em;
+      font-size: 11px;
+      text-transform: uppercase;
+      display: block;
+      margin-bottom: 6px;
+      font-weight: 600;
+    }
+
+    .highlight-word {
+      color: var(--highlight);
+      font-weight: 700;
+    }
+
+    .highlight-letter {
+      color: var(--accent-soft);
+      font-weight: 700;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      font-size: 13px;
+    }
+
+    .subtitle {
+      font-size: 14px;
+      color: var(--text-soft);
+      line-height: 1.7;
+      max-width: 360px;
+      margin-top: 10px;
+    }
+
+    .subtitle strong {
+      color: var(--accent-soft);
+      font-weight: 600;
+    }
+
+    /* 시간/장소 카드 */
+    .time-location-card {
+      margin-top: 10px;
+      border-radius: 14px;
+      border: 1px solid rgba(245, 230, 184, 0.45);
+      background: radial-gradient(
+        circle at top left,
+        rgba(245, 230, 184, 0.18) 0,
+        rgba(10, 12, 18, 0.9) 60%
+      );
+      padding: 10px 12px;
+      box-shadow: 0 10px 26px rgba(0, 0, 0, 0.55);
+    }
+
+    .datetime {
+      font-size: 12px;
+      color: var(--text-soft);
+      line-height: 1.4;
+    }
+
+    .datetime span {
+      display: block;
+    }
+
+    .datetime span:first-child {
+      font-weight: 600;
+      color: #e2ddcf;
+    }
+
+    .info-strip {
+      margin-top: 6px;
+      font-size: 12px;
+      color: var(--text-soft);
+      opacity: 0.95;
+    }
+
+    .info-strip span {
+      color: var(--accent);
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      font-size: 11px;
+    }
+
+    /* Hero 이미지 박스 (실제 AlteOper 사진) */
+    .hero-image-box {
+      margin-top: 10px;
+      border-radius: 16px;
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      background: #000;
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.55);
+    }
+
+    .hero-image-box img {
+      display: block;
+      width: 100%;
+      height: 140px;
+      object-fit: cover;
+      filter: saturate(1.08) contrast(1.08);
+    }
+
+    .hero-caption {
+      padding: 6px 10px 8px;
+      font-size: 11px;
+      color: var(--text-soft);
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    .hero-caption .hero-keyword {
+      color: var(--accent-soft);
+      font-weight: 600;
+    }
+
+    /* TUNE 섹션 */
+    .tune-section {
+      margin-top: 10px;
+    }
+
+    .tune-header-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 6px;
+    }
+
+    .tune-title {
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.18em;
+      color: #d2cdbf;
+      opacity: 0.8;
+    }
+
+    .instrument-pill {
+      font-size: 11px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(245, 230, 184, 0.5);
+      color: var(--accent-soft);
+      background: rgba(15, 18, 30, 0.8);
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      white-space: nowrap;
+    }
+
+    .instrument-pill-label {
+      font-size: 10px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      opacity: 0.8;
+    }
+
+    .instrument-name {
+      font-size: 11px;
+      font-weight: 600;
+    }
+
+    .tune-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 6px;
+      margin-top: 2px;
+    }
+
+    /* 음악 ON/OFF 캡슐 (음표 + meter) */
+    .music-pill {
+      width: 116px;
+      padding: 5px 9px;
+      border-radius: 999px;
+      border: 1px solid rgba(245, 230, 184, 0.6);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      cursor: pointer;
+      background: rgba(10, 12, 18, 0.7);
+      opacity: 0.7;
+      transition:
+        background 0.25s ease,
+        box-shadow 0.25s ease,
+        opacity 0.25s ease,
+        transform 0.15s ease;
+    }
+
+    .music-pill:active {
+      transform: scale(0.96);
+    }
+
+    .music-icon {
+      font-size: 14px;
+      line-height: 1;
+    }
+
+    .music-meter {
+      display: flex;
+      gap: 2px;
+      align-items: flex-end;
+    }
+
+    .music-bar {
+      width: 3px;
+      border-radius: 999px;
+      background: rgba(240, 230, 190, 0.7);
+      transition:
+        height 0.25s ease,
+        opacity 0.25s ease,
+        background 0.25s ease;
+    }
+
+    .music-pill.music-on {
+      background: radial-gradient(
+        circle at top,
+        rgba(245, 230, 184, 0.4) 0,
+        rgba(10, 12, 18, 0.85) 70%
+      );
+      box-shadow: 0 0 14px var(--glow);
+      opacity: 1;
+    }
+
+    .music-pill.music-on .music-icon {
+      color: var(--accent);
+    }
+
+    .music-pill.music-on .music-bar:nth-child(1) {
+      height: 6px;
+    }
+    .music-pill.music-on .music-bar:nth-child(2) {
+      height: 11px;
+    }
+    .music-pill.music-on .music-bar:nth-child(3) {
+      height: 8px;
+    }
+
+    .music-pill.music-off {
+      background: rgba(10, 12, 18, 0.6);
+      box-shadow: none;
+      opacity: 0.5;
+    }
+
+    .music-pill.music-off .music-icon {
+      color: rgba(200, 200, 200, 0.6);
+    }
+
+    .music-pill.music-off .music-bar {
+      height: 3px;
+      opacity: 0.5;
+      background: rgba(180, 180, 180, 0.5);
+    }
+
+    .tune-button {
+      flex: 1;
+      padding: 12px 18px;
+      border-radius: 999px;
+      border: 1px solid var(--button-border);
+      background: radial-gradient(
+        circle at top left,
+        #262a3f 0,
+        var(--button-bg) 60%
+      );
+      color: var(--text-main);
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .tune-button::after {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: -40%;
+      width: 40%;
+      height: 100%;
+      background: linear-gradient(
+        120deg,
+        rgba(245, 230, 184, 0.35),
+        transparent
+      );
+      transform: translateX(-100%);
+      transition: transform 0.6s ease;
+    }
+
+    .tune-button:hover::after {
+      transform: translateX(180%);
+    }
+
+    .tune-button-label {
+      font-size: 11px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+    }
+
+    .hint {
+      font-size: 12px;
+      color: var(--text-soft);
+      opacity: 0.9;
+      margin-top: 2px;
+    }
+
+    .hint strong {
+      color: var(--accent-soft);
+      font-weight: 600;
+    }
+
+    .last-played {
+      margin-top: 8px;
+      font-size: 13px;
+    }
+
+    .last-played span {
+      color: var(--accent);
+      font-weight: 500;
+    }
+
+    /* HOW TO TAB */
+    .section-block {
+      margin-top: 6px;
+    }
+
+    .section-title {
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--text-soft);
+      margin-bottom: 6px;
+    }
+
+    .section-text {
+      font-size: 12px;
+      color: var(--text-soft);
+      line-height: 1.7;
+      margin-bottom: 10px;
+      max-width: 380px;
+    }
+
+    .section-text em {
+      color: var(--accent-soft);
+      font-style: normal;
+      font-weight: 600;
+    }
+
+    .map-card {
+      margin-top: 10px;
+      border-radius: 14px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      background: rgba(5, 7, 10, 0.82);
+      overflow: hidden;
+    }
+
+    .map-card-header {
+      padding: 8px 10px 4px;
+      font-size: 12px;
+      color: var(--text-soft);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .map-card-header span.left {
+      font-weight: 500;
+      color: var(--accent-soft);
+    }
+
+    .map-card-header span.right {
+      font-size: 11px;
+      opacity: 0.7;
+    }
+
+    .map-frame {
+      width: 100%;
+      height: 180px;
+      overflow: hidden;
+      border-top: 1px solid rgba(255, 255, 255, 0.05);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .map-frame iframe {
+      width: 100%;
+      height: 100%;
+      border: 0;
+    }
+
+    .map-caption {
+      padding: 6px 10px 8px;
+      font-size: 11px;
+      color: var(--text-soft);
+      line-height: 1.4;
+    }
+
+    /* BOARD TAB (게시판 / 광고 벽) */
+    .board-wrapper {
+      margin-top: 4px;
+    }
+
+    .board-subtitle {
+      font-size: 13px;
+      color: var(--text-soft);
+      line-height: 1.6;
+      max-width: 360px;
+      margin-top: 6px;
+    }
+
+    .board-images {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    .board-placeholder {
+      border-radius: 14px;
+      border: 1px dashed var(--placeholder-border);
+      background: var(--placeholder-bg);
+      padding: 8px 10px;
+      font-size: 11px;
+      color: var(--text-soft);
+      min-height: 80px;
+    }
+
+    .board-placeholder-title {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--accent-soft);
+      margin-bottom: 3px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .board-list {
+      margin-top: 14px;
+      border-radius: 14px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      background: rgba(5, 7, 10, 0.9);
+      padding: 10px 10px 6px;
+    }
+
+    .board-list-title {
+      font-size: 12px;
+      color: var(--text-soft);
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      margin-bottom: 6px;
+    }
+
+    .board-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      padding: 6px 0;
+      border-bottom: 1px dashed rgba(255, 255, 255, 0.05);
+    }
+
+    .board-item:last-child {
+      border-bottom: none;
+    }
+
+    .board-poster-label {
+      font-size: 12px;
+      color: var(--text-main);
+    }
+
+    .board-meta {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 11px;
+      color: var(--text-soft);
+    }
+
+    .qr-box {
+      width: 18px;
+      height: 18px;
+      border-radius: 4px;
+      border: 1px solid rgba(245, 230, 184, 0.7);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 9px;
+      color: var(--accent-soft);
+    }
+
+    .like-chip {
+      padding: 2px 8px;
+      border-radius: 999px;
+      border: 1px solid rgba(245, 230, 184, 0.6);
+      font-size: 10px;
+      color: var(--accent-soft);
+    }
+
+    .footer {
+      font-size: 11px;
+      color: rgba(167, 165, 160, 0.85);
+      text-align: right;
+      margin-top: 14px;
+    }
+
+    .footer span.test {
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      color: var(--accent);
+      margin-right: 6px;
+    }
+
+    .footer .credit {
+      font-size: 10px;
+      color: #a19d93;
+      text-align: left;
+      margin-top: 4px;
+    }
+
+    @media (max-width: 400px) {
+      .title {
+        font-size: 22px;
+      }
+      .hero-image-box img {
+        height: 120px;
+      }
+      .map-frame {
+        height: 160px;
+      }
+      .pre-visual {
+        width: 190px;
+        height: 190px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <!-- 0번째 화면 (사운드/자동재생 안내) -->
+    <div class="pre-screen" id="preScreen">
+      <div class="pre-title">Prelude</div>
+      <p class="pre-sub">
+        This invitation is <strong>made for headphones</strong>.  
+        Short sounds, a single tuning note and the city around you will blend
+        together. To do that, we need a little permission to speak.
+      </p>
+
+      <div class="pre-visual">
+        <div class="pre-wave-ring"></div>
+        <div class="pre-wave-ring second"></div>
+        <div class="pre-icon-card">
+          <div class="pre-icon-phone">
+            <div class="pre-icon-dot"></div>
+            <div class="pre-icon-speaker">🔊</div>
+            <div class="pre-icon-waves">
+              <div class="pre-wave-line"></div>
+              <div class="pre-wave-line"></div>
+              <div class="pre-wave-line"></div>
+            </div>
+          </div>
+          <div class="pre-label">sound on</div>
+        </div>
+      </div>
+
+      <div class="pre-buttons">
+        <button id="enterWithSound" class="pre-btn-main">
+          Enter with sound
+        </button>
+        <button id="enterSilent" class="pre-btn-ghost">
+          enter silently · I’ll turn it on later
+        </button>
+      </div>
+
+      <p class="pre-caption-small">
+        Your browser may ask you to allow audio the first time.  
+        There will be no sudden shouting, just tuning, ambience and a few
+        whispered instructions.
+      </p>
+    </div>
+
+    <!-- 메인 앱 영역 -->
+    <div class="app-inner hidden" id="mainApp">
+      <!-- 머리카락 오버레이 -->
+      <div class="hair-overlay" id="hairOverlay"></div>
+
+      <!-- 상단 탭 -->
+      <div class="tabs">
+        <button class="tab-btn active" data-tab="invitation">Invitation</button>
+        <button class="tab-btn" data-tab="howto">How to start</button>
+        <button class="tab-btn" data-tab="board">Board</button>
+      </div>
+
+      <main>
+        <!-- TAB 1: Invitation -->
+        <section id="tab-invitation" class="tab-panel active">
+          <div>
+            <h1 class="title">
+              <span class="accent">Invitation</span>
+              A small moment in
+              <span class="highlight-word">Frankfurt</span>,<br />
+              tuned in <span class="highlight-letter">A</span>.
+            </h1>
+
+            <!-- HERO IMAGE: AlteOper.png -->
+            <div class="hero-image-box">
+              <img src="picture/AlteOper.png" alt="Frankfurt Alte Oper at night" />
+              <div class="hero-caption">
+                <span class="hero-keyword">Cinematic night view</span> of Frankfurt
+                Alte Oper with warm streetlights and a slightly blurred square.
+              </div>
+            </div>
+
+            <!-- TUNE SECTION: 히어로 캡션 아래 / 시간·장소 위 -->
+            <section class="tune-section">
+              <div class="tune-header-row">
+                <div class="tune-title">Orchestra warm-up</div>
+                <div class="instrument-pill">
+                  <span class="instrument-pill-label">You are</span>
+                  <span class="instrument-name" id="instrumentLabel">Violins II</span>
+                </div>
+              </div>
+
+              <div class="tune-row">
+                <button id="musicToggle" class="music-pill music-on" type="button">
+                  <span class="music-icon">♪</span>
+                  <span class="music-meter">
+                    <span class="music-bar"></span>
+                    <span class="music-bar"></span>
+                    <span class="music-bar"></span>
+                  </span>
+                </button>
+
+                <button id="tuneButton" class="tune-button" type="button">
+                  <span class="tune-button-label">Let A ring</span>
+                </button>
+              </div>
+
+              <p class="hint">
+                <strong>Test mode:</strong> every touch lets one random tuning moment
+                ring out. Existing sounds are not stopped, so they overlap like a
+                real orchestra getting ready.
+              </p>
+              <p class="last-played">
+                Last played: <span id="lastPlayed">– nothing yet –</span>
+              </p>
+            </section>
+
+            <!-- 시간/장소 카드 -->
+            <div class="time-location-card">
+              <p class="datetime">
+                <span>Saturday, 14 June 2025 · 19:30</span>
+                <span>Samstag, 14. Juni 2025 · 19:30 Uhr</span>
+              </p>
+              <p class="info-strip">
+                <span>Start</span> Alte Oper, Frankfurt · The final location will be
+                revealed on site, not on this screen.
+              </p>
+            </div>
+
+            <p class="subtitle">
+              Wear your headphones, brush the screen once, and let the city quietly
+              become an <strong>orchestra warm-up</strong>. This page is only the
+              prelude; the real party starts when you reach the square.
+            </p>
+          </div>
+        </section>
+
+        <!-- TAB 2: How to start / Alte Oper guidance -->
+        <section id="tab-howto" class="tab-panel">
+          <div>
+            <h1 class="title">
+              <span class="accent">How to start</span>
+              Alte Oper · warm-up instructions
+            </h1>
+          </div>
+
+          <section class="section-block">
+            <div class="section-title">English</div>
+            <p class="section-text">
+              When you step onto the square in front of Alte Oper, don’t rush.
+              Let the traffic, the footsteps and the small conversations move
+              around you for a moment. Imagine the whole place breathing in and
+              out together, like a slow tide you happen to stand inside.
+            </p>
+            <p class="section-text">
+              At some point you will feel that everything is drifting in one
+              direction – a quiet current under the noise. That is your moment.
+              Open this page, put on your headphones, let the music icon glow,
+              and let <em>A</em> ring once.
+            </p>
+            <p class="section-text">
+              You don’t have to force anything. Just follow the tiny shifts:
+              who arrives, who leaves, which light turns on, which sound suddenly
+              feels closer. The rest of the evening will unfold from there, almost
+              as if the square had already decided it for you.
+            </p>
+          </section>
+
+          <section class="section-block">
+            <div class="section-title">Deutsch</div>
+            <p class="section-text">
+              Wenn du auf den Opernplatz vor der Alten Oper trittst, beeile dich
+              nicht. Lass für einen Moment Verkehr, Schritte und Gespräche um dich
+              herum weiterlaufen. Stell dir vor, der ganze Platz atmet gemeinsam
+              ein und aus – wie eine langsame Welle, in der du einfach stehst.
+            </p>
+            <p class="section-text">
+              Irgendwann spürst du, dass alles leicht in eine Richtung treibt –
+              ein leiser Strom unter dem Geräusch. Das ist dein Moment. Öffne
+              diese Seite, setz deine Kopfhörer auf, lass das Musik-Symbol
+              leuchten und lass einmal ein <em>A</em> klingen.
+            </p>
+            <p class="section-text">
+              Du musst nichts erzwingen. Folge nur den kleinen Verschiebungen:
+              wer ankommt, wer geht, welches Licht angeht, welcher Klang plötzlich
+              näher wirkt. Der Rest des Abends entfaltet sich von dort, fast so,
+              als hätte der Platz längst beschlossen, wie er mit dir spielt.
+            </p>
+          </section>
+
+          <section class="map-card">
+            <div class="map-card-header">
+              <span class="left">Alte Oper · Map preview</span>
+              <span class="right">Google Maps embed</span>
+            </div>
+            <div class="map-frame">
+              <iframe
+                src="https://www.google.com/maps?q=Alte+Oper+Frankfurt&output=embed"
+                loading="lazy"
+                referrerpolicy="no-referrer-when-downgrade"
+              ></iframe>
+            </div>
+            <p class="map-caption">
+              This map is just a quiet anchor. On the night itself, the real line
+              you follow is the flow of people, light and sound on the square.
+              Die Karte ist nur ein leiser Anker. Am Abend selbst folgst du vor
+              allem dem Fluss von Menschen, Licht und Klang auf dem Platz.
+            </p>
+          </section>
+        </section>
+
+        <!-- TAB 3: Board / 게시판 -->
+        <section id="tab-board" class="tab-panel">
+          <div class="board-wrapper">
+            <h1 class="title">
+              <span class="accent">Board</span>
+              Posters, QR codes & tiny victories
+            </h1>
+            <p class="board-subtitle">
+              Imagine a wall where every small poster belongs to someone who was
+              here tonight. Some get scanned, some get ignored, some collect more
+              silent <span class="highlight-word">likes</span> than they expected.
+            </p>
+
+            <div class="board-images">
+              <div class="board-placeholder">
+                <div class="board-placeholder-title">
+                  POSTER BOARD IMAGE
+                </div>
+                Moody wooden or cork notice board under warm indoor light,
+                layers of torn paper, tiny empty spaces where QR codes and
+                names will live.
+              </div>
+              <div class="board-placeholder">
+                <div class="board-placeholder-title">
+                  SUBWAY WALL IMAGE
+                </div>
+                Night-time metro station wall with overlapping posters, tape,
+                and soft fluorescent light – like an urban gallery for QR codes.
+              </div>
+            </div>
+
+            <div class="board-list">
+              <div class="board-list-title">
+                tonight’s wall · draft layout
+              </div>
+
+              <div class="board-item">
+                <div class="board-poster-label">
+                  “Streetlight duet” · poster #07
+                </div>
+                <div class="board-meta">
+                  <div class="qr-box">QR</div>
+                  <div class="like-chip">23 likes</div>
+                </div>
+              </div>
+
+              <div class="board-item">
+                <div class="board-poster-label">
+                  “Silent violin II” · poster #12
+                </div>
+                <div class="board-meta">
+                  <div class="qr-box">QR</div>
+                  <div class="like-chip">15 likes</div>
+                </div>
+              </div>
+
+              <div class="board-item">
+                <div class="board-poster-label">
+                  “Timpani in the metro” · poster #03
+                </div>
+                <div class="board-meta">
+                  <div class="qr-box">QR</div>
+                  <div class="like-chip">31 likes</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      </main>
+
+      <div class="footer">
+        <span class="test">TEST MODE</span>
+        Sean’s party · proto-ver.
+        <div class="credit">
+          Intro sound (local playback): “SI_Cac_fx_orchestra_tuning_one_shot_far_imaginative.wav”.
+          This tuning layer will fade the moment your own A starts to ring.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ---- Audio samples (tuning) ----
+    const tuningSamples = [
+      {
+        src: "audio/SI_Cac_fx_cellos_tuning_one_shot_imaginative.wav",
+        label: "Cellos · imaginative",
+        role: "Cellos"
+      },
+      {
+        src: "audio/SI_Cac_fx_trumpets_tuning_one_shot_growing.wav",
+        label: "Trumpets · growing",
+        role: "Trumpets"
+      },
+      {
+        src: "audio/SI_Cac_fx_violins_tuning_one_shot_blooming.wav",
+        label: "Violins · blooming",
+        role: "Violins II"
+      },
+      {
+        src: "audio/zoid_percussion_timpani_roll_A.wav",
+        label: "Timpani roll · A",
+        role: "Timpani"
+      }
+    ];
+
+    // ---- Instrument assignment ("You are: Violins II") ----
+    const instrumentRoles = [
+      { id: "cellos", display: "Cellos" },
+      { id: "trumpets", display: "Trumpets" },
+      { id: "violins2", display: "Violins II" },
+      { id: "timpani", display: "Timpani" }
+    ];
+
+    function getAssignedInstrument() {
+      const key = "partyInstrumentRole_v1";
+      const saved = localStorage.getItem(key);
+      if (saved) {
+        const found = instrumentRoles.find((r) => r.id === saved);
+        if (found) return found;
+      }
+      const idx = Math.floor(Math.random() * instrumentRoles.length);
+      const chosen = instrumentRoles[idx];
+      localStorage.setItem(key, chosen.id);
+      return chosen;
+    }
+
+    const assignedInstrument = getAssignedInstrument();
+
+    const preScreen = document.getElementById("preScreen");
+    const mainApp = document.getElementById("mainApp");
+    const enterWithSoundBtn = document.getElementById("enterWithSound");
+    const enterSilentBtn = document.getElementById("enterSilent");
+
+    const hairOverlay = document.getElementById("hairOverlay");
+    const tuneButton = document.getElementById("tuneButton");
+    const lastPlayedEl = document.getElementById("lastPlayed");
+    const musicToggle = document.getElementById("musicToggle");
+    const instrumentLabelEl = document.getElementById("instrumentLabel");
+    const tabButtons = document.querySelectorAll(".tab-btn");
+    const tabPanels = {
+      invitation: document.getElementById("tab-invitation"),
+      howto: document.getElementById("tab-howto"),
+      board: document.getElementById("tab-board")
+    };
+
+    // 배정된 악기 이름 표시
+    if (instrumentLabelEl && assignedInstrument) {
+      instrumentLabelEl.textContent = assignedInstrument.display;
+    }
+
+    let muted = false;
+    const baseVolume = 0.4;
+
+    // 현재 재생 중인 튜닝 오디오 인스턴스들 (테스트 모드는 겹쳐서 재생)
+    const playingAudios = [];
+
+    // 배경 튜닝 레이어 (Tchaikovsky → orchestra tuning 파일로 변경)
+    let bgAudio = null;
+    let bgStarted = false;
+
+    function initBgAudio() {
+      if (bgAudio) return;
+      bgAudio = new Audio("audio/SI_Cac_fx_orchestra_tuning_one_shot_far_imaginative.wav");
+      bgAudio.loop = false;
+      bgAudio.volume = muted ? 0 : 0.25;
+    }
+
+    function startBgAudio() {
+      initBgAudio();
+      if (bgStarted || !bgAudio) return;
+      bgAudio
+        .play()
+        .then(() => {
+          bgStarted = true;
+        })
+        .catch((err) => {
+          console.warn("Autoplay blocked:", err);
+        });
+    }
+
+    function stopBgAudio() {
+      if (bgAudio) {
+        bgAudio.pause();
+        bgAudio.currentTime = 0;
+      }
+      bgStarted = false;
+    }
+
+    // 머리카락 쓸어내리기
+    hairOverlay.addEventListener("click", () => {
+      hairOverlay.classList.add("hair-gone");
+    });
+
+    function playRandomSample() {
+      // 새 튜닝 음이 울릴 때마다 배경 튜닝 레이어는 바로 종료
+      stopBgAudio();
+
+      const idx = Math.floor(Math.random() * tuningSamples.length);
+      const { src, label } = tuningSamples[idx];
+
+      const audio = new Audio(src);
+      audio.volume = muted ? 0 : baseVolume;
+
+      audio
+        .play()
+        .then(() => {
+          playingAudios.push(audio);
+          if (lastPlayedEl) lastPlayedEl.textContent = label;
+        })
+        .catch((err) => {
+          console.error("Playback failed:", err);
+          if (lastPlayedEl) lastPlayedEl.textContent = "Playback error";
+        });
+
+      audio.addEventListener("ended", () => {
+        const i = playingAudios.indexOf(audio);
+        if (i !== -1) playingAudios.splice(i, 1);
+      });
+    }
+
+    function updateMusicPillVisual() {
+      if (!musicToggle) return;
+      if (muted) {
+        musicToggle.classList.remove("music-on");
+        musicToggle.classList.add("music-off");
+      } else {
+        musicToggle.classList.remove("music-off");
+        musicToggle.classList.add("music-on");
+      }
+    }
+
+    function toggleMute() {
+      muted = !muted;
+
+      // 튜닝 샘플 볼륨
+      playingAudios.forEach((audio) => {
+        audio.volume = muted ? 0 : baseVolume;
+      });
+
+      // 배경 튜닝 레이어 볼륨
+      if (bgAudio) {
+        bgAudio.volume = muted ? 0 : 0.25;
+      }
+
+      updateMusicPillVisual();
+    }
+
+    // 0번째 화면 → 메인 앱 진입
+    function enterApp(withSound) {
+      preScreen.classList.add("hidden");
+      mainApp.classList.remove("hidden");
+      if (withSound) {
+        startBgAudio();
+      } else {
+        muted = true;
+        updateMusicPillVisual();
+      }
+    }
+
+    // 탭 전환
+    tabButtons.forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const tabKey = btn.getAttribute("data-tab");
+        tabButtons.forEach((b) => b.classList.remove("active"));
+        btn.classList.add("active");
+
+        Object.keys(tabPanels).forEach((key) => {
+          tabPanels[key].classList.toggle("active", key === tabKey);
+        });
+      });
+    });
+
+    // 이벤트 연결
+    if (tuneButton) {
+      tuneButton.addEventListener("click", playRandomSample);
+    }
+    if (musicToggle) {
+      musicToggle.addEventListener("click", toggleMute);
+      updateMusicPillVisual();
+    }
+
+    if (enterWithSoundBtn) {
+      enterWithSoundBtn.addEventListener("click", () => enterApp(true));
+    }
+    if (enterSilentBtn) {
+      enterSilentBtn.addEventListener("click", () => enterApp(false));
+    }
+  </script>
+</body>
+</html>
