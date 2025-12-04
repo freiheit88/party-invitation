@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -40,42 +41,27 @@
       background: #000 url("picture/AlteOper.png") center/cover no-repeat fixed;
       color: var(--text-main);
       min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      overflow: hidden;
     }
 
     .hidden {
-      display: none;
+      display: none !important;
     }
 
-    .app {
-      position: relative;
-      width: 100%;
-      max-width: 480px;
-      min-height: 100vh;
-      padding: 18px 18px 30px;
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-      background: radial-gradient(
-          circle at top,
-          rgba(15, 18, 30, 0.96) 0,
-          rgba(5, 7, 10, 0.97) 55%
-        );
-      backdrop-filter: blur(4px);
-    }
-
-    /* ========== -1장: Pre-intro 화면 (영상 + 터치 유도) ========== */
-
-    .preintro-screen {
+    /* ===== 공통: 전체 화면 스크린 래퍼 ===== */
+    .screen {
       position: fixed;
       inset: 0;
-      z-index: 30;
       display: flex;
       align-items: center;
       justify-content: center;
       background: #000;
+      z-index: 1;
+    }
+
+    /* ===== -1장: Pre-intro (영상 + 브러시 팝업) ===== */
+    .preintro-screen {
+      z-index: 30;
     }
 
     .preintro-video-wrap {
@@ -83,7 +69,6 @@
       width: 100%;
       height: 100%;
       max-width: 480px;
-      margin: 0 auto;
       border-radius: 18px;
       overflow: hidden;
       background: #000;
@@ -95,91 +80,124 @@
       object-fit: cover;
     }
 
-    .preintro-gradient {
+    .preintro-dark {
       position: absolute;
       inset: 0;
       background: radial-gradient(
           circle at top,
-          rgba(0, 0, 0, 0.15),
-          rgba(0, 0, 0, 0.7)
+          rgba(0, 0, 0, 0.25),
+          rgba(0, 0, 0, 0.85)
         ),
         linear-gradient(
           to bottom,
-          rgba(0, 0, 0, 0.65),
-          rgba(0, 0, 0, 0.95)
+          rgba(0, 0, 0, 0.75),
+          rgba(0, 0, 0, 0.98)
         );
+      transition: opacity 1.2s ease;
       pointer-events: none;
     }
 
-    .preintro-touch-overlay {
+    .preintro-touch-layer {
       position: absolute;
       inset: 0;
       cursor: pointer;
-      background: transparent;
+      z-index: 3;
     }
 
-    .preintro-ui {
+    /* -1장: 머리카락 느낌 */
+    .preintro-hair {
       position: absolute;
-      bottom: 20px;
-      left: 0;
-      right: 0;
-      padding: 0 16px;
+      top: -40px;
+      left: -5%;
+      width: 110%;
+      height: 140px;
+      background:
+        radial-gradient(circle at 12% 10%, rgba(0,0,0,0.95) 0, transparent 55%) 0 0 / 40% 100% no-repeat,
+        radial-gradient(circle at 45% 0%, rgba(0,0,0,0.98) 0, transparent 60%) 30% 0 / 38% 100% no-repeat,
+        radial-gradient(circle at 82% 12%, rgba(0,0,0,0.9) 0, transparent 60%) 75% 0 / 42% 100% no-repeat;
+      opacity: 0.95;
+      pointer-events: none;
+      z-index: 2;
+    }
+
+    /* -1장: 브러시 팝업 */
+    .preintro-popup-wrap {
+      position: absolute;
+      inset: 0;
       display: flex;
-      flex-direction: column;
       align-items: center;
-      gap: 8px;
+      justify-content: center;
+      z-index: 4;
       pointer-events: none;
     }
 
-    .preintro-hint-main {
+    .preintro-popup {
+      pointer-events: auto;
+      min-width: 220px;
+      max-width: 280px;
+      padding: 14px 16px;
+      border-radius: 18px;
+      background: radial-gradient(
+          circle at top left,
+          rgba(245, 230, 184, 0.18),
+          rgba(10, 10, 12, 0.95)
+        ),
+        rgba(8, 8, 10, 0.98);
+      border: 1px solid rgba(245, 230, 184, 0.6);
+      box-shadow: 0 14px 40px rgba(0, 0, 0, 0.8);
+      text-align: center;
+      animation: popup-in 0.4s ease;
+    }
+
+    .preintro-popup-title {
       font-size: 13px;
-      color: rgba(248, 247, 244, 0.9);
-      text-align: center;
-    }
-
-    .preintro-hint-sub {
-      font-size: 11px;
-      color: rgba(167, 165, 160, 0.9);
-      text-align: center;
-    }
-
-    .preintro-hint-main span {
-      font-weight: 600;
-      letter-spacing: 0.12em;
+      letter-spacing: 0.16em;
       text-transform: uppercase;
       color: var(--accent-soft);
+      margin-bottom: 6px;
     }
 
-    .preintro-progress {
-      width: 48px;
-      height: 3px;
-      border-radius: 999px;
-      background: rgba(255, 255, 255, 0.1);
-      overflow: hidden;
+    .preintro-popup-body {
+      font-size: 12px;
+      color: var(--text-soft);
+      line-height: 1.6;
     }
 
-    .preintro-progress-inner {
-      width: 40%;
-      height: 100%;
-      border-radius: inherit;
-      background: rgba(245, 230, 184, 0.8);
-      animation: preintro-pulse 1.4s ease-in-out infinite;
+    .preintro-popup-body strong {
+      color: var(--accent-soft);
+      font-weight: 600;
     }
 
-    @keyframes preintro-pulse {
-      0% {
-        transform: translateX(-60%);
+    .preintro-popup-hint {
+      font-size: 10px;
+      color: rgba(167, 165, 160, 0.9);
+      margin-top: 8px;
+    }
+
+    .preintro-popup-fade-out {
+      animation: popup-out 0.45s ease forwards;
+    }
+
+    @keyframes popup-in {
+      from {
+        opacity: 0;
+        transform: translateY(8px) scale(0.96);
       }
-      50% {
-        transform: translateX(40%);
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
       }
-      100% {
-        transform: translateX(-60%);
+    }
+
+    @keyframes popup-out {
+      to {
+        opacity: 0;
+        transform: translateY(-4px) scale(0.97);
       }
     }
 
     .preintro-fade-out {
-      animation: preintro-fade 0.5s ease forwards;
+      animation: preintro-fade 0.6s ease forwards;
     }
 
     @keyframes preintro-fade {
@@ -189,44 +207,15 @@
       }
     }
 
-    /* 머리카락 오버레이 (메인 화면에서만 사용) */
-    .hair-overlay {
-      pointer-events: auto;
-      position: absolute;
-      top: -40px;
-      left: 0;
-      width: 110%;
-      height: 120px;
+    /* ===== 0장: Prelude (헤드폰 안내) ===== */
+    .prelude-screen {
+      z-index: 20;
       background: radial-gradient(
-            circle at 10% 10%,
-            rgba(0, 0, 0, 0.9) 0,
-            transparent 55%
-          )
-          0 0 / 45% 100% no-repeat,
-        radial-gradient(
-            circle at 40% 0%,
-            rgba(0, 0, 0, 0.95) 0,
-            transparent 60%
-          )
-          40% 0 / 35% 100% no-repeat,
-        radial-gradient(
-            circle at 80% 10%,
-            rgba(0, 0, 0, 0.9) 0,
-            transparent 60%
-          )
-          80% 0 / 40% 100% no-repeat;
-      opacity: 0.75;
-      z-index: 5;
-      transition: opacity 0.6s ease, transform 0.6s ease;
+          circle at top,
+          rgba(15, 18, 30, 0.96) 0,
+          rgba(5, 7, 10, 0.98) 55%
+        );
     }
-
-    .hair-overlay.hair-gone {
-      opacity: 0;
-      transform: translateY(-40px);
-      pointer-events: none;
-    }
-
-    /* ========== 0번째 화면 (프리롤 / 사운드 권한 안내) ========== */
 
     .pre-screen {
       flex: 1;
@@ -236,8 +225,20 @@
       align-items: center;
       text-align: center;
       gap: 22px;
-      position: relative;
-      z-index: 10;
+      padding: 18px;
+      max-width: 480px;
+      animation: screen-fade-in 0.4s ease;
+    }
+
+    @keyframes screen-fade-in {
+      from {
+        opacity: 0;
+        transform: translateY(8px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
     }
 
     .pre-title {
@@ -431,15 +432,68 @@
       line-height: 1.5;
     }
 
-    /* 메인 앱 영역 */
-    .app-inner {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      position: relative;
+    /* ===== 1장: 메인 앱 ===== */
+    .main-screen {
+      z-index: 10;
+      background: transparent;
     }
 
-    /* 탭 네비게이션 */
+    .app {
+      position: relative;
+      width: 100%;
+      max-width: 480px;
+      min-height: 100vh;
+      padding: 18px 18px 30px;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      background: radial-gradient(
+          circle at top,
+          rgba(15, 18, 30, 0.96) 0,
+          rgba(5, 7, 10, 0.97) 55%
+        );
+      backdrop-filter: blur(4px);
+      animation: screen-fade-in 0.4s ease;
+    }
+
+    /* 머리카락 오버레이 (메인 화면) */
+    .hair-overlay {
+      pointer-events: auto;
+      position: absolute;
+      top: -40px;
+      left: 0;
+      width: 110%;
+      height: 120px;
+      background: radial-gradient(
+            circle at 10% 10%,
+            rgba(0, 0, 0, 0.9) 0,
+            transparent 55%
+          )
+          0 0 / 45% 100% no-repeat,
+        radial-gradient(
+            circle at 40% 0%,
+            rgba(0, 0, 0, 0.95) 0,
+            transparent 60%
+          )
+          40% 0 / 35% 100% no-repeat,
+        radial-gradient(
+            circle at 80% 10%,
+            rgba(0, 0, 0, 0.9) 0,
+            transparent 60%
+          )
+          80% 0 / 40% 100% no-repeat;
+      opacity: 0.75;
+      z-index: 5;
+      transition: opacity 0.6s ease, transform 0.6s ease;
+    }
+
+    .hair-overlay.hair-gone {
+      opacity: 0;
+      transform: translateY(-40px);
+      pointer-events: none;
+    }
+
+    /* 탭 */
     .tabs {
       position: relative;
       z-index: 2;
@@ -536,7 +590,7 @@
       font-weight: 600;
     }
 
-    /* Invitation tab · text slider (Apple-like onboarding) */
+    /* Invitation tab · text slider (본문) */
     .invitation-slider {
       margin-top: 12px;
     }
@@ -583,6 +637,89 @@
       outline-offset: 2px;
     }
 
+    /* Hero 이미지 박스 + Apple식 캡션 슬라이드 */
+    .hero-image-box {
+      margin-top: 10px;
+      border-radius: 16px;
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      background: #000;
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.55);
+    }
+
+    .hero-image-box img {
+      display: block;
+      width: 100%;
+      height: 140px;
+      object-fit: cover;
+      filter: saturate(1.08) contrast(1.08);
+    }
+
+    .hero-caption {
+      position: relative;
+      min-height: 70px;
+      padding: 6px 10px 8px;
+      font-size: 11px;
+      color: var(--text-soft);
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      overflow: hidden;
+    }
+
+    .hero-caption-slide {
+      position: absolute;
+      inset: 6px 10px 18px;
+      opacity: 0;
+      transform: translateX(8px);
+      transition:
+        opacity 0.5s ease,
+        transform 0.5s ease;
+    }
+
+    .hero-caption-slide.active {
+      opacity: 1;
+      transform: translateX(0);
+    }
+
+    .hero-caption-primary {
+      font-size: 11px;
+      margin-bottom: 4px;
+      color: var(--accent-soft);
+      font-weight: 600;
+    }
+
+    .hero-caption-body {
+      font-size: 11px;
+      text-transform: none;
+      letter-spacing: 0.02em;
+      line-height: 1.5;
+    }
+
+    .hero-caption-meta {
+      margin-top: 4px;
+      font-size: 10px;
+      opacity: 0.9;
+    }
+
+    .hero-caption-dots {
+      position: absolute;
+      right: 10px;
+      bottom: 4px;
+      display: flex;
+      gap: 4px;
+    }
+
+    .hero-dot {
+      width: 4px;
+      height: 4px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.25);
+    }
+
+    .hero-dot.active {
+      background: var(--accent-soft);
+    }
+
     /* 시간/장소 카드 */
     .time-location-card {
       margin-top: 10px;
@@ -625,37 +762,6 @@
       letter-spacing: 0.08em;
       text-transform: uppercase;
       font-size: 11px;
-    }
-
-    /* Hero 이미지 박스 (실제 AlteOper 사진) */
-    .hero-image-box {
-      margin-top: 10px;
-      border-radius: 16px;
-      overflow: hidden;
-      border: 1px solid rgba(255, 255, 255, 0.12);
-      background: #000;
-      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.55);
-    }
-
-    .hero-image-box img {
-      display: block;
-      width: 100%;
-      height: 140px;
-      object-fit: cover;
-      filter: saturate(1.08) contrast(1.08);
-    }
-
-    .hero-caption {
-      padding: 6px 10px 8px;
-      font-size: 11px;
-      color: var(--text-soft);
-      letter-spacing: 0.06em;
-      text-transform: uppercase;
-    }
-
-    .hero-caption .hero-keyword {
-      color: var(--accent-soft);
-      font-weight: 600;
     }
 
     /* TUNE 섹션 */
@@ -712,36 +818,38 @@
       margin-top: 2px;
     }
 
-    /* 음악 ON/OFF 캡슐 (음표 + meter) */
+    /* 음악 ON/OFF 캡슐 */
     .music-pill {
       position: relative;
-      width: 116px;
-      padding: 5px 9px;
+      width: 140px;
+      padding: 6px 10px 8px;
       border-radius: 999px;
       border: 1px solid rgba(245, 230, 184, 0.6);
       display: inline-flex;
+      flex-direction: column;
       align-items: center;
       justify-content: center;
-      gap: 6px;
+      gap: 4px;
       cursor: pointer;
       background: rgba(10, 12, 18, 0.7);
-      opacity: 0.7;
+      opacity: 0.9;
       transition:
         background 0.25s ease,
         box-shadow 0.25s ease,
         opacity 0.25s ease,
         transform 0.15s ease;
+      overflow: hidden;
     }
 
-    /* 가로등 백글로우 */
+    /* 가로등 백글로우 (OFF 상태에서) */
     .music-pill::before {
       content: "";
       position: absolute;
-      inset: -8px -16px;
+      inset: -10px -20px;
       border-radius: 999px;
       background: radial-gradient(
         circle at 10% -20%,
-        rgba(245, 230, 184, 0.55),
+        rgba(245, 230, 184, 0.45),
         transparent 65%
       );
       opacity: 0;
@@ -751,11 +859,18 @@
     }
 
     .music-pill.music-off::before {
-      opacity: 0.6;
+      opacity: 0.7;
     }
 
     .music-pill:active {
       transform: scale(0.96);
+    }
+
+    .music-pill-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
     }
 
     .music-icon {
@@ -787,6 +902,16 @@
       );
       box-shadow: 0 0 14px var(--glow);
       opacity: 1;
+      animation: music-glow 4s ease-in-out infinite;
+    }
+
+    @keyframes music-glow {
+      0%, 100% {
+        box-shadow: 0 0 14px rgba(245, 230, 184, 0.65);
+      }
+      50% {
+        box-shadow: 0 0 6px rgba(245, 230, 184, 0.3);
+      }
     }
 
     .music-pill.music-on .music-icon {
@@ -806,17 +931,36 @@
     .music-pill.music-off {
       background: rgba(10, 12, 18, 0.6);
       box-shadow: none;
-      opacity: 0.5;
+      opacity: 0.7;
     }
 
     .music-pill.music-off .music-icon {
-      color: rgba(200, 200, 200, 0.6);
+      color: rgba(200, 200, 200, 0.7);
     }
 
     .music-pill.music-off .music-bar {
       height: 3px;
       opacity: 0.5;
       background: rgba(180, 180, 180, 0.5);
+    }
+
+    .music-hint {
+      font-size: 9px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: rgba(245, 230, 184, 0.9);
+      opacity: 0;
+      transition: opacity 0.4s ease;
+    }
+
+    .music-pill.music-off .music-hint {
+      opacity: 1;
+      animation: hint-pulse 3s ease-in-out infinite;
+    }
+
+    @keyframes hint-pulse {
+      0%, 100% { opacity: 0.3; }
+      50% { opacity: 1; }
     }
 
     .tune-button {
@@ -859,6 +1003,30 @@
       font-size: 11px;
       letter-spacing: 0.18em;
       text-transform: uppercase;
+    }
+
+    .tune-button-ring {
+      position: absolute;
+      inset: 0;
+      border-radius: 999px;
+      border: 1px solid rgba(245, 230, 184, 0.6);
+      pointer-events: none;
+      opacity: 0;
+    }
+
+    .tune-button.tune-active .tune-button-ring {
+      animation: tune-ring 0.6s ease-out;
+    }
+
+    @keyframes tune-ring {
+      0% {
+        opacity: 0.7;
+        transform: scale(1);
+      }
+      100% {
+        opacity: 0;
+        transform: scale(1.08);
+      }
     }
 
     .hint {
@@ -958,7 +1126,7 @@
       line-height: 1.4;
     }
 
-    /* BOARD TAB (게시판 / 광고 벽) */
+    /* BOARD TAB */
     .board-wrapper {
       margin-top: 4px;
     }
@@ -1098,8 +1266,8 @@
   </style>
 </head>
 <body>
-  <!-- -1장: 프리인트로 (영상) -->
-  <div class="preintro-screen" id="preIntroScreen">
+  <!-- -1장: Pre-intro -->
+  <div class="screen preintro-screen" id="screenMinus1">
     <div class="preintro-video-wrap">
       <video
         id="preIntroVideo"
@@ -1107,28 +1275,32 @@
         muted
         playsinline
       >
-        <!-- 여기 src만 바꿔가면서 5개 콘셉트 테스트 (glass_fog / lens_smudge / rain_drop / wristband_ticket / cat_paw) -->
         <source src="media/preintro_glass_fog.mp4" type="video/mp4" />
       </video>
-      <div class="preintro-gradient"></div>
-      <div class="preintro-touch-overlay" id="preIntroOverlay"></div>
-      <div class="preintro-ui">
-        <div class="preintro-hint-main">
-          <span>brush the screen</span> to clear it
-        </div>
-        <div class="preintro-hint-sub">
-          nothing important yet, just letting your fingers arrive first
-        </div>
-        <div class="preintro-progress">
-          <div class="preintro-progress-inner"></div>
+
+      <div class="preintro-dark" id="preIntroDark"></div>
+      <div class="preintro-hair"></div>
+
+      <div class="preintro-touch-layer" id="preIntroTouch"></div>
+
+      <div class="preintro-popup-wrap">
+        <div class="preintro-popup" id="preIntroPopup">
+          <div class="preintro-popup-title">Brush the screen once</div>
+          <div class="preintro-popup-body">
+            Let your fingers arrive first. The city and the music
+            will follow a moment later.
+          </div>
+          <div class="preintro-popup-hint">
+            No surprises, just strings and a distant square.
+          </div>
         </div>
       </div>
     </div>
   </div>
 
-  <div class="app">
-    <!-- 0번째 화면 (사운드/자동재생 안내) -->
-    <div class="pre-screen hidden" id="preScreen">
+  <!-- 0장: Prelude -->
+  <div class="screen prelude-screen hidden" id="screen0">
+    <div class="pre-screen">
       <div class="pre-title">Prelude</div>
       <p class="pre-sub">
         This invitation is <strong>made for headphones</strong>.<br />
@@ -1155,7 +1327,7 @@
 
       <div class="pre-buttons">
         <button id="enterWithSound" class="pre-btn-main">
-          Enter with sound
+          Enter with music
         </button>
         <button id="enterSilent" class="pre-btn-ghost">
           enter silently · I’ll turn it on later
@@ -1168,9 +1340,11 @@
         whispered instructions.
       </p>
     </div>
+  </div>
 
-    <!-- 1장: 메인 앱 영역 -->
-    <div class="app-inner hidden" id="mainApp">
+  <!-- 1장: 메인 앱 -->
+  <div class="screen main-screen hidden" id="screen1">
+    <div class="app">
       <!-- 머리카락 오버레이 -->
       <div class="hair-overlay" id="hairOverlay"></div>
 
@@ -1192,12 +1366,40 @@
               tuned in <span class="highlight-letter">A</span>.
             </h1>
 
-            <!-- HERO IMAGE: AlteOper.png -->
+            <!-- HERO IMAGE + Apple-style caption slider -->
             <div class="hero-image-box">
               <img src="picture/AlteOper.png" alt="Frankfurt Alte Oper at night" />
               <div class="hero-caption">
-                <span class="hero-keyword">Cinematic night view</span> of Frankfurt
-                Alte Oper with warm streetlights and a slightly blurred square.
+                <div class="hero-caption-slide active" data-index="0">
+                  <div class="hero-caption-primary">
+                    Cinematic night view of Frankfurt Alte Oper
+                  </div>
+                  <div class="hero-caption-body">
+                    Warm streetlights, a slightly blurred square, and the feeling
+                    that something is quietly tuning itself before it begins.
+                  </div>
+                </div>
+
+                <div class="hero-caption-slide" data-index="1">
+                  <div class="hero-caption-body">
+                    Saturday, 14 June 2025 · 19:30<br />
+                    Samstag, 14. Juni 2025 · 19:30 Uhr<br /><br />
+                    <strong>Start:</strong> Alte Oper, Frankfurt – the final location
+                    will be revealed on site, not on this screen.<br /><br />
+                    A small moment in Frankfurt, tuned in A. Wear your headphones and
+                    let tonight be one long tuning note before anything else starts.
+                  </div>
+                  <div class="hero-caption-meta">
+                    TEST MODE · Background layer: “Serenade For Strings Op.48 · 2nd movt”.
+                    It grows with you from the fogged glass to the square, then bows a little
+                    whenever your own A begins to ring.
+                  </div>
+                </div>
+
+                <div class="hero-caption-dots">
+                  <div class="hero-dot active" data-index="0"></div>
+                  <div class="hero-dot" data-index="1"></div>
+                </div>
               </div>
             </div>
 
@@ -1213,16 +1415,20 @@
 
               <div class="tune-row">
                 <button id="musicToggle" class="music-pill music-on" type="button">
-                  <span class="music-icon">♪</span>
-                  <span class="music-meter">
-                    <span class="music-bar"></span>
-                    <span class="music-bar"></span>
-                    <span class="music-bar"></span>
-                  </span>
+                  <div class="music-pill-row">
+                    <span class="music-icon">♪</span>
+                    <span class="music-meter">
+                      <span class="music-bar"></span>
+                      <span class="music-bar"></span>
+                      <span class="music-bar"></span>
+                    </span>
+                  </div>
+                  <span class="music-hint">Try &amp; enjoy the strings</span>
                 </button>
 
                 <button id="tuneButton" class="tune-button" type="button">
                   <span class="tune-button-label">Let A ring</span>
+                  <div class="tune-button-ring"></div>
                 </button>
               </div>
 
@@ -1236,7 +1442,7 @@
               </p>
             </section>
 
-            <!-- 시간/장소 카드 -->
+            <!-- 시간/장소 카드 (간단 버전 유지) -->
             <div class="time-location-card">
               <p class="datetime">
                 <span>Saturday, 14 June 2025 · 19:30</span>
@@ -1248,9 +1454,8 @@
               </p>
             </div>
 
-            <!-- Apple-style onboarding text slider -->
+            <!-- Invitation text slider (본문) -->
             <div class="invitation-slider" id="invitationSlider">
-              <!-- Slide 1: 초대의 톤 -->
               <div class="inv-slide active" data-index="0">
                 <p class="subtitle">
                   A small moment in Frankfurt, tuned in <strong>A</strong>.<br />
@@ -1259,7 +1464,6 @@
                 </p>
               </div>
 
-              <!-- Slide 2: 장소 컨셉 -->
               <div class="inv-slide" data-index="1">
                 <p class="subtitle">
                   We meet in front of Alte Oper, but the final destination is
@@ -1269,7 +1473,6 @@
                 </p>
               </div>
 
-              <!-- Slide 3: 참여 방식 -->
               <div class="inv-slide" data-index="2">
                 <p class="subtitle">
                   When the square feels like it is breathing together – traffic,
@@ -1278,7 +1481,6 @@
                 </p>
               </div>
 
-              <!-- 작은 인디케이터 ● ○ ○ -->
               <div class="inv-pagination" aria-label="Invitation text slides">
                 <button
                   class="inv-dot active"
@@ -1303,7 +1505,7 @@
           </div>
         </section>
 
-        <!-- TAB 2: How to start / Alte Oper guidance -->
+        <!-- TAB 2: How to start -->
         <section id="tab-howto" class="tab-panel">
           <div>
             <h1 class="title">
@@ -1377,7 +1579,7 @@
           </section>
         </section>
 
-        <!-- TAB 3: Board / 게시판 -->
+        <!-- TAB 3: Board -->
         <section id="tab-board" class="tab-panel">
           <div class="board-wrapper">
             <h1 class="title">
@@ -1448,18 +1650,99 @@
       </main>
 
       <div class="footer">
-        <span class="test">TEST MODE</span>
-        Sean’s party · proto-ver.
+        <span class="test">PROTOTYPE</span>
+        Sean’s party · tuned in A.
         <div class="credit">
-          Intro sound (local playback): “SI_Cac_fx_orchestra_tuning_one_shot_far_imaginative.wav”.
-          This tuning layer will fade the moment your own A starts to ring.
+          Built as a small hyperlocal score for Alte Oper · background strings,
+          one tuning note and a few quiet instructions.
         </div>
       </div>
     </div>
   </div>
 
   <script>
-    // ---- Audio samples (tuning) ----
+    // ---------------------
+    // Audio: background
+    // ---------------------
+    let bgAudio = null;
+    let bgLogicalVolume = 0.0; // 0–1
+    let bgMuted = false;
+    let bgFadeId = null;
+
+    function ensureBgAudio() {
+      if (!bgAudio) {
+        bgAudio = new Audio("media/Serenade For Strings Op.48_2nd movt.wav");
+        bgAudio.loop = true;
+        bgAudio.volume = 0;
+      }
+      return bgAudio;
+    }
+
+    function updateBgOutputVolume() {
+      if (!bgAudio) return;
+      bgAudio.volume = bgMuted ? 0 : bgLogicalVolume;
+    }
+
+    function fadeBgVolume(target, durationMs) {
+      const audio = ensureBgAudio();
+      if (!audio) return;
+      if (bgFadeId) cancelAnimationFrame(bgFadeId);
+
+      const start = bgLogicalVolume;
+      const diff = target - start;
+      const startTime = performance.now();
+
+      function step(now) {
+        const t = Math.min(1, (now - startTime) / durationMs);
+        bgLogicalVolume = start + diff * t;
+        if (bgLogicalVolume < 0) bgLogicalVolume = 0;
+        if (bgLogicalVolume > 1) bgLogicalVolume = 1;
+        updateBgOutputVolume();
+        if (t < 1) {
+          bgFadeId = requestAnimationFrame(step);
+        }
+      }
+
+      bgFadeId = requestAnimationFrame(step);
+    }
+
+    function startBgPlaybackIfNeeded() {
+      const audio = ensureBgAudio();
+      audio
+        .play()
+        .then(() => {
+          updateBgOutputVolume();
+        })
+        .catch((err) => {
+          console.warn("Background audio autoplay blocked:", err);
+        });
+    }
+
+    function setMusicMuted(m) {
+      bgMuted = m;
+      updateBgOutputVolume();
+      const musicToggle = document.getElementById("musicToggle");
+      if (!musicToggle) return;
+      musicToggle.classList.toggle("music-off", m);
+      musicToggle.classList.toggle("music-on", !m);
+    }
+
+    // ---------------------
+    // Audio: timpani click (only -1, 0장)
+    // ---------------------
+    function playTimpaniClick() {
+      try {
+        const timp = new Audio("media/TS_IFD_kick_timpani_heavy.wav");
+        timp.volume = 0.6;
+        timp.play().catch(() => {});
+      } catch (e) {
+        console.warn("Timpani click failed:", e);
+      }
+    }
+
+    // ---------------------
+    // Audio: tuning samples (1장 전용)
+    // ---------------------
     const tuningSamples = [
       {
         src: "media/SI_Cac_fx_cellos_tuning_one_shot_imaginative.wav",
@@ -1483,7 +1766,6 @@
       }
     ];
 
-    // ---- Instrument assignment ("You are: Violins II") ----
     const instrumentRoles = [
       { id: "cellos", display: "Cellos" },
       { id: "trumpets", display: "Trumpets" },
@@ -1493,25 +1775,33 @@
 
     function getAssignedInstrument() {
       const key = "partyInstrumentRole_v1";
-      const saved = localStorage.getItem(key);
-      if (saved) {
-        const found = instrumentRoles.find((r) => r.id === saved);
-        if (found) return found;
-      }
+      try {
+        const saved = localStorage.getItem(key);
+        if (saved) {
+          const found = instrumentRoles.find((r) => r.id === saved);
+          if (found) return found;
+        }
+      } catch (_) {}
       const idx = Math.floor(Math.random() * instrumentRoles.length);
       const chosen = instrumentRoles[idx];
-      localStorage.setItem(key, chosen.id);
+      try {
+        localStorage.setItem(key, chosen.id);
+      } catch (_) {}
       return chosen;
     }
 
-    const assignedInstrument = getAssignedInstrument();
+    // ---------------------
+    // Screen handling
+    // ---------------------
+    const screenMinus1 = document.getElementById("screenMinus1");
+    const screen0 = document.getElementById("screen0");
+    const screen1 = document.getElementById("screen1");
 
-    const preIntroScreen = document.getElementById("preIntroScreen");
-    const preIntroOverlay = document.getElementById("preIntroOverlay");
+    const preIntroTouch = document.getElementById("preIntroTouch");
+    const preIntroDark = document.getElementById("preIntroDark");
+    const preIntroPopup = document.getElementById("preIntroPopup");
     const preIntroVideo = document.getElementById("preIntroVideo");
 
-    const preScreen = document.getElementById("preScreen");
-    const mainApp = document.getElementById("mainApp");
     const enterWithSoundBtn = document.getElementById("enterWithSound");
     const enterSilentBtn = document.getElementById("enterSilent");
 
@@ -1527,147 +1817,122 @@
       board: document.getElementById("tab-board")
     };
 
-    // 배정된 악기 이름 표시
+    const assignedInstrument = getAssignedInstrument();
     if (instrumentLabelEl && assignedInstrument) {
       instrumentLabelEl.textContent = assignedInstrument.display;
     }
 
-    let muted = false;
-    const baseVolume = 0.4;
-
-    // 현재 재생 중인 튜닝 오디오 인스턴스들 (테스트 모드는 겹쳐서 재생)
-    const playingAudios = [];
-
-    // 배경 튜닝 레이어
-    let bgAudio = null;
-    let bgStarted = false;
-
-    function initBgAudio() {
-      if (bgAudio) return;
-      bgAudio = new Audio(
-        "media/SI_Cac_fx_orchestra_tuning_one_shot_far_imaginative.wav"
-      );
-      bgAudio.loop = false;
-      bgAudio.volume = muted ? 0 : 0.25;
-    }
-
-    function startBgAudio() {
-      initBgAudio();
-      if (bgStarted || !bgAudio) return;
-      bgAudio
-        .play()
-        .then(() => {
-          bgStarted = true;
-        })
-        .catch((err) => {
-          console.warn("Autoplay blocked:", err);
-        });
-    }
-
-    function stopBgAudio() {
-      if (bgAudio) {
-        bgAudio.pause();
-        bgAudio.currentTime = 0;
-      }
-      bgStarted = false;
-    }
-
-    // 머리카락 쓸어내리기 (1장에서만 의미 있음)
+    // 1장 머리카락 쓸어내기
     if (hairOverlay) {
       hairOverlay.addEventListener("click", () => {
         hairOverlay.classList.add("hair-gone");
       });
     }
 
-    function playRandomSample() {
-      // 새 튜닝 음이 울릴 때마다 배경 튜닝 레이어는 바로 종료
-      stopBgAudio();
+    // -1장 → 0장
+    let preIntroStarted = false;
+    function handlePreIntro() {
+      if (preIntroStarted) return;
+      preIntroStarted = true;
 
+      playTimpaniClick(); // -1장 클릭 사운드
+      startBgPlaybackIfNeeded();
+      fadeBgVolume(0.3, 10000); // 0 → 30% over 10s
+
+      if (preIntroDark) {
+        preIntroDark.style.opacity = "0";
+      }
+
+      if (preIntroPopup) {
+        preIntroPopup.classList.add("preintro-popup-fade-out");
+      }
+
+      if (preIntroVideo) {
+        preIntroVideo.muted = false;
+      }
+
+      setTimeout(() => {
+        if (screenMinus1) {
+          screenMinus1.classList.add("preintro-fade-out");
+          setTimeout(() => {
+            screenMinus1.classList.add("hidden");
+            if (screen0) screen0.classList.remove("hidden");
+          }, 600);
+        } else {
+          if (screen0) screen0.classList.remove("hidden");
+        }
+      }, 2000);
+    }
+
+    if (preIntroTouch) {
+      preIntroTouch.addEventListener("click", handlePreIntro);
+    }
+    if (preIntroPopup) {
+      preIntroPopup.addEventListener("click", handlePreIntro);
+    }
+
+    // 0장 → 1장
+    function enterApp(withSound) {
+      // 템파니 클릭은 0장에서만
+      playTimpaniClick();
+
+      if (screen0) screen0.classList.add("hidden");
+      if (screen1) screen1.classList.remove("hidden");
+
+      if (withSound) {
+        // 음악 켠 상태로 진입: 30% → 5%로 10초 페이드
+        bgMuted = false;
+        fadeBgVolume(0.05, 10000);
+        setMusicMuted(false);
+      } else {
+        // 조용히 진입: 논리 볼륨은 5%로 맞추고, 뮤트 상태 유지
+        bgLogicalVolume = 0.05;
+        setMusicMuted(true);
+      }
+    }
+
+    if (enterWithSoundBtn) {
+      enterWithSoundBtn.addEventListener("click", () => enterApp(true));
+    }
+    if (enterSilentBtn) {
+      enterSilentBtn.addEventListener("click", () => enterApp(false));
+    }
+
+    // 1장: Music toggle (배경음만 제어)
+    if (musicToggle) {
+      musicToggle.addEventListener("click", () => {
+        setMusicMuted(!bgMuted);
+      });
+    }
+
+    // 1장: 튜닝 버튼
+    function playRandomSample() {
       const idx = Math.floor(Math.random() * tuningSamples.length);
       const { src, label } = tuningSamples[idx];
 
       const audio = new Audio(src);
-      audio.volume = muted ? 0 : baseVolume;
+      audio.volume = 0.8;
+
+      if (tuneButton) {
+        tuneButton.classList.add("tune-active");
+        setTimeout(() => {
+          tuneButton.classList.remove("tune-active");
+        }, 650);
+      }
 
       audio
         .play()
         .then(() => {
-          playingAudios.push(audio);
           if (lastPlayedEl) lastPlayedEl.textContent = label;
         })
         .catch((err) => {
           console.error("Playback failed:", err);
           if (lastPlayedEl) lastPlayedEl.textContent = "Playback error";
         });
-
-      audio.addEventListener("ended", () => {
-        const i = playingAudios.indexOf(audio);
-        if (i !== -1) playingAudios.splice(i, 1);
-      });
     }
 
-    function updateMusicPillVisual() {
-      if (!musicToggle) return;
-      if (muted) {
-        musicToggle.classList.remove("music-on");
-        musicToggle.classList.add("music-off");
-      } else {
-        musicToggle.classList.remove("music-off");
-        musicToggle.classList.add("music-on");
-      }
-    }
-
-    function toggleMute() {
-      muted = !muted;
-
-      // 튜닝 샘플 볼륨
-      playingAudios.forEach((audio) => {
-        audio.volume = muted ? 0 : baseVolume;
-      });
-
-      // 배경 튜닝 레이어 볼륨
-      if (bgAudio) {
-        bgAudio.volume = muted ? 0 : 0.25;
-      }
-
-      updateMusicPillVisual();
-    }
-
-    // -1장 → 0장으로 진입
-    function enterPrelude() {
-      if (preIntroScreen) {
-        preIntroScreen.classList.add("preintro-fade-out");
-        setTimeout(() => {
-          preIntroScreen.classList.add("hidden");
-          if (preScreen) preScreen.classList.remove("hidden");
-          if (preIntroVideo) {
-            preIntroVideo.pause();
-          }
-        }, 450);
-      } else {
-        if (preScreen) preScreen.classList.remove("hidden");
-      }
-    }
-
-    if (preIntroOverlay) {
-      preIntroOverlay.addEventListener("click", enterPrelude);
-    }
-    if (preIntroVideo) {
-      preIntroVideo.addEventListener("ended", () => {
-        enterPrelude();
-      });
-    }
-
-    // 0장 → 1장 (메인 앱) 진입
-    function enterApp(withSound) {
-      if (preScreen) preScreen.classList.add("hidden");
-      if (mainApp) mainApp.classList.remove("hidden");
-      if (withSound) {
-        startBgAudio();
-      } else {
-        muted = true;
-        updateMusicPillVisual();
-      }
+    if (tuneButton) {
+      tuneButton.addEventListener("click", playRandomSample);
     }
 
     // 탭 전환
@@ -1683,25 +1948,7 @@
       });
     });
 
-    // 이벤트 연결
-    if (tuneButton) {
-      tuneButton.addEventListener("click", playRandomSample);
-    }
-    if (musicToggle) {
-      musicToggle.addEventListener("click", toggleMute);
-      updateMusicPillVisual();
-    }
-
-    if (enterWithSoundBtn) {
-      enterWithSoundBtn.addEventListener("click", () => enterApp(true));
-    }
-    if (enterSilentBtn) {
-      enterSilentBtn.addEventListener("click", () => enterApp(false));
-    }
-
-    // ----------------------------
-    // Invitation tab · text slider
-    // ----------------------------
+    // Invitation tab · text slider (본문)
     (function initInvitationSlider() {
       const slides = document.querySelectorAll(".invitation-slider .inv-slide");
       const dots = document.querySelectorAll(".invitation-slider .inv-dot");
@@ -1733,7 +1980,6 @@
         timer = setInterval(nextSlide, 5000);
       }
 
-      // dot 클릭 시 해당 슬라이드로 이동 + 자동 슬라이드 멈춤
       dots.forEach((dot) => {
         dot.addEventListener("click", () => {
           const index = parseInt(dot.getAttribute("data-index"), 10);
@@ -1745,9 +1991,49 @@
         });
       });
 
-      // 초기 슬라이드 및 자동 슬라이드 시작
       setSlide(0);
       startAuto();
+    })();
+
+    // Hero caption slider (Alte Oper 박스 안)
+    (function initHeroSlider() {
+      const slides = document.querySelectorAll(".hero-caption-slide");
+      const dots = document.querySelectorAll(".hero-dot");
+      if (!slides.length) return;
+
+      let current = 0;
+      const durations = [7000, 14000]; // slide 0: 7s, slide 1: 14s
+
+      function showSlide(i) {
+        current = i;
+        slides.forEach((s, idx) => {
+          s.classList.toggle("active", idx === i);
+        });
+        dots.forEach((d, idx) => {
+          d.classList.toggle("active", idx === i);
+        });
+      }
+
+      function scheduleNext() {
+        const dur = durations[current] || 10000;
+        setTimeout(() => {
+          const next = (current + 1) % slides.length;
+          showSlide(next);
+          scheduleNext();
+        }, dur);
+      }
+
+      dots.forEach((dot) => {
+        dot.addEventListener("click", () => {
+          const idx = parseInt(dot.getAttribute("data-index"), 10);
+          if (!Number.isNaN(idx)) {
+            showSlide(idx);
+          }
+        });
+      });
+
+      showSlide(0);
+      scheduleNext();
     })();
   </script>
 </body>
