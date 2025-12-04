@@ -69,9 +69,9 @@
     /* ========== -1장: Pre-intro 화면 (영상 + 터치 유도) ========== */
 
     .preintro-screen {
-      position: absolute;
+      position: fixed;
       inset: 0;
-      z-index: 20;
+      z-index: 30;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -82,6 +82,8 @@
       position: relative;
       width: 100%;
       height: 100%;
+      max-width: 480px;
+      margin: 0 auto;
       border-radius: 18px;
       overflow: hidden;
       background: #000;
@@ -113,7 +115,6 @@
       position: absolute;
       inset: 0;
       cursor: pointer;
-      /* 살짝 유리 위에 손자국 느낌 */
       background: transparent;
     }
 
@@ -533,6 +534,53 @@
     .subtitle strong {
       color: var(--accent-soft);
       font-weight: 600;
+    }
+
+    /* Invitation tab · text slider (Apple-like onboarding) */
+    .invitation-slider {
+      margin-top: 12px;
+    }
+
+    .inv-slide {
+      display: none;
+    }
+
+    .inv-slide.active {
+      display: block;
+    }
+
+    .inv-pagination {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 6px;
+      margin-top: 8px;
+    }
+
+    .inv-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 999px;
+      border: none;
+      padding: 0;
+      background: rgba(255, 255, 255, 0.18);
+      opacity: 0.5;
+      cursor: pointer;
+      transition:
+        opacity 0.25s ease,
+        transform 0.15s ease,
+        background 0.25s ease;
+    }
+
+    .inv-dot.active {
+      background: var(--accent-soft);
+      opacity: 1;
+      transform: scale(1.15);
+    }
+
+    .inv-dot:focus-visible {
+      outline: 1px solid rgba(245, 230, 184, 0.7);
+      outline-offset: 2px;
     }
 
     /* 시간/장소 카드 */
@@ -1050,35 +1098,35 @@
   </style>
 </head>
 <body>
-  <div class="app">
-    <!-- -1장: 터치 유도용 프리인트로 (영상) -->
-    <div class="preintro-screen" id="preIntroScreen">
-      <div class="preintro-video-wrap">
-        <video
-          id="preIntroVideo"
-          autoplay
-          muted
-          playsinline
-        >
-          <!-- 여기 src만 바꿔가면서 5개 콘셉트 테스트 -->
-          <source src="video/preintro_glass_fog.mp4" type="video/mp4" />
-        </video>
-        <div class="preintro-gradient"></div>
-        <div class="preintro-touch-overlay" id="preIntroOverlay"></div>
-        <div class="preintro-ui">
-          <div class="preintro-hint-main">
-            <span>brush the screen</span> to clear it
-          </div>
-          <div class="preintro-hint-sub">
-            nothing important yet, just letting your fingers arrive first
-          </div>
-          <div class="preintro-progress">
-            <div class="preintro-progress-inner"></div>
-          </div>
+  <!-- -1장: 프리인트로 (영상) -->
+  <div class="preintro-screen" id="preIntroScreen">
+    <div class="preintro-video-wrap">
+      <video
+        id="preIntroVideo"
+        autoplay
+        muted
+        playsinline
+      >
+        <!-- 여기 src만 바꿔가면서 5개 콘셉트 테스트 (glass_fog / lens_smudge / rain_drop / wristband_ticket / cat_paw) -->
+        <source src="media/preintro_glass_fog.mp4" type="video/mp4" />
+      </video>
+      <div class="preintro-gradient"></div>
+      <div class="preintro-touch-overlay" id="preIntroOverlay"></div>
+      <div class="preintro-ui">
+        <div class="preintro-hint-main">
+          <span>brush the screen</span> to clear it
+        </div>
+        <div class="preintro-hint-sub">
+          nothing important yet, just letting your fingers arrive first
+        </div>
+        <div class="preintro-progress">
+          <div class="preintro-progress-inner"></div>
         </div>
       </div>
     </div>
+  </div>
 
+  <div class="app">
     <!-- 0번째 화면 (사운드/자동재생 안내) -->
     <div class="pre-screen hidden" id="preScreen">
       <div class="pre-title">Prelude</div>
@@ -1121,7 +1169,7 @@
       </p>
     </div>
 
-    <!-- 메인 앱 영역 -->
+    <!-- 1장: 메인 앱 영역 -->
     <div class="app-inner hidden" id="mainApp">
       <!-- 머리카락 오버레이 -->
       <div class="hair-overlay" id="hairOverlay"></div>
@@ -1200,11 +1248,58 @@
               </p>
             </div>
 
-            <p class="subtitle">
-              Wear your headphones, brush the screen once, and let the city quietly
-              become an <strong>orchestra warm-up</strong>. This page is only the
-              prelude; the real party starts when you reach the square.
-            </p>
+            <!-- Apple-style onboarding text slider -->
+            <div class="invitation-slider" id="invitationSlider">
+              <!-- Slide 1: 초대의 톤 -->
+              <div class="inv-slide active" data-index="0">
+                <p class="subtitle">
+                  A small moment in Frankfurt, tuned in <strong>A</strong>.<br />
+                  Wear your headphones and let tonight be one long tuning note
+                  before anything else starts.
+                </p>
+              </div>
+
+              <!-- Slide 2: 장소 컨셉 -->
+              <div class="inv-slide" data-index="1">
+                <p class="subtitle">
+                  We meet in front of Alte Oper, but the final destination is
+                  <strong>not written here</strong>.<br />
+                  The city, the people around you and this page will quietly
+                  reveal it on the way.
+                </p>
+              </div>
+
+              <!-- Slide 3: 참여 방식 -->
+              <div class="inv-slide" data-index="2">
+                <p class="subtitle">
+                  When the square feels like it is breathing together – traffic,
+                  footsteps, voices drifting in one direction –<br />
+                  let the music icon glow and tap <strong>“Let A ring”</strong> once.
+                </p>
+              </div>
+
+              <!-- 작은 인디케이터 ● ○ ○ -->
+              <div class="inv-pagination" aria-label="Invitation text slides">
+                <button
+                  class="inv-dot active"
+                  type="button"
+                  data-index="0"
+                  aria-label="Slide 1"
+                ></button>
+                <button
+                  class="inv-dot"
+                  type="button"
+                  data-index="1"
+                  aria-label="Slide 2"
+                ></button>
+                <button
+                  class="inv-dot"
+                  type="button"
+                  data-index="2"
+                  aria-label="Slide 3"
+                ></button>
+              </div>
+            </div>
           </div>
         </section>
 
@@ -1367,22 +1462,22 @@
     // ---- Audio samples (tuning) ----
     const tuningSamples = [
       {
-        src: "audio/SI_Cac_fx_cellos_tuning_one_shot_imaginative.wav",
+        src: "media/SI_Cac_fx_cellos_tuning_one_shot_imaginative.wav",
         label: "Cellos · imaginative",
         role: "Cellos"
       },
       {
-        src: "audio/SI_Cac_fx_trumpets_tuning_one_shot_growing.wav",
+        src: "media/SI_Cac_fx_trumpets_tuning_one_shot_growing.wav",
         label: "Trumpets · growing",
         role: "Trumpets"
       },
       {
-        src: "audio/SI_Cac_fx_violins_tuning_one_shot_blooming.wav",
+        src: "media/SI_Cac_fx_violins_tuning_one_shot_blooming.wav",
         label: "Violins · blooming",
         role: "Violins II"
       },
       {
-        src: "audio/zoid_percussion_timpani_roll_A.wav",
+        src: "media/zoid_percussion_timpani_roll_A.wav",
         label: "Timpani roll · A",
         role: "Timpani"
       }
@@ -1450,7 +1545,7 @@
     function initBgAudio() {
       if (bgAudio) return;
       bgAudio = new Audio(
-        "audio/SI_Cac_fx_orchestra_tuning_one_shot_far_imaginative.wav"
+        "media/SI_Cac_fx_orchestra_tuning_one_shot_far_imaginative.wav"
       );
       bgAudio.loop = false;
       bgAudio.volume = muted ? 0 : 0.25;
@@ -1477,7 +1572,7 @@
       bgStarted = false;
     }
 
-    // 머리카락 쓸어내리기
+    // 머리카락 쓸어내리기 (1장에서만 의미 있음)
     if (hairOverlay) {
       hairOverlay.addEventListener("click", () => {
         hairOverlay.classList.add("hair-gone");
@@ -1559,15 +1654,14 @@
     }
     if (preIntroVideo) {
       preIntroVideo.addEventListener("ended", () => {
-        // 영상이 끝나도 자동으로 Prelude로 넘어가게 (안 넘기고 싶으면 이 부분 지워도 됨)
         enterPrelude();
       });
     }
 
-    // 0번째 화면 → 메인 앱 진입
+    // 0장 → 1장 (메인 앱) 진입
     function enterApp(withSound) {
-      preScreen.classList.add("hidden");
-      mainApp.classList.remove("hidden");
+      if (preScreen) preScreen.classList.add("hidden");
+      if (mainApp) mainApp.classList.remove("hidden");
       if (withSound) {
         startBgAudio();
       } else {
@@ -1604,6 +1698,57 @@
     if (enterSilentBtn) {
       enterSilentBtn.addEventListener("click", () => enterApp(false));
     }
+
+    // ----------------------------
+    // Invitation tab · text slider
+    // ----------------------------
+    (function initInvitationSlider() {
+      const slides = document.querySelectorAll(".invitation-slider .inv-slide");
+      const dots = document.querySelectorAll(".invitation-slider .inv-dot");
+
+      if (!slides.length || !dots.length) return;
+
+      let current = 0;
+      let timer = null;
+      let userInteracted = false;
+
+      function setSlide(index) {
+        current = index;
+        slides.forEach((slide, i) => {
+          slide.classList.toggle("active", i === index);
+        });
+        dots.forEach((dot, i) => {
+          dot.classList.toggle("active", i === index);
+        });
+      }
+
+      function nextSlide() {
+        const next = (current + 1) % slides.length;
+        setSlide(next);
+      }
+
+      function startAuto() {
+        if (userInteracted) return;
+        if (timer) clearInterval(timer);
+        timer = setInterval(nextSlide, 5000);
+      }
+
+      // dot 클릭 시 해당 슬라이드로 이동 + 자동 슬라이드 멈춤
+      dots.forEach((dot) => {
+        dot.addEventListener("click", () => {
+          const index = parseInt(dot.getAttribute("data-index"), 10);
+          if (!Number.isNaN(index)) {
+            userInteracted = true;
+            if (timer) clearInterval(timer);
+            setSlide(index);
+          }
+        });
+      });
+
+      // 초기 슬라이드 및 자동 슬라이드 시작
+      setSlide(0);
+      startAuto();
+    })();
   </script>
 </body>
 </html>
