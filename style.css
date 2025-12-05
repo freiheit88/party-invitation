@@ -1,3 +1,4 @@
+
 :root {
   --bg: #05070a;
   --accent: #f5e6b8;
@@ -12,34 +13,242 @@
   --placeholder-bg: rgba(5, 7, 10, 0.45);
 }
 
-* {
+*,
+*::before,
+*::after {
   box-sizing: border-box;
-  margin: 0;
-  padding: 0;
 }
 
-html, body {
+html,
+body {
+  margin: 0;
+  padding: 0;
   height: 100%;
 }
 
 body {
   font-family: "Manrope", system-ui, -apple-system, BlinkMacSystemFont,
     "Segoe UI", sans-serif;
-  background: #000 url("picture/AlteOper.png") center/cover no-repeat fixed;
+  background: #000;
   color: var(--text-main);
+}
+
+.app-shell {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+/* Scenes */
+
+.scene {
+  position: absolute;
+  inset: 0;
+  display: none;
+}
+
+.scene-visible {
+  display: block;
+}
+
+.scene-video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.scene-overlay {
+  position: absolute;
+  inset: 0;
+}
+
+.scene-overlay-dark {
+  background: radial-gradient(circle at top, rgba(0, 0, 0, 0.6), #000);
+  transition: background 1.2s ease;
+}
+
+/* Preintro UI */
+
+.preintro-ui {
+  position: absolute;
+  inset: 0;
   display: flex;
   align-items: center;
   justify-content: center;
+  pointer-events: none;
 }
 
-/* App container */
+.preintro-popup {
+  pointer-events: auto;
+  background: rgba(5, 7, 10, 0.92);
+  border-radius: 18px;
+  padding: 16px 18px 14px;
+  border: 1px solid rgba(245, 230, 184, 0.45);
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.8);
+  max-width: 320px;
+  text-align: center;
+  animation: preintroPulse 2.8s ease-in-out infinite;
+}
+
+.preintro-title {
+  font-family: "Playfair Display", serif;
+  font-size: 16px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--accent-soft);
+  margin-bottom: 10px;
+}
+
+.preintro-btn {
+  margin-bottom: 8px;
+  padding: 9px 22px;
+  border-radius: 999px;
+  border: 1px solid var(--button-border);
+  background: radial-gradient(
+    circle at top left,
+    #262a3f 0,
+    var(--button-bg) 60%
+  );
+  color: var(--text-main);
+  font-size: 12px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.preintro-btn:active {
+  transform: scale(0.97);
+}
+
+.preintro-sub {
+  font-size: 11px;
+  color: var(--text-soft);
+  line-height: 1.5;
+}
+
+@keyframes preintroPulse {
+  0% {
+    transform: translateY(0);
+    box-shadow: 0 18px 40px rgba(0, 0, 0, 0.8);
+  }
+  50% {
+    transform: translateY(-2px);
+    box-shadow: 0 22px 48px rgba(0, 0, 0, 0.9);
+  }
+  100% {
+    transform: translateY(0);
+    box-shadow: 0 18px 40px rgba(0, 0, 0, 0.8);
+  }
+}
+
+.preintro-overlay-clear {
+  background: radial-gradient(circle at top, rgba(0, 0, 0, 0.15), transparent);
+}
+
+.preintro-popup-hidden {
+  opacity: 0;
+  transform: translateY(4px);
+  pointer-events: none;
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+
+/* Prelude (scene 0) */
+
+.prelude-video-frame {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background: #000;
+}
+
+.prelude-video-rotated {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 100vh;
+  height: 100vw;
+  transform-origin: center;
+  transform: translate(-50%, -50%) rotate(90deg);
+  object-fit: cover;
+}
+
+.prelude-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 16px 18px 20px;
+  pointer-events: none;
+}
+
+.prelude-header {
+  margin-top: 4px;
+}
+
+.prelude-tag {
+  display: inline-block;
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--accent-soft);
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(245, 230, 184, 0.55);
+  background: rgba(0, 0, 0, 0.65);
+}
+
+.prelude-title {
+  margin-top: 10px;
+  font-family: "Playfair Display", serif;
+  font-size: 18px;
+  line-height: 1.5;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.9);
+}
+
+.prelude-instructions {
+  background: linear-gradient(
+    to top,
+    rgba(0, 0, 0, 0.9),
+    rgba(0, 0, 0, 0.4)
+  );
+  border-radius: 18px;
+  padding: 10px 14px;
+  max-width: 420px;
+  pointer-events: auto;
+}
+
+.prelude-hint {
+  font-size: 12px;
+  color: var(--text-main);
+  line-height: 1.6;
+  margin-bottom: 6px;
+}
+
+.prelude-voice-status {
+  font-size: 11px;
+  color: var(--accent-soft);
+  opacity: 0.85;
+}
+
+/* Main app */
+
 .app {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #000 url("picture/AlteOper.png") center/cover no-repeat fixed;
+}
+
+.app-inner {
   position: relative;
   width: 100%;
   max-width: 480px;
-  height: 100vh;
-  max-height: 860px;
-  padding: 12px 14px 16px;
+  height: 100%;
+  padding: 18px 18px 24px;
   display: flex;
   flex-direction: column;
   background: radial-gradient(
@@ -48,132 +257,67 @@ body {
       rgba(5, 7, 10, 0.97) 55%
     );
   backdrop-filter: blur(4px);
-  border-radius: 20px;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
-  overflow: hidden;
 }
 
-/* Top controls */
-.top-controls {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  margin-bottom: 10px;
+/* hero glow layer */
+
+.hero-glow-layer {
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  opacity: 0;
 }
 
-/* Music pill */
-.music-pill {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  padding: 7px 14px;
-  border-radius: 999px;
-  border: 1px solid rgba(245, 230, 184, 0.7);
-  background: rgba(10, 12, 18, 0.85);
-  cursor: pointer;
-  position: relative;
-  min-width: 140px;
-  transition:
-    background 0.25s ease,
-    box-shadow 0.25s ease,
-    transform 0.12s ease;
+.hero-glow-layer.glow-strings {
+  background: radial-gradient(circle at 50% 40%,
+    rgba(251, 216, 143, 0.35),
+    transparent 60%);
 }
 
-.music-pill:active {
-  transform: scale(0.96);
+.hero-glow-layer.glow-brass {
+  background: radial-gradient(circle at 50% 40%,
+    rgba(255, 190, 120, 0.35),
+    transparent 60%);
 }
 
-.music-pill .music-icon {
-  font-size: 22px;
-  line-height: 1;
+.hero-glow-layer.glow-timpani {
+  background: radial-gradient(circle at 50% 40%,
+    rgba(220, 120, 120, 0.32),
+    transparent 60%);
 }
 
-.music-pill .music-text {
-  font-size: 11px;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
+.hero-glow-layer.glow-active {
+  animation: heroGlowSpread 10s ease-out forwards;
 }
 
-/* Unmuted visual */
-.music-pill.music-on {
-  box-shadow: 0 0 16px rgba(245, 230, 184, 0.35);
-  background: radial-gradient(
-    circle at top,
-    rgba(245, 230, 184, 0.45) 0,
-    rgba(10, 12, 18, 0.9) 65%
-  );
-}
-
-/* Mute state: icon hidden, text centered & bolder */
-.music-pill.music-muted {
-  background: rgba(10, 12, 18, 0.7);
-  box-shadow: none;
-}
-
-.music-pill.music-muted .music-icon {
-  display: none;
-}
-
-.music-pill.music-muted .music-text {
-  font-weight: 600;
-  font-size: 12px;
-}
-
-/* Instrument pill */
-.instrument-pill {
-  font-size: 11px;
-  padding: 5px 11px;
-  border-radius: 999px;
-  border: 1px solid rgba(245, 230, 184, 0.5);
-  color: var(--accent-soft);
-  background: rgba(15, 18, 30, 0.9);
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  white-space: nowrap;
-}
-
-.instrument-pill-label {
-  font-size: 10px;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  opacity: 0.8;
-}
-
-.instrument-name {
-  font-size: 11px;
-  font-weight: 600;
-}
-
-/* Visual section (gets filtered on mute) */
-.app-visual {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  border-radius: 16px;
-  background: linear-gradient(
-    160deg,
-    rgba(8, 10, 18, 0.98),
-    rgba(10, 12, 19, 0.96)
-  );
-  padding: 10px 10px 12px;
-  overflow: hidden;
-  transition: filter 2s ease, transform 0.4s ease;
-}
-
-.app-visual.muted-visual {
-  filter: grayscale(0.2) saturate(0.7);
-  transform: scale(0.995);
+@keyframes heroGlowSpread {
+  0% {
+    opacity: 0.0;
+    transform: scale(0.9);
+    filter: blur(0px);
+  }
+  20% {
+    opacity: 0.9;
+    transform: scale(1.0);
+    filter: blur(6px);
+  }
+  100% {
+    opacity: 0.0;
+    transform: scale(1.4);
+    filter: blur(16px);
+  }
 }
 
 /* Tabs */
+
 .tabs {
+  position: relative;
+  z-index: 2;
   display: flex;
   gap: 6px;
   margin-bottom: 10px;
-  background: rgba(5, 7, 10, 0.8);
+  background: rgba(5, 7, 10, 0.7);
   border-radius: 999px;
   padding: 4px;
 }
@@ -200,27 +344,39 @@ body {
 }
 
 .tab-container {
+  position: relative;
+  z-index: 1;
   flex: 1;
-  overflow-y: auto;
-  padding-right: 2px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 }
 
 .tab-panel {
   display: none;
+  flex: 1;
+  flex-direction: column;
+  gap: 16px;
+  margin-top: 8px;
+  overflow-y: auto;
   padding-right: 2px;
 }
 
 .tab-panel.active {
-  display: block;
+  display: flex;
 }
 
-/* Titles */
+/* Text + hero */
+
+.inv-header {
+  margin-bottom: 6px;
+}
+
 .title {
   font-family: "Playfair Display", serif;
-  font-size: 23px;
+  font-size: 24px;
   line-height: 1.3;
   letter-spacing: 0.02em;
-  margin-bottom: 10px;
 }
 
 .title .accent {
@@ -233,24 +389,19 @@ body {
   font-weight: 600;
 }
 
-.subtitle-line {
-  font-size: 13px;
-  color: var(--text-soft);
+.title-soft {
+  font-size: 15px;
   font-weight: 400;
+  color: var(--text-soft);
 }
 
-.highlight-word {
-  color: var(--highlight);
-  font-weight: 700;
-}
-
-/* Hero box */
-.hero-wrapper {
-  margin-bottom: 12px;
+.hero-section {
+  position: relative;
 }
 
 .hero-image-box {
   position: relative;
+  margin-top: 10px;
   border-radius: 16px;
   overflow: hidden;
   border: 1px solid rgba(255, 255, 255, 0.12);
@@ -258,143 +409,197 @@ body {
   box-shadow: 0 16px 40px rgba(0, 0, 0, 0.55);
 }
 
-.hero-image {
+.hero-image-box img {
   display: block;
   width: 100%;
-  height: 150px;
+  height: 160px;
   object-fit: cover;
   filter: saturate(1.08) contrast(1.08);
 }
 
-/* Glow layer triggered by Let A ring */
-.hero-overlay-glow {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  opacity: 0;
-  background:
-    radial-gradient(circle at 30% 10%, rgba(245, 230, 184, 0.2), transparent 55%),
-    radial-gradient(circle at 80% 80%, rgba(255, 180, 130, 0.16), transparent 60%);
-  mix-blend-mode: screen;
-  transition: opacity 0.5s ease;
-}
-
-.hero-overlay-glow.active {
-  animation: heroGlowSpread 10s ease-out forwards;
-}
-
-@keyframes heroGlowSpread {
-  0% {
-    opacity: 0.0;
-  }
-  10% {
-    opacity: 0.45;
-  }
-  80% {
-    opacity: 0.2;
-  }
-  100% {
-    opacity: 0.0;
-  }
+.hero-caption-slider {
+  padding: 6px 10px 4px;
+  min-height: 44px;
 }
 
 .hero-caption {
-  position: absolute;
-  left: 10px;
-  right: 10px;
-  bottom: 18px;
   font-size: 11px;
   color: var(--text-soft);
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
-}
-
-.hero-caption-text {
-  transition: opacity 0.4s ease;
-}
-
-.hero-caption-text.hidden {
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  line-height: 1.4;
   opacity: 0;
+  transform: translateY(4px);
+  transition: opacity 0.4s ease, transform 0.4s ease;
   position: absolute;
-  pointer-events: none;
+}
+
+.hero-caption.hero-caption-active {
+  opacity: 1;
+  transform: translateY(0);
+  position: static;
+}
+
+.hero-keyword {
+  color: var(--accent-soft);
+  font-weight: 600;
+  margin-right: 4px;
 }
 
 .hero-dots {
-  position: absolute;
-  left: 50%;
-  bottom: 6px;
-  transform: translateX(-50%);
   display: flex;
+  justify-content: center;
+  align-items: center;
   gap: 6px;
+  padding: 4px 0 6px;
 }
 
 .hero-dot {
   width: 6px;
   height: 6px;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.22);
-  opacity: 0.6;
+  background: rgba(255, 255, 255, 0.18);
+  opacity: 0.5;
 }
 
-.hero-dot.active {
+.hero-dot.hero-dot-active {
   background: var(--accent-soft);
   opacity: 1;
+  transform: scale(1.15);
 }
 
 /* Tune section */
+
 .tune-section {
-  margin-top: 12px;
-  padding-top: 8px;
-  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  margin-top: 10px;
 }
 
 .tune-header-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 12px;
-  margin-bottom: 6px;
+  gap: 10px;
+  margin-bottom: 8px;
 }
 
-.tune-title {
-  font-size: 12px;
-  text-transform: uppercase;
-  letter-spacing: 0.18em;
-  color: #d2cdbf;
-  opacity: 0.8;
-}
-
-.instrument-mini-pill {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 3px 9px;
+.music-pill {
+  position: relative;
+  min-width: 150px;
+  padding: 6px 10px;
   border-radius: 999px;
   border: 1px solid rgba(245, 230, 184, 0.6);
-  background: rgba(15, 18, 30, 0.9);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  cursor: pointer;
+  background: rgba(10, 12, 18, 0.7);
+  opacity: 0.9;
+  transition:
+    background 0.25s ease,
+    box-shadow 0.25s ease,
+    opacity 0.25s ease,
+    transform 0.15s ease;
+}
+
+.music-pill:active {
+  transform: scale(0.97);
+}
+
+.music-icon {
+  font-size: 22px;
+  line-height: 1;
+}
+
+.music-label {
   font-size: 11px;
-}
-
-.instrument-emoji {
-  font-size: 15px;
-}
-
-.instrument-mini-label {
-  font-size: 10px;
   letter-spacing: 0.12em;
   text-transform: uppercase;
 }
 
-/* Let A ring button */
+/* unmuted: icon only */
+
+.music-pill.music-on .music-label {
+  display: none;
+}
+
+/* muted: label only */
+
+.music-pill.music-muted .music-icon {
+  display: none;
+}
+
+.music-pill.music-muted .music-label {
+  display: inline-block;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.music-pill.music-on {
+  background: radial-gradient(
+    circle at top,
+    rgba(245, 230, 184, 0.4) 0,
+    rgba(10, 12, 18, 0.85) 70%
+  );
+  box-shadow: 0 0 14px var(--glow);
+}
+
+/* subtle breathing animation for unmuted */
+
+.music-pill.music-on .music-icon {
+  animation: musicBreath 2.6s ease-in-out infinite;
+}
+
+@keyframes musicBreath {
+  0% { transform: translateY(0); opacity: 0.8; }
+  50% { transform: translateY(-1px); opacity: 1; }
+  100% { transform: translateY(0); opacity: 0.8; }
+}
+
+.music-pill.music-muted {
+  background: rgba(10, 12, 18, 0.6);
+  box-shadow: none;
+  opacity: 0.8;
+}
+
+/* Instrument pill */
+
+.instrument-pill {
+  font-size: 11px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(245, 230, 184, 0.5);
+  color: var(--accent-soft);
+  background: rgba(15, 18, 30, 0.8);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+.instrument-pill-label {
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  opacity: 0.8;
+}
+
+.instrument-name {
+  font-size: 11px;
+  font-weight: 600;
+}
+
 .tune-row {
   display: flex;
   align-items: center;
   gap: 10px;
-  margin: 6px 0;
+  margin-bottom: 6px;
+  margin-top: 2px;
 }
 
 .tune-button {
   flex: 1;
-  padding: 12px 16px;
+  padding: 12px 18px;
   border-radius: 999px;
   border: 1px solid var(--button-border);
   background: radial-gradient(
@@ -406,10 +611,14 @@ body {
   cursor: pointer;
   position: relative;
   overflow: hidden;
-  display: flex;
+  display: inline-flex;
   align-items: center;
   justify-content: space-between;
   gap: 10px;
+}
+
+.tune-button:active {
+  transform: scale(0.97);
 }
 
 .tune-button-label {
@@ -419,61 +628,41 @@ body {
 }
 
 .tune-button-icons {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-}
-
-.tune-button-icons span {
   font-size: 16px;
 }
 
-/* Ripple effect for Let A ring */
+/* ripple on let A ring */
+
 .tune-button::after {
   content: "";
   position: absolute;
-  left: 50%;
-  top: 50%;
-  width: 0;
-  height: 0;
-  border-radius: 999px;
-  background: radial-gradient(
-    circle,
-    rgba(245, 230, 184, 0.4),
-    transparent 70%
-  );
-  transform: translate(-50%, -50%);
+  inset: 0;
+  border-radius: inherit;
+  background: radial-gradient(circle at center,
+    rgba(245, 230, 184, 0.35),
+    transparent 60%);
   opacity: 0;
-  pointer-events: none;
+  transform: scale(0.7);
+  transition: opacity 0.3s ease, transform 0.3s ease;
 }
 
 .tune-button.ringing::after {
-  animation: ringRipple 0.8s ease-out forwards;
+  opacity: 1;
+  transform: scale(1.05);
 }
 
-@keyframes ringRipple {
-  0% {
-    width: 0;
-    height: 0;
-    opacity: 0.7;
-  }
-  100% {
-    width: 260%;
-    height: 260%;
-    opacity: 0;
-  }
-}
+/* small hint */
 
-.hint {
-  font-size: 12px;
+.hint-small {
+  font-size: 11px;
   color: var(--text-soft);
-  opacity: 0.9;
   margin-top: 4px;
 }
 
-/* Sections */
+/* How to / Board / Orchestra */
+
 .section-block {
-  margin-top: 10px;
+  margin-top: 6px;
 }
 
 .section-title {
@@ -489,18 +678,87 @@ body {
   color: var(--text-soft);
   line-height: 1.7;
   margin-bottom: 10px;
+  max-width: 380px;
 }
 
 .section-text.small {
   font-size: 11px;
+  opacity: 0.9;
+}
+
+.section-text em {
+  color: var(--accent-soft);
+  font-style: normal;
+  font-weight: 600;
+}
+
+.map-card {
+  margin-top: 10px;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(5, 7, 10, 0.82);
+  overflow: hidden;
+}
+
+.map-card-header {
+  padding: 8px 10px 4px;
+  font-size: 12px;
+  color: var(--text-soft);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.map-card-header span.left {
+  font-weight: 500;
+  color: var(--accent-soft);
+}
+
+.map-card-header span.right {
+  font-size: 11px;
+  opacity: 0.7;
+}
+
+.map-frame {
+  width: 100%;
+  height: 180px;
+  overflow: hidden;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.map-frame iframe {
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+
+.map-caption {
+  padding: 6px 10px 8px;
+  font-size: 11px;
+  color: var(--text-soft);
+  line-height: 1.4;
 }
 
 /* Board */
+
+.board-wrapper {
+  margin-top: 4px;
+}
+
 .board-subtitle {
   font-size: 13px;
   color: var(--text-soft);
   line-height: 1.6;
-  margin-bottom: 10px;
+  max-width: 360px;
+  margin-top: 6px;
+}
+
+.board-images {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 10px;
+  margin-top: 12px;
 }
 
 .board-placeholder {
@@ -517,70 +775,198 @@ body {
   font-size: 11px;
   font-weight: 600;
   color: var(--accent-soft);
-  margin-bottom: 4px;
+  margin-bottom: 3px;
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
 
-/* Orchestra game */
-.game-controls {
-  margin-top: 8px;
-  margin-bottom: 12px;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
+.board-list {
+  margin-top: 14px;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(5, 7, 10, 0.9);
+  padding: 10px 10px 6px;
 }
 
-.game-btn {
-  padding: 9px 14px;
+.board-list-title {
+  font-size: 12px;
+  color: var(--text-soft);
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  margin-bottom: 6px;
+}
+
+.board-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 6px 0;
+  border-bottom: 1px dashed rgba(255, 255, 255, 0.05);
+}
+
+.board-item:last-child {
+  border-bottom: none;
+}
+
+.board-poster-label {
+  font-size: 12px;
+  color: var(--text-main);
+}
+
+.board-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  color: var(--text-soft);
+}
+
+.qr-box {
+  width: 18px;
+  height: 18px;
+  border-radius: 4px;
+  border: 1px solid rgba(245, 230, 184, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 9px;
+  color: var(--accent-soft);
+}
+
+.like-chip {
+  padding: 2px 8px;
+  border-radius: 999px;
+  border: 1px solid rgba(245, 230, 184, 0.6);
+  font-size: 10px;
+  color: var(--accent-soft);
+}
+
+/* Orchestra tab */
+
+.orchestra-btn {
+  margin-top: 10px;
+  padding: 10px 18px;
   border-radius: 999px;
   border: 1px solid var(--button-border);
-  background: rgba(26, 30, 50, 0.95);
+  background: radial-gradient(
+    circle at top left,
+    #262a3f 0,
+    var(--button-bg) 60%
+  );
   color: var(--text-main);
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.orchestra-btn:active {
+  transform: scale(0.98);
+}
+
+.orchestra-status {
+  margin-top: 14px;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(5, 7, 10, 0.9);
+  padding: 10px 10px 8px;
+}
+
+.orchestra-status-line {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 11px;
+  color: var(--text-soft);
+  padding: 3px 0;
+}
+
+.orchestra-status-line .label {
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+}
+
+.orchestra-status-line .value {
+  color: var(--accent-soft);
+}
+
+.orchestra-popup {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding: 0 16px 24px;
+  z-index: 30;
+}
+
+.orchestra-popup-inner {
+  background: rgba(5, 7, 10, 0.96);
+  border-radius: 18px;
+  border: 1px solid rgba(245, 230, 184, 0.5);
+  padding: 12px 14px 10px;
+  max-width: 420px;
   font-size: 12px;
+  color: var(--text-soft);
+}
+
+.orchestra-popup-title {
+  font-size: 13px;
+  color: var(--accent-soft);
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+
+.orchestra-popup-close {
+  margin-top: 8px;
+  padding: 7px 16px;
+  border-radius: 999px;
+  border: 1px solid var(--button-border);
+  background: transparent;
+  color: var(--accent-soft);
+  font-size: 11px;
   letter-spacing: 0.12em;
   text-transform: uppercase;
   cursor: pointer;
 }
 
-.range-label {
+.hidden {
+  display: none !important;
+}
+
+/* Footer */
+
+.footer {
   font-size: 11px;
-  color: var(--text-soft);
-  display: flex;
-  align-items: center;
-  gap: 8px;
+  color: rgba(167, 165, 160, 0.85);
+  text-align: right;
+  margin-top: 12px;
 }
 
-.range-label input[type="range"] {
-  flex: 1;
+.footer .test {
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--accent);
+  margin-right: 6px;
 }
 
-.game-status {
-  margin-top: 8px;
-  padding: 8px 10px;
-  border-radius: 10px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  background: rgba(7, 9, 14, 0.9);
-}
-
-.status-line {
-  display: flex;
-  gap: 6px;
-  font-size: 11px;
-  color: var(--text-soft);
-  margin-bottom: 4px;
-}
-
-.status-label {
-  min-width: 110px;
-  color: var(--accent-soft);
+.footer .credit {
+  font-size: 10px;
+  color: #a19d93;
+  text-align: left;
+  margin-top: 4px;
 }
 
 @media (max-width: 400px) {
   .title {
-    font-size: 21px;
+    font-size: 22px;
   }
-  .hero-image {
-    height: 130px;
+  .hero-image-box img {
+    height: 140px;
+  }
+  .map-frame {
+    height: 160px;
   }
 }
