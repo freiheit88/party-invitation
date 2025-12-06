@@ -1,4 +1,6 @@
-*, *::before, *::after {
+*,
+*::before,
+*::after {
   box-sizing: border-box;
 }
 
@@ -12,14 +14,16 @@
   --pill-bg: rgba(16, 18, 26, 0.9);
 }
 
-html, body {
+html,
+body {
   margin: 0;
   padding: 0;
   width: 100%;
   height: 100%;
   background: radial-gradient(circle at top, #0b0d14, #020308);
   color: var(--text-main);
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Arial, sans-serif;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text",
+    "Helvetica Neue", Arial, sans-serif;
 }
 
 body {
@@ -38,6 +42,7 @@ body {
 }
 
 /* Scenes */
+
 .scene {
   position: absolute;
   inset: 0;
@@ -75,6 +80,7 @@ body {
 }
 
 /* Pre-intro center */
+
 .preintro-center {
   position: absolute;
   inset: 0;
@@ -101,7 +107,9 @@ body {
   white-space: normal;
   box-shadow: 0 18px 40px rgba(0, 0, 0, 0.9);
   animation: preintroBtnBreath 2.8s ease-in-out infinite;
-  transition: transform 0.15s ease, box-shadow 0.2s ease;
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.2s ease;
 }
 
 .preintro-btn:active {
@@ -121,20 +129,8 @@ body {
   color: rgba(248, 247, 242, 0.6);
 }
 
-.preintro-btn-line-main {
-  display: block;
-  font-size: 1.5em;
-}
-
-.preintro-btn-line-sub {
-  display: block;
-  margin: 4px 0 8px;
-  font-size: 0.7em;
-  letter-spacing: 0.16em;
-  color: rgba(248, 247, 242, 0.6);
-}
-
 /* Ripple */
+
 .preintro-ripple {
   position: absolute;
   inset: 0;
@@ -169,6 +165,7 @@ body {
 }
 
 /* Prelude */
+
 #scene-prelude {
   background: radial-gradient(circle at top, #080a10, #020308);
 }
@@ -191,6 +188,7 @@ body {
 }
 
 /* Rotated Prelude chapter bar */
+
 .prelude-tag {
   position: absolute;
   left: 50%;
@@ -212,6 +210,7 @@ body {
 }
 
 /* Language zones */
+
 .prelude-zone {
   position: absolute;
   inset: 0;
@@ -255,13 +254,8 @@ body {
   filter: brightness(1.2);
 }
 
-/* Hide legacy Prelude text blocks */
-.prelude-title,
-.prelude-instructions {
-  display: none;
-}
-
 /* Prelude status text */
+
 .prelude-status {
   position: absolute;
   left: 50%;
@@ -277,6 +271,7 @@ body {
 }
 
 /* Main scene */
+
 .app-inner {
   position: absolute;
   inset: 0;
@@ -326,6 +321,7 @@ body {
 }
 
 /* Hero */
+
 .hero-column {
   display: flex;
   flex-direction: column;
@@ -360,44 +356,21 @@ body {
   transition: opacity 1.2s ease;
 }
 
-.glow-active {
+.hero-glow-active {
   opacity: 1;
-}
-
-.glow-strings {
-  background: radial-gradient(circle at center, rgba(251, 216, 143, 0.3), transparent 65%);
-}
-
-.glow-brass {
-  background: radial-gradient(circle at center, rgba(251, 216, 143, 0.3), transparent 65%);
-}
-
-.glow-timpani {
-  background: radial-gradient(circle at center, rgba(251, 216, 143, 0.3), transparent 65%);
-}
-
-.hero-caption-slider {
-  margin-top: 10px;
-  position: relative;
 }
 
 .hero-caption {
+  margin-top: 10px;
+}
+
+.hero-caption-text {
   font-size: 13px;
   color: var(--text-soft);
   min-height: 2.6em;
-  transition: opacity 0.8s ease;
-  opacity: 0;
-  position: absolute;
-  top: 0;
-  left: 0;
 }
 
-.hero-caption-active {
-  opacity: 1;
-  position: relative;
-}
-
-.hero-dots {
+.hero-caption-dots {
   margin-top: 6px;
   display: flex;
   gap: 6px;
@@ -408,111 +381,289 @@ body {
   height: 6px;
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.2);
-  cursor: pointer;
 }
 
 .hero-dot-active {
   background: rgba(245, 230, 184, 0.9);
 }
 
-/* Tune section & Controls */
-.tune-section {
+/* Tuning button */
+
+.tuning-controls {
   display: flex;
-  flex-direction: column;
-  gap: 12px;
+  justify-content: flex-start;
 }
 
-.tune-header-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.music-pill {
+.tuning-btn {
   display: inline-flex;
   align-items: center;
-  justify-content: center;
-  width: 44px;
-  height: 44px;
-  border-radius: 50%;
-  border: 1px solid rgba(245, 230, 184, 0.7);
-  background: var(--pill-bg);
-  cursor: pointer;
-}
-
-.music-icons {
-  font-size: 20px;
-  display: block;
-}
-
-.music-on .music-icon-off {
-  display: none;
-}
-
-.music-muted .music-icon-on {
-  display: none;
-}
-
-.instrument-pill {
-  padding: 6px 12px;
-  border-radius: 999px;
-  background: var(--pill-bg);
-  border: 1px solid rgba(245, 230, 184, 0.4);
-  font-size: 12px;
-  color: var(--accent-soft);
-}
-
-.tune-row {
-  text-align: center;
-}
-
-.tune-button {
-  padding: 8px 18px;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 18px;
   border-radius: 999px;
   border: 1px solid rgba(245, 230, 184, 0.7);
   background: radial-gradient(circle at top, rgba(10, 12, 18, 0.96), rgba(5, 7, 10, 0.9));
   color: var(--accent-soft);
-  font-size: 14px;
+  font-size: 13px;
   cursor: pointer;
 }
 
-.tune-button:active {
-  transform: scale(0.98);
+.tuning-btn:active {
+  transform: scale(0.97);
 }
 
-.tune-button-label {
-  margin-right: 8px;
-}
-
-.tune-button-icons {
+.tuning-instrument-emoji {
   font-size: 18px;
-  vertical-align: middle;
 }
 
-.ringing {
-  animation: ringPulse 0.25s ease;
+/* Tabs */
+
+.tabs-column {
+  border-radius: 24px;
+  background: radial-gradient(circle at top, #11131c, #05060b);
+  padding: 12px 12px 14px;
+  box-shadow: 0 20px 48px rgba(0, 0, 0, 0.9);
 }
 
-/* How to start / Board / Orchestra Tabs styling omitted for brevity (unchanged) ... */
+.tabs-nav {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 10px;
+}
 
-/* Footer */
-.footer {
-  margin-top: auto;
-  font-size: 12px;
-  text-align: center;
+.tab-btn {
+  flex: 1;
+  padding: 6px 8px;
+  border-radius: 999px;
+  border: 0;
+  background: rgba(22, 24, 34, 0.9);
+  color: var(--text-soft);
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.tab-btn-active {
+  background: rgba(245, 230, 184, 0.12);
+  color: var(--accent-soft);
+  border: 1px solid rgba(245, 230, 184, 0.6);
+}
+
+.tabs-body {
+  font-size: 13px;
   color: var(--text-soft);
 }
 
-.footer .test {
-  margin-right: 8px;
-  padding: 2px 6px;
-  border: 1px solid var(--text-soft);
-  border-radius: 4px;
+.tab-panel {
+  display: none;
 }
 
-.footer .credit {
-  margin-top: 4px;
-  font-size: 10px;
+.tab-panel-active {
+  display: block;
 }
 
-/* (Keyframes and any additional styles omitted for brevity) */
+/* Board */
+
+.board-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.board-item {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: 16px;
+  background: rgba(16, 18, 26, 0.9);
+}
+
+.board-meta h3 {
+  margin: 0 0 4px;
+  font-size: 13px;
+}
+
+.board-meta p {
+  margin: 0;
+  font-size: 11px;
+  color: var(--text-soft);
+}
+
+.board-qr-placeholder {
+  width: 52px;
+  height: 52px;
+  border-radius: 12px;
+  border: 1px dashed rgba(245, 230, 184, 0.5);
+}
+
+/* Game */
+
+.map-card {
+  margin-top: 10px;
+}
+
+.map-placeholder {
+  border-radius: 16px;
+  border: 1px solid rgba(245, 230, 184, 0.35);
+  padding: 10px;
+  font-size: 11px;
+  color: var(--text-soft);
+}
+
+.game-btn {
+  margin-top: 8px;
+  padding: 8px 14px;
+  border-radius: 999px;
+  border: 1px solid rgba(245, 230, 184, 0.7);
+  background: rgba(16, 18, 26, 0.95);
+  color: var(--accent-soft);
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.game-status {
+  margin-top: 8px;
+  font-size: 11px;
+  color: var(--text-soft);
+}
+
+/* Music pill */
+
+.music-pill {
+  position: absolute;
+  top: 10px;
+  right: 12px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: rgba(16, 18, 26, 0.95);
+  border: 1px solid rgba(245, 230, 184, 0.5);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 13px;
+  cursor: pointer;
+  z-index: 10;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.9);
+  transition:
+    transform 0.25s ease,
+    box-shadow 0.3s ease,
+    border-color 0.3s ease;
+}
+
+.music-icon {
+  opacity: 0.4;
+  transition: opacity 0.25s ease, transform 0.25s ease;
+}
+
+.music-separator {
+  opacity: 0.5;
+  font-size: 12px;
+}
+
+.music-pill.music-on .music-icon-on {
+  opacity: 1;
+  transform: scale(1.1);
+}
+
+.music-pill.music-on .music-icon-off {
+  opacity: 0.35;
+}
+
+.music-pill.music-muted .music-icon-on {
+  opacity: 0.35;
+}
+
+.music-pill.music-muted .music-icon-off {
+  opacity: 1;
+  transform: scale(1.1);
+}
+
+body.muted-world .music-pill {
+  animation: muteCall 3.6s ease-in-out infinite;
+  box-shadow: 0 0 0 0 rgba(245, 230, 184, 0.4);
+}
+
+/* Desaturation when muted */
+
+body.muted-world .app-shell {
+  filter: grayscale(0.4) saturate(0.6) brightness(0.9);
+  transition: filter 2s ease;
+}
+
+body:not(.muted-world) .app-shell {
+  filter: none;
+  transition: filter 2s ease;
+}
+
+/* Animations */
+
+@keyframes preintroBtnBreath {
+  0% {
+    transform: scale(1);
+    box-shadow: 0 18px 40px rgba(0, 0, 0, 0.9);
+  }
+  50% {
+    transform: scale(1.05);
+    box-shadow: 0 24px 52px rgba(0, 0, 0, 0.95);
+  }
+  100% {
+    transform: scale(1);
+    box-shadow: 0 18px 40px rgba(0, 0, 0, 0.9);
+  }
+}
+
+@keyframes preintroRipplePulse {
+  0% {
+    transform: scale(0.9);
+    opacity: 0.7;
+  }
+  60% {
+    transform: scale(1.3);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1.5);
+    opacity: 0;
+  }
+}
+
+@keyframes preludeLangPulse {
+  0% {
+    transform: translate(-50%, -50%) rotate(90deg) scale(0.95);
+    opacity: 0.8;
+  }
+  50% {
+    transform: translate(-50%, -50%) rotate(90deg) scale(1.1);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(-50%, -50%) rotate(90deg) scale(0.95);
+    opacity: 0.8;
+  }
+}
+
+@keyframes muteCall {
+  0% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(245, 230, 184, 0.5);
+  }
+  50% {
+    transform: scale(1.04);
+    box-shadow: 0 0 18px 0 rgba(245, 230, 184, 0.7);
+  }
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(245, 230, 184, 0.5);
+  }
+}
+
+/* Small screens tweaks */
+
+@media (min-width: 768px) {
+  .app-shell {
+    max-width: 480px;
+    margin: 0 auto;
+  }
+}
