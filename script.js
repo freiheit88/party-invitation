@@ -13,22 +13,37 @@ const activeAudios = new Set();
 // Instrument + tuning samples
 const instrumentRoles = [
   { id: "cellos", display: "Cellos", emoji: "🎻" },
-  { id: "violins2", display: "Violins II", emoji: "🎻" },
   { id: "trumpets", display: "Trumpets", emoji: "🎺" },
+  { id: "violins2", display: "Violins II", emoji: "🎻" },
   { id: "timpani", display: "Timpani", emoji: "🥁" }
 ];
 
-const tuningSamples = {
+// Map instrument -> sample file
+const instrumentSampleMap = {
   cellos: "media/SI_Cac_fx_cellos_tuning_one_shot_imaginative.wav",
-  violins2: "media/SI_Cac_fx_violins_tuning_one_shot_blooming.wav",
   trumpets: "media/SI_Cac_fx_trumpets_tuning_one_shot_growing.wav",
+  violins2: "media/SI_Cac_fx_violins_tuning_one_shot_blooming.wav",
   timpani: "media/zoid_percussion_timpani_roll_A.wav"
 };
 
-// Owned instruments list for harmonics prototype
+// Assigned instrument for this user
+let assignedInstrument = null;
+// Instruments this user can currently ring (harmonics expands this)
 let ownedInstruments = [];
+let ownedIndex = 0;
 
-// Scene elements
+// Hero glow
+const heroGlow = document.getElementById("heroGlow");
+
+// DOM refs for main controls
+const musicToggle = document.getElementById("musicToggle");
+const musicLabel = document.getElementById("musicLabel");
+const instrumentLabelEl = document.getElementById("instrumentLabel");
+const tuneButton = document.getElementById("tuneButton");
+const tuneIcons = document.getElementById("tuneIcons");
+const ownedInstrumentsHint = document.getElementById("ownedInstrumentsHint");
+
+// Scenes
 const scenePreintro = document.getElementById("scene-preintro");
 const scenePrelude = document.getElementById("scene-prelude");
 const sceneMain = document.getElementById("scene-main");
@@ -37,9 +52,12 @@ const sceneMain = document.getElementById("scene-main");
 const preintroOverlay = document.getElementById("preintroOverlay");
 const preintroPopup = document.getElementById("preintroPopup");
 const preintroTouchBtn = document.getElementById("preintroTouchBtn");
+const preintroRipple = document.getElementById("preintroRipple");
 
 // Prelude elements
 const preludeVoiceStatus = document.getElementById("preludeVoiceStatus");
+const preludeZoneLeft = document.querySelector(".prelude-zone-left");
+const preludeZoneRight = document.querySelector(".prelude-zone-right");
 
 // Orchestra tab
 const orchestraJoinBtn = document.getElementById("orchestraJoinBtn");
@@ -57,20 +75,12 @@ const heroDots = document.getElementById("heroDots");
 let heroCaptionIndex = 0;
 let heroCaptionTimer = null;
 
-// tune + instrument UI
-const musicToggle = document.getElementById("musicToggle");
-const musicLabel = document.getElementById("musicLabel");
-const instrumentLabelEl = document.getElementById("instrumentLabel");
-const tuneButton = document.getElementById("tuneButton");
-const tuneEmojiEl = document.getElementById("tuneEmoji");
-const ownedInstrumentsHint = document.getElementById("ownedInstrumentsHint");
+// Preintro / Prelude timing state
+let preintroHasTapped = false;
+let preintroIdleTimer = null;
 
-// hero glow
-const heroGlowLayer = document.getElementById("heroGlowLayer");
-
-// Tabs
-const tabButtons = document.querySelectorAll(".tab-btn");
-const tabPanels = document.querySelectorAll(".tab-panel");
+let preludeAutoTimer = null;
+let preludeTransitionStarted = false;
 
 // --------------------------
 // Utility: audio registration
@@ -84,19 +94,121 @@ function registerAudio(el) {
   });
 }
 
+function applyMuteState() {
+  activeAudios.forEach((audio) => {
+    audio.volume = muted ? 0 : audio._baseVolume ?? audio.volume;
+  });
+
+  if (bgAudio) {
+    bgAudio.volume = muted ? 0 : bgTargetVolume;
+  }
+}
+
+function toggleMute() {
+  muted = !muted;
+
+  if (muted) {
+    document.body.classList.add("muted-world");
+    clearHeroGlow();
+  } else {
+    document.body.classList.remove("muted-world");
+  }
+
+  updateMusicPillVisual();
+  applyMuteState();
+}
+
 // --------------------------
-// Scene helpers
+// Background music
 // --------------------------
 
-function showScene(id) {
-  [scenePreintro, scenePrelude, sceneMain].forEach((scene) => {
-    if (!scene) return;
-    if (scene.id === id) {
-      scene.classList.add("scene-visible");
-    } else {
-      scene.classList.remove("scene-visible");
+function initBgAudio() {
+  if (bgAudio) return;
+  bgAudio = new Audio("media/Serenade For Strings Op.48_2nd movt.wav");
+  bgAudio.loop = true;
+  bgAudio.volume = 0;
+  registerAudio(bgAudio);
+}
+
+function fadeBgTo(target, durationMs) {
+  if (!bgAudio) return;
+  if (bgFadeInterval) clearInterval(bgFadeInterval);
+
+  const steps = Math.max(1, Math.floor(durationMs / 100));
+  const start = bgAudio.volume;
+  const delta = target - start;
+  let i = 0;
+
+  bgFadeInterval = setInterval(() => {
+    i++;
+    const t = i / steps;
+    const v = start + delta * t;
+    bgAudio.volume = muted ? 0 : v;
+    if (i >= steps) {
+      clearInterval(bgFadeInterval);
+      bgFadeInterval = null;
+      bgAudio.volume = muted ? 0 : target;
     }
-  });
+  }, 100);
+}
+
+function startBackgroundMusicFromPreintro() {
+  initBgAudio();
+  if (!bgAudio) return;
+  bgAudio
+    .play()
+    .then(() => {
+      bgTargetVolume = 0.05;
+      fadeBgTo(bgTargetVolume, 6000); // 0 -> 5% over 6s
+    })
+    .catch(() => {
+      // autoplay blocked – do nothing, user may toggle later
+    });
+}
+
+// Duck background fully, then restore at base level after sample
+function duckBgDuring(sampleDurationMs) {
+  if (!bgAudio) return;
+  fadeBgTo(0, 300);
+  setTimeout(() => {
+    fadeBgTo(bgTargetVolume, 400);
+  }, sampleDurationMs + 300);
+}
+
+// --------------------------
+// Timpani (used in -1 and 0)
+// --------------------------
+
+function playTimpani() {
+  const src = "media/TS_IFD_kick_timpani_heavy.wav";
+  const audio = new Audio(src);
+  audio._baseVolume = 0.8;
+  audio.volume = muted ? 0 : audio._baseVolume;
+  registerAudio(audio);
+  audio.play().catch(() => {});
+}
+
+// --------------------------
+// Hero glow
+// --------------------------
+
+function applyHeroGlow(instrumentId) {
+  if (!heroGlow) return;
+  heroGlow.className = "hero-glow-layer";
+
+  if (instrumentId === "violins2" || instrumentId === "cellos") {
+    heroGlow.classList.add("glow-strings");
+  } else if (instrumentId === "trumpets") {
+    heroGlow.classList.add("glow-brass");
+  } else if (instrumentId === "timpani") {
+    heroGlow.classList.add("glow-timpani");
+  }
+  heroGlow.classList.add("glow-active");
+}
+
+function clearHeroGlow() {
+  if (!heroGlow) return;
+  heroGlow.classList.remove("glow-active", "glow-strings", "glow-brass", "glow-timpani");
 }
 
 // --------------------------
@@ -129,230 +241,144 @@ function updateOwnedInstrumentsHint() {
   }
 }
 
-// --------------------------
-// Hero captions
-// --------------------------
+// Round-robin through owned instruments
+function playNextOwnedInstrument() {
+  if (!ownedInstruments.length) return;
+  const instrumentId = ownedInstruments[ownedIndex];
+  ownedIndex = (ownedIndex + 1) % ownedInstruments.length;
+  const src = instrumentSampleMap[instrumentId];
+  if (!src) return;
+  playTuningSample(src, instrumentId);
+}
 
-const heroCaptions = [
-  "Alte Oper, late evening. Streetlights, footsteps, and the soft hum of traffic collecting around the square.",
-  "Saturday, 14 June 2025 · 19:30 · Start at Alte Oper, Frankfurt. The final location reveals itself only when you stand on the square."
-];
+// When harmonics happen, we gain more instruments
+function grantHarmonics(newInstrumentIds) {
+  let added = [];
+  newInstrumentIds.forEach((id) => {
+    if (!ownedInstruments.includes(id)) {
+      ownedInstruments.push(id);
+      added.push(id);
+    }
+  });
+  if (added.length && harmonicsStatusEl) {
+    const names = added
+      .map((id) => instrumentRoles.find((r) => r.id === id))
+      .filter(Boolean)
+      .map((r) => r.display)
+      .join(" · ");
+    harmonicsStatusEl.textContent = "Harmonics with: " + names;
+  }
+  updateOwnedInstrumentsHint();
+  updateTuneIcons();
+}
 
-function updateHeroCaption() {
-  const textEl = document.getElementById("heroCaptionText");
-  if (!textEl) return;
-  textEl.textContent = heroCaptions[heroCaptionIndex];
-
-  if (!heroDots) return;
-  const dots = heroDots.querySelectorAll(".dot");
-  dots.forEach((dot, idx) => {
-    if (idx === heroCaptionIndex) {
-      dot.classList.add("dot-active");
-    } else {
-      dot.classList.remove("dot-active");
+// update emoji icons on let A ring button
+function updateTuneIcons() {
+  if (!tuneIcons) return;
+  tuneIcons.textContent = "";
+  ownedInstruments.forEach((id) => {
+    const role = instrumentRoles.find((r) => r.id === id);
+    if (role && role.emoji) {
+      tuneIcons.textContent += role.emoji + " ";
     }
   });
 }
 
-function startHeroCaptionRotation() {
-  updateHeroCaption();
-  if (heroCaptionTimer) clearInterval(heroCaptionTimer);
-  heroCaptionTimer = setInterval(() => {
-    heroCaptionIndex = (heroCaptionIndex + 1) % heroCaptions.length;
-    updateHeroCaption();
-  }, 7000);
-}
-
 // --------------------------
-// Mute handling
+// Tuning sample playback
 // --------------------------
 
-function applyMuteState() {
-  if (muted) {
-    document.body.classList.add("muted-world");
-  } else {
-    document.body.classList.remove("muted-world");
+function playTuningSample(src, instrumentId) {
+  const audio = new Audio(src);
+  audio._baseVolume = 0.7;
+  // special case: timpani tuning louder
+  if (instrumentId === "timpani") {
+    audio._baseVolume = 1.0;
   }
-
-  activeAudios.forEach((audio) => {
-    audio.volume = muted ? 0 : audio._baseVolume ?? audio.volume;
-  });
-
-  if (bgAudio) {
-    bgAudio.volume = muted ? 0 : bgTargetVolume;
-  }
-}
-
-function toggleMute() {
-  muted = !muted;
-  updateMusicPillVisual();
-  applyMuteState();
-
-  if (muted) clearHeroGlow();
-}
-
-function updateMusicPillVisual() {
-  if (!musicToggle) return;
-  musicToggle.classList.remove("music-on", "music-muted");
-  if (muted) {
-    musicToggle.classList.add("music-muted");
-  } else {
-    musicToggle.classList.add("music-on");
-  }
-}
-
-// --------------------------
-// Background music
-// --------------------------
-
-function startBackgroundMusicFromPreintro() {
-  if (bgAudio) return;
-
-  bgAudio = new Audio("media/Serenade For Strings Op.48_2nd movt.wav");
-  bgAudio.loop = true;
-  bgAudio.volume = 0;
-  bgTargetVolume = 0.3;
-  registerAudio(bgAudio);
-
-  bgAudio.play().catch(() => {});
-
-  if (bgFadeInterval) clearInterval(bgFadeInterval);
-  bgFadeInterval = setInterval(() => {
-    if (!bgAudio) return;
-    const step = 0.01;
-    if (bgAudio.volume < bgTargetVolume) {
-      bgAudio.volume = Math.min(bgTargetVolume, bgAudio.volume + step);
-    } else {
-      clearInterval(bgFadeInterval);
-      bgFadeInterval = null;
-    }
-  }, 200);
-}
-
-// When we are in main scene, keep bg at a subtle 5%
-function setBackgroundMusicForMainScene() {
-  if (!bgAudio) return;
-  bgTargetVolume = 0.05;
-  if (!muted) {
-    bgAudio.volume = bgTargetVolume;
-  }
-}
-
-// Ducking helper: temporarily lower bg during tuning
-function duckBgDuring(durationMs) {
-  if (!bgAudio) return;
-  const original = bgTargetVolume;
-  if (!muted) bgAudio.volume = 0;
-
-  setTimeout(() => {
-    bgTargetVolume = original;
-    if (!muted) bgAudio.volume = bgTargetVolume;
-  }, durationMs);
-}
-
-// --------------------------
-// Tuning + hero glow
-// --------------------------
-
-function clearHeroGlow() {
-  if (heroGlowLayer) {
-    heroGlowLayer.className = "hero-glow-layer";
-  }
-}
-
-function triggerHeroGlow(instrumentId) {
-  if (!heroGlowLayer) return;
-  heroGlowLayer.className = "hero-glow-layer";
-  void heroGlowLayer.offsetWidth;
-
-  let glowClass = "glow-strings";
-  if (instrumentId === "trumpets") glowClass = "glow-brass";
-  if (instrumentId === "timpani") glowClass = "glow-timpani";
-
-  heroGlowLayer.classList.add(glowClass, "glow-active");
-}
-
-function playTimpani() {
-  const audio = new Audio("media/TS_IFD_kick_timpani_heavy.wav");
-  audio._baseVolume = 0.8;
   audio.volume = muted ? 0 : audio._baseVolume;
   registerAudio(audio);
-  audio.play().catch(() => {});
-}
 
-function playTuning(instrumentId) {
-  const src = tuningSamples[instrumentId];
-  if (!src) return;
+  // ring animation on button
+  if (tuneButton) {
+    tuneButton.classList.add("ringing");
+    setTimeout(() => {
+      tuneButton.classList.remove("ringing");
+    }, 250);
+  }
 
-  const audio = new Audio(src);
-  const isTimp = instrumentId === "timpani";
-  const baseVol = isTimp ? 1.0 : 0.7;
-  audio._baseVolume = baseVol;
-  audio.volume = muted ? 0 : baseVol;
-  registerAudio(audio);
-
-  duckBgDuring(4000);
-  triggerHeroGlow(instrumentId);
+  applyHeroGlow(instrumentId);
+  duckBgDuring(3000);
 
   audio.addEventListener("ended", () => {
-    if (!muted && bgAudio) {
-      bgAudio.volume = bgTargetVolume;
-    }
     clearHeroGlow();
   });
 
-  audio.play().catch(() => {});
-}
-
-// --------------------------
-// Instrument + owned set
-// --------------------------
-
-let assignedInstrumentRole = getAssignedInstrument();
-ownedInstruments = [assignedInstrumentRole.id];
-
-function updateInstrumentUI() {
-  if (instrumentLabelEl) {
-    instrumentLabelEl.textContent = assignedInstrumentRole.display;
-  }
-  if (tuneEmojiEl) {
-    tuneEmojiEl.textContent = assignedInstrumentRole.emoji;
-  }
-  updateOwnedInstrumentsHint();
-}
-
-function playNextOwnedInstrument() {
-  if (!ownedInstruments.length) return;
-  const nextId = ownedInstruments[0];
-  playTuning(nextId);
-}
-
-// --------------------------
-// Tabs
-// --------------------------
-
-function setupTabs() {
-  tabButtons.forEach((btn) => {
-    btn.addEventListener("click", () => {
-      const tab = btn.getAttribute("data-tab");
-      if (!tab) return;
-
-      tabButtons.forEach((b) => b.classList.remove("tab-btn-active"));
-      btn.classList.add("tab-btn-active");
-
-      tabPanels.forEach((panel) => {
-        if (panel.getAttribute("data-tab-panel") === tab) {
-          panel.classList.add("tab-panel-active");
-        } else {
-          panel.classList.remove("tab-panel-active");
-        }
-      });
-
-      if (tab === "invitation") {
-        setBackgroundMusicForMainScene();
-      }
-    });
+  audio.play().catch(() => {
+    clearHeroGlow();
   });
+}
+
+// --------------------------
+// Scene switching
+// --------------------------
+
+function showScene(sceneId) {
+  [scenePreintro, scenePrelude, sceneMain].forEach((s) => {
+    if (!s) return;
+    if (s.id === sceneId) {
+      s.classList.add("scene-visible");
+    } else {
+      s.classList.remove("scene-visible");
+    }
+  });
+}
+
+function goToPrelude() {
+  showScene("scene-prelude");
+  // timpani accent entering Prelude
+  playTimpani();
+  schedulePreludeVoices();
+
+  preludeTransitionStarted = false;
+  if (preludeAutoTimer) {
+    clearTimeout(preludeAutoTimer);
+  }
+  preludeAutoTimer = setTimeout(() => {
+    leavePreludeToMain();
+  }, 30000);
+}
+
+function goToMain() {
+  showScene("scene-main");
+}
+
+function leavePreintroToPrelude() {
+  if (preintroIdleTimer) {
+    clearTimeout(preintroIdleTimer);
+    preintroIdleTimer = null;
+  }
+  if (preintroRipple) {
+    preintroRipple.classList.remove("preintro-ripple-active");
+    preintroRipple.classList.add("preintro-ripple-leaving");
+  }
+  // timpani accent for door between -1 and 0
+  playTimpani();
+  setTimeout(() => {
+    goToPrelude();
+  }, 400);
+}
+
+function leavePreludeToMain() {
+  if (preludeTransitionStarted) return;
+  preludeTransitionStarted = true;
+
+  if (preludeAutoTimer) {
+    clearTimeout(preludeAutoTimer);
+    preludeAutoTimer = null;
+  }
+
+  playTimpani();
+  goToMain();
 }
 
 // --------------------------
@@ -364,23 +390,25 @@ let preludeVoicesStarted = false;
 function schedulePreludeVoices() {
   if (preludeVoicesStarted) return;
   preludeVoicesStarted = true;
-  if (preludeVoiceStatus) preludeVoiceStatus.textContent = "Voices: waiting…";
+  if (preludeVoiceStatus) {
+    preludeVoiceStatus.textContent = "Voices: waiting…";
+  }
 
-  const maleDelay = 4000;
+  const maleDelay = 4000; // ms
   setTimeout(() => {
     playPreludeVoices();
   }, maleDelay);
 }
 
 function playPreludeVoices() {
-  if (!preludeVoiceStatus) return;
-
   const male = new Audio("media/prelude_voice_de_male.wav");
   male._baseVolume = 0.8;
   male.volume = muted ? 0 : male._baseVolume;
   registerAudio(male);
 
-  preludeVoiceStatus.textContent = "Voices: German voice playing…";
+  if (preludeVoiceStatus) {
+    preludeVoiceStatus.textContent = "Voices: German voice playing…";
+  }
   duckBgDuring(5000);
 
   male.addEventListener("ended", () => {
@@ -389,24 +417,90 @@ function playPreludeVoices() {
       female._baseVolume = 0.8;
       female.volume = muted ? 0 : female._baseVolume;
       registerAudio(female);
-      preludeVoiceStatus.textContent = "Voices: English voice playing…";
+
+      if (preludeVoiceStatus) {
+        preludeVoiceStatus.textContent = "Voices: English voice playing…";
+      }
       duckBgDuring(5000);
 
       female.addEventListener("ended", () => {
-        preludeVoiceStatus.textContent = "Voices: finished – the room is listening.";
-        setTimeout(() => {
-          goToMain();
-        }, 1200);
+        if (preludeVoiceStatus) {
+          preludeVoiceStatus.textContent =
+            "Voices: finished – the room is listening.";
+        }
+        // no automatic goToMain(); transition is handled by taps / timeout
       });
 
       female.play().catch(() => {
-        preludeVoiceStatus.textContent = "Voices: (could not play English line)";
+        if (preludeVoiceStatus) {
+          preludeVoiceStatus.textContent = "Voices: playback blocked.";
+        }
       });
     }, 500);
   });
 
   male.play().catch(() => {
-    preludeVoiceStatus.textContent = "Voices: (could not play German line)";
+    if (preludeVoiceStatus) {
+      preludeVoiceStatus.textContent = "Voices: playback blocked.";
+    }
+  });
+}
+
+// --------------------------
+// Hero caption rotation
+// --------------------------
+
+function initHeroCaptionSlider() {
+  const captions = document.querySelectorAll(".hero-caption");
+  if (!captions.length || !heroDots) return;
+
+  function setCaption(index) {
+    heroCaptionIndex = index;
+    captions.forEach((el, i) => {
+      el.classList.toggle("hero-caption-active", i === index);
+    });
+    const dots = heroDots.querySelectorAll(".hero-dot");
+    dots.forEach((el, i) => {
+      el.classList.toggle("hero-dot-active", i === index);
+    });
+  }
+
+  function nextCaption() {
+    const count = captions.length;
+    if (!count) return;
+    const next = (heroCaptionIndex + 1) % count;
+    setCaption(next);
+  }
+
+  setCaption(0);
+  heroCaptionTimer = setInterval(nextCaption, 7000);
+}
+
+// --------------------------
+// Tabs
+// --------------------------
+
+function initTabs() {
+  const tabButtons = document.querySelectorAll(".tab-btn");
+  const tabPanels = {
+    invitation: document.getElementById("tab-invitation"),
+    howto: document.getElementById("tab-howto"),
+    board: document.getElementById("tab-board"),
+    orchestra: document.getElementById("tab-orchestra")
+  };
+
+  tabButtons.forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const key = btn.getAttribute("data-tab");
+      tabButtons.forEach((b) => b.classList.remove("active"));
+      btn.classList.add("active");
+
+      Object.keys(tabPanels).forEach((k) => {
+        const panel = tabPanels[k];
+        if (!panel) return;
+        panel.classList.toggle("active", k === key);
+      });
+    });
   });
 }
 
@@ -415,158 +509,72 @@ function playPreludeVoices() {
 // --------------------------
 
 let myPosition = null;
-let ghostPlayers = [];
+let ghostPlayers = []; // synthetic players
 
 function initGhostPlayers() {
+  // few fixed offsets in meters (rough)
   ghostPlayers = [
-    { id: "ghost1", latOffset: 0.00002, lonOffset: 0.00002, instrumentRole: "violins2" },
-    { id: "ghost2", latOffset: -0.00003, lonOffset: 0.00001, instrumentRole: "trumpets" },
-    { id: "ghost3", latOffset: 0.00005, lonOffset: -0.00002, instrumentRole: "cellos" }
+    { id: "ghost1", latOffset: 0.00002, lonOffset: 0.00002, instrument: "trumpets" },
+    { id: "ghost2", latOffset: -0.00001, lonOffset: 0.00003, instrument: "violins2" },
+    { id: "ghost3", latOffset: 0.00003, lonOffset: -0.00002, instrument: "timpani" }
   ];
 }
 
-function toRad(x) {
-  return (x * Math.PI) / 180;
-}
-
-function distanceInMeters(a, b) {
-  const R = 6371000;
-  const dLat = toRad(b.lat - a.lat);
-  const dLon = toRad(b.lon - a.lon);
-  const lat1 = toRad(a.lat);
-  const lat2 = toRad(b.lat);
-
-  const sinDLat = Math.sin(dLat / 2);
-  const sinDLon = Math.sin(dLon / 2);
-
-  const aa =
-    sinDLat * sinDLat +
-    Math.cos(lat1) * Math.cos(lat2) * sinDLon * sinDLon;
-  const c = 2 * Math.atan2(Math.sqrt(aa), Math.sqrt(1 - aa));
+function haversineDistance(lat1, lon1, lat2, lon2) {
+  const R = 6371000; // meters
+  const toRad = (deg) => (deg * Math.PI) / 180;
+  const dLat = toRad(lat2 - lat1);
+  const dLon = toRad(lon2 - lon1);
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
+    Math.sin(dLon / 2) * Math.sin(dLon / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   return R * c;
 }
 
-function updateHarmonics() {
-  if (!myPosition) {
-    if (harmonicsStatusEl) {
-      harmonicsStatusEl.textContent = "Waiting for the first player.";
-    }
-    return;
-  }
+function updateOrchestraDistances() {
+  if (!myPosition || !ghostPlayers.length) return;
 
-  const myRangeM = 5;
-  const me = { lat: myPosition.lat, lon: myPosition.lon };
-  const nearby = [];
+  const { latitude, longitude } = myPosition;
+  const within = [];
 
-  ghostPlayers.forEach((ghost) => {
-    const gpos = {
-      lat: myPosition.lat + ghost.latOffset,
-      lon: myPosition.lon + ghost.lonOffset
-    };
-    const dist = distanceInMeters(me, gpos);
-    if (dist <= myRangeM) {
-      nearby.push({ ghost, dist });
+  ghostPlayers.forEach((p) => {
+    const lat2 = latitude + p.latOffset;
+    const lon2 = longitude + p.lonOffset;
+    const dist = haversineDistance(latitude, longitude, lat2, lon2);
+    if (dist < 5) {
+      within.push({ id: p.id, dist, instrument: p.instrument });
     }
   });
 
-  if (!nearby.length) {
-    ownedInstruments = [assignedInstrumentRole.id];
-    updateOwnedInstrumentsHint();
-    if (harmonicsStatusEl) {
-      harmonicsStatusEl.textContent = "No harmonics yet. You are tuning solo.";
-    }
+  if (!within.length) {
+    orchestraModeEl.textContent = "Solo";
+    harmonicsStatusEl.textContent = "none yet";
     return;
   }
 
-  const newOwned = new Set([assignedInstrumentRole.id]);
-  nearby.forEach(({ ghost }) => {
-    if (ghost.instrumentRole) newOwned.add(ghost.instrumentRole);
-  });
-  ownedInstruments = Array.from(newOwned);
-  updateOwnedInstrumentsHint();
+  let mode = "Solo";
+  if (within.length === 1) mode = "Duet";
+  else if (within.length === 2) mode = "Trio";
+  else mode = "Orchestra";
 
-  if (harmonicsStatusEl) {
-    harmonicsStatusEl.textContent = `Harmonics with ${nearby.length} nearby player(s).`;
-  }
+  orchestraModeEl.textContent = mode;
+  const inst = within.map((w) => w.instrument);
+  grantHarmonics(inst);
 }
 
 // --------------------------
-// Geolocation handling
-// --------------------------
-
-function startOrchestraGame() {
-  if (!navigator.geolocation) {
-    if (orchestraModeEl) {
-      orchestraModeEl.textContent = "Location not available on this device.";
-    }
-    return;
-  }
-
-  if (orchestraModeEl) orchestraModeEl.textContent = "Listening to the square";
-  if (harmonicsStatusEl) harmonicsStatusEl.textContent = "Waiting for other players…";
-
-  initGhostPlayers();
-
-  if (geoWatchId !== null) {
-    navigator.geolocation.clearWatch(geoWatchId);
-    geoWatchId = null;
-  }
-
-  geoWatchId = navigator.geolocation.watchPosition(
-    (pos) => {
-      const { latitude, longitude } = pos.coords;
-      myPosition = { lat: latitude, lon: longitude };
-      if (myCoordsEl) {
-        myCoordsEl.textContent = `${latitude.toFixed(5)}, ${longitude.toFixed(5)}`;
-      }
-      updateHarmonics();
-    },
-    () => {
-      if (orchestraModeEl) {
-        orchestraModeEl.textContent = "Location permission denied.";
-      }
-    },
-    {
-      enableHighAccuracy: true,
-      maximumAge: 2000,
-      timeout: 8000
-    }
-  );
-}
-
-function stopOrchestraGame() {
-  if (geoWatchId !== null) {
-    navigator.geolocation.clearWatch(geoWatchId);
-    geoWatchId = null;
-  }
-  myPosition = null;
-  ownedInstruments = [assignedInstrumentRole.id];
-  updateOwnedInstrumentsHint();
-  if (orchestraModeEl) orchestraModeEl.textContent = "Idle";
-  if (myCoordsEl) myCoordsEl.textContent = "—";
-  if (harmonicsStatusEl) harmonicsStatusEl.textContent = "Waiting for the first player.";
-}
-
-// --------------------------
-// Scene transitions
-// --------------------------
-
-function goToPrelude() {
-  showScene("scene-prelude");
-  // small timpani accent entering 0-scene
-  playTimpani();
-  schedulePreludeVoices();
-}
-
-function goToMain() {
-  showScene("scene-main");
-}
-
-// --------------------------
-// Pre-intro interaction
+// Preintro interaction
 // --------------------------
 
 function handlePreintroTap() {
+  if (preintroHasTapped) return;
+  preintroHasTapped = true;
+
+  // timpani accent on first touch
+  playTimpani();
+
   // fade overlay
   if (preintroOverlay) {
     preintroOverlay.classList.add("preintro-overlay-clear");
@@ -575,12 +583,37 @@ function handlePreintroTap() {
     preintroPopup.classList.add("preintro-popup-hidden");
   }
 
+  if (preintroTouchBtn) {
+    preintroTouchBtn.disabled = true;
+  }
+
   startBackgroundMusicFromPreintro();
 
-  // move to prelude after brightness fade
+  // After brightness fade, show central ripple and start 7s idle timer
+  const rippleDelay = 1300; // match overlay transition timing
   setTimeout(() => {
-    goToPrelude();
-  }, 1800);
+    if (preintroRipple) {
+      preintroRipple.classList.add("preintro-ripple-active");
+    }
+
+    preintroIdleTimer = setTimeout(() => {
+      leavePreintroToPrelude();
+    }, 7000);
+  }, rippleDelay);
+}
+
+// --------------------------
+// Music pill label update
+// --------------------------
+
+function updateMusicPillVisual() {
+  if (!musicToggle) return;
+  musicToggle.classList.remove("music-on", "music-muted");
+  if (muted) {
+    musicToggle.classList.add("music-muted");
+  } else {
+    musicToggle.classList.add("music-on");
+  }
 }
 
 // --------------------------
@@ -596,30 +629,84 @@ document.addEventListener("DOMContentLoaded", () => {
     preintroTouchBtn.addEventListener("click", handlePreintroTap);
   }
 
-  // Instrument assignment
-  updateInstrumentUI();
+  // Preintro central ripple -> Prelude
+  if (preintroRipple) {
+    preintroRipple.addEventListener("click", () => {
+      leavePreintroToPrelude();
+    });
+  }
 
-  // Tune button
+  // Prelude EN / DE zones -> Main
+  if (preludeZoneLeft) {
+    preludeZoneLeft.addEventListener("click", () => {
+      leavePreludeToMain();
+    });
+  }
+  if (preludeZoneRight) {
+    preludeZoneRight.addEventListener("click", () => {
+      leavePreludeToMain();
+    });
+  }
+
+  // Instrument assignment
+  assignedInstrument = getAssignedInstrument();
+  ownedInstruments = [assignedInstrument.id];
+  ownedIndex = 0;
+
+  if (instrumentLabelEl) {
+    instrumentLabelEl.textContent = assignedInstrument.display;
+  }
+  updateOwnedInstrumentsHint();
+  updateTuneIcons();
+  updateMusicPillVisual();
+
+  // Music toggle
+  if (musicToggle) {
+    musicToggle.addEventListener("click", toggleMute);
+  }
+
+  // Let A ring
   if (tuneButton) {
     tuneButton.addEventListener("click", () => {
       playNextOwnedInstrument();
     });
   }
 
-  // Mute toggle
-  if (musicToggle) {
-    musicToggle.addEventListener("click", toggleMute);
-  }
-  updateMusicPillVisual();
+  // Tabs + hero caption
+  initTabs();
+  initHeroCaptionSlider();
 
-  // Tabs
-  setupTabs();
-  startHeroCaptionRotation();
-
-  // Orchestra join button (simple popup-less version here)
+  // Orchestra game
+  initGhostPlayers();
   if (orchestraJoinBtn) {
     orchestraJoinBtn.addEventListener("click", () => {
-      startOrchestraGame();
+      if (orchestraPopup) orchestraPopup.classList.remove("hidden");
+      if (!navigator.geolocation) {
+        if (myCoordsEl) myCoordsEl.textContent = "Geolocation not supported";
+        return;
+      }
+      if (geoWatchId !== null) return;
+
+      geoWatchId = navigator.geolocation.watchPosition(
+        (pos) => {
+          myPosition = pos.coords;
+          if (myCoordsEl) {
+            myCoordsEl.textContent =
+              pos.coords.latitude.toFixed(6) + ", " + pos.coords.longitude.toFixed(6);
+          }
+          updateOrchestraDistances();
+        },
+        (err) => {
+          if (myCoordsEl) myCoordsEl.textContent = "Error: " + err.message;
+        },
+        { enableHighAccuracy: true, maximumAge: 2000, timeout: 8000 }
+      );
+    });
+  }
+  if (orchestraPopupClose) {
+    orchestraPopupClose.addEventListener("click", () => {
+      orchestraPopup.classList.add("hidden");
     });
   }
 });
+
