@@ -1,4 +1,3 @@
-
 :root {
   --bg: #05070a;
   --accent: #f5e6b8;
@@ -38,6 +37,11 @@ body {
   width: 100%;
   height: 100%;
   overflow: hidden;
+  transition: filter 2s ease;
+}
+
+body.muted-world .app-shell {
+  filter: grayscale(0.35) saturate(0.7) brightness(0.9);
 }
 
 /* Scenes */

@@ -1,4 +1,3 @@
-
 // --------------------------
 // Global audio + state
 // --------------------------
@@ -100,18 +99,11 @@ function toggleMute() {
   updateMusicPillVisual();
   applyMuteState();
 
-  if (muted) clearHeroGlow();
-}
-
-function updateMusicPillVisual() {
-  if (!musicToggle || !musicLabel) return;
-  musicToggle.classList.remove("music-on", "music-muted");
   if (muted) {
-    musicToggle.classList.add("music-muted");
-    musicLabel.textContent = "Muted · Tap to let it in";
+    document.body.classList.add("muted-world");
+    clearHeroGlow();
   } else {
-    musicToggle.classList.add("music-on");
-    musicLabel.textContent = "";
+    document.body.classList.remove("muted-world");
   }
 }
 
