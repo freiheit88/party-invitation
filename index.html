@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -11,7 +12,7 @@
 </head>
 <body>
   <div class="app-shell">
-    <!-- Scene -1 : Pre-intro (fogged glass) -->
+    <!-- Scene -1 : Pre-intro (fogged glass + brush popup) -->
     <section id="scene-preintro" class="scene scene-visible">
       <video
         id="preintroVideo"
@@ -28,20 +29,15 @@
 
       <div class="preintro-ui" id="preintroUi">
         <div class="preintro-popup" id="preintroPopup">
-          <button class="preintro-btn" id="preintroTouchBtn" type="button">
-            <span>Headphones / Headset 🎧</span><br />
-            <span>Volume ~30% 🔉🎧</span>
+          <div class="preintro-title">Let your fingers arrive first</div>
+          <button class="preintro-btn" id="preintroTouchBtn">
+            Brush the screen once
           </button>
+          <p class="preintro-sub">
+            Just a tiny gesture to wake the room before the strings begin.
+          </p>
         </div>
       </div>
-
-      <!-- Central ripple / halo that appears after brightening -->
-      <button
-        class="preintro-ripple"
-        id="preintroRipple"
-        type="button"
-        aria-label="Continue to the study room"
-      ></button>
     </section>
 
     <!-- Scene 0 : Prelude room (sideways study room) -->
@@ -78,16 +74,6 @@
             Voices: waiting
           </div>
         </div>
-      </div>
-
-      <!-- Rotated language zones -->
-      <div class="prelude-zones">
-        <button class="prelude-zone prelude-zone-left" type="button">
-          <span class="prelude-language-label prelude-language-en">EN</span>
-        </button>
-        <button class="prelude-zone prelude-zone-right" type="button">
-          <span class="prelude-language-label prelude-language-de">DE</span>
-        </button>
       </div>
     </section>
 
@@ -143,10 +129,8 @@
               <section class="tune-section">
                 <div class="tune-header-row">
                   <button id="musicToggle" class="music-pill music-on" type="button">
-                    <span class="music-icons" id="musicLabel" aria-hidden="true">
-                      <span class="music-icon-on">🔊</span>
-                      <span class="music-icon-off">🔇</span>
-                    </span>
+                    <span class="music-icon">♪</span>
+                    <span class="music-label" id="musicLabel"></span>
                   </button>
 
                   <div class="instrument-pill">

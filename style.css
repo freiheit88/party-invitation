@@ -1,3 +1,4 @@
+
 :root {
   --bg: #05070a;
   --accent: #f5e6b8;
@@ -32,21 +33,11 @@ body {
   color: var(--text-main);
 }
 
-/* App shell with mute filter */
 .app-shell {
   position: relative;
   width: 100%;
   height: 100%;
   overflow: hidden;
-  transition: filter 2s ease;
-}
-
-body:not(.muted-world) .app-shell {
-  filter: none;
-}
-
-body.muted-world .app-shell {
-  filter: grayscale(0.4) saturate(0.6) brightness(0.9);
 }
 
 /* Scenes */
@@ -70,16 +61,11 @@ body.muted-world .app-shell {
 .scene-overlay {
   position: absolute;
   inset: 0;
-  pointer-events: none;
 }
 
 .scene-overlay-dark {
   background: radial-gradient(circle at top, rgba(0, 0, 0, 0.6), #000);
   transition: background 1.2s ease;
-}
-
-.preintro-overlay-clear {
-  background: radial-gradient(circle at top, rgba(0, 0, 0, 0.15), transparent);
 }
 
 /* Preintro UI */
@@ -95,63 +81,69 @@ body.muted-world .app-shell {
 
 .preintro-popup {
   pointer-events: auto;
-  background: transparent;
-  border: none;
-  box-shadow: none;
-  padding: 0;
-}
-
-.preintro-title,
-.preintro-sub {
-  display: none;
-}
-
-/* Big two-line CTA button */
-.preintro-btn {
-  display: inline-block;
-  margin: 0;
-  padding: 14px 30px;
-  border-radius: 999px;
-  border: 1px solid rgba(245, 230, 184, 0.7);
-  background: radial-gradient(circle at top, rgba(10, 12, 18, 0.96), rgba(5, 7, 10, 0.9));
-  font-family: inherit;
-  font-size: 16px;
-  line-height: 1.4;
-  letter-spacing: 0.08em;
-  text-transform: none;
-  color: var(--accent-soft);
+  background: rgba(5, 7, 10, 0.92);
+  border-radius: 18px;
+  padding: 16px 18px 14px;
+  border: 1px solid rgba(245, 230, 184, 0.45);
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.8);
+  max-width: 320px;
   text-align: center;
-  cursor: pointer;
-  white-space: nowrap;
-  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.9);
-  animation: preintroBtnBreath 2.8s ease-in-out infinite;
-  transition:
-    transform 0.15s ease,
-    box-shadow 0.2s ease;
+  animation: preintroPulse 2.8s ease-in-out infinite;
 }
 
-.preintro-btn span {
-  display: inline-block;
+.preintro-title {
+  font-family: "Playfair Display", serif;
+  font-size: 16px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--accent-soft);
+  margin-bottom: 10px;
+}
+
+.preintro-btn {
+  margin-bottom: 8px;
+  padding: 9px 22px;
+  border-radius: 999px;
+  border: 1px solid var(--button-border);
+  background: radial-gradient(
+    circle at top left,
+    #262a3f 0,
+    var(--button-bg) 60%
+  );
+  color: var(--text-main);
+  font-size: 12px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  cursor: pointer;
 }
 
 .preintro-btn:active {
   transform: scale(0.97);
 }
 
-/* Breathing animation for the CTA */
-@keyframes preintroBtnBreath {
+.preintro-sub {
+  font-size: 11px;
+  color: var(--text-soft);
+  line-height: 1.5;
+}
+
+@keyframes preintroPulse {
   0% {
-    transform: scale(1.0);
+    transform: translateY(0);
     box-shadow: 0 18px 40px rgba(0, 0, 0, 0.8);
   }
   50% {
-    transform: scale(1.05);
-    box-shadow: 0 24px 52px rgba(0, 0, 0, 0.95);
+    transform: translateY(-2px);
+    box-shadow: 0 22px 48px rgba(0, 0, 0, 0.9);
   }
   100% {
-    transform: scale(1.0);
+    transform: translateY(0);
     box-shadow: 0 18px 40px rgba(0, 0, 0, 0.8);
   }
+}
+
+.preintro-overlay-clear {
+  background: radial-gradient(circle at top, rgba(0, 0, 0, 0.15), transparent);
 }
 
 .preintro-popup-hidden {
@@ -159,57 +151,6 @@ body.muted-world .app-shell {
   transform: translateY(4px);
   pointer-events: none;
   transition: opacity 0.6s ease, transform 0.6s ease;
-}
-
-/* Central ripple / halo after brightening */
-.preintro-ripple {
-  position: absolute;
-  inset: 0;
-  margin: auto;
-  width: 170px;
-  height: 170px;
-  border-radius: 50%;
-  border: 1px solid rgba(245, 230, 184, 0.45);
-  background:
-    radial-gradient(circle at center, rgba(245, 230, 184, 0.18), transparent 60%),
-    radial-gradient(circle at center, rgba(5, 7, 10, 0.4), transparent 70%);
-  opacity: 0;
-  pointer-events: none;
-  transform: translateY(0) scale(0.9);
-  box-shadow: 0 0 0 rgba(245, 230, 184, 0.0);
-  transition:
-    opacity 0.4s ease,
-    transform 0.4s ease,
-    box-shadow 0.4s ease;
-}
-
-.preintro-ripple.preintro-ripple-active {
-  opacity: 1;
-  pointer-events: auto;
-  animation: preintroRipplePulse 2.6s ease-in-out infinite;
-}
-
-.preintro-ripple.preintro-ripple-leaving {
-  opacity: 0;
-  pointer-events: none;
-  transform: scale(1.15);
-  box-shadow: 0 0 40px rgba(245, 230, 184, 0.7);
-}
-
-/* Ripple pulse */
-@keyframes preintroRipplePulse {
-  0% {
-    transform: scale(0.9);
-    box-shadow: 0 0 0 rgba(245, 230, 184, 0.0);
-  }
-  50% {
-    transform: scale(1.05);
-    box-shadow: 0 0 42px rgba(245, 230, 184, 0.65);
-  }
-  100% {
-    transform: scale(0.9);
-    box-shadow: 0 0 0 rgba(245, 230, 184, 0.0);
-  }
 }
 
 /* Prelude (scene 0) */
@@ -246,103 +187,53 @@ body.muted-world .app-shell {
   margin-top: 4px;
 }
 
-/* Prelude: keep only label visually */
-.prelude-title,
-.prelude-instructions,
-.prelude-hint,
-.prelude-voice-status {
-  display: none;
-}
-
-/* Rotated Prelude chapter bar */
 .prelude-tag {
   position: absolute;
   left: 50%;
-  bottom: 10%;
+  bottom: 6%;
   transform: translateX(-50%) rotate(90deg);
   transform-origin: center;
-  padding: 10px 34px;
-  border-radius: 999px;
-  background: rgba(5, 7, 10, 0.88);
-  border: 1px solid rgba(245, 230, 184, 0.6);
-  font-size: 14px;
-  letter-spacing: 0.2em;
+  width: 80vh;
+  max-width: 520px;
+  padding: 4px 0;
+  font-size: 18px;
+  letter-spacing: 0.32em;
   text-transform: uppercase;
   text-align: center;
   color: var(--accent-soft);
-  box-shadow: 0 22px 48px rgba(0, 0, 0, 0.9);
 }
 
-/* Prelude EN / DE zones */
-
-.prelude-zones {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  pointer-events: none; /* zones re-enable pointer events */
+.prelude-title {
+  margin-top: 10px;
+  font-family: "Playfair Display", serif;
+  font-size: 18px;
+  line-height: 1.5;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.9);
 }
 
-.prelude-zone {
-  flex: 1;
-  position: relative;
-  margin: 0;
-  padding: 0;
-  border: none;
-  background: transparent;
+.prelude-instructions {
+  background: linear-gradient(
+    to top,
+    rgba(0, 0, 0, 0.9),
+    rgba(0, 0, 0, 0.4)
+  );
+  border-radius: 18px;
+  padding: 10px 14px;
+  max-width: 420px;
   pointer-events: auto;
-  cursor: pointer;
 }
 
-/* language labels inside zones */
-.prelude-language-label {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%) rotate(90deg);
-  transform-origin: center;
-  font-size: 24px;
-  font-weight: 600;
-  letter-spacing: 0.28em;
-  text-transform: uppercase;
-  opacity: 0.9;
-  text-align: center;
-  animation: preludeLangPulse 2.2s ease-in-out infinite;
+.prelude-hint {
+  font-size: 12px;
+  color: var(--text-main);
+  line-height: 1.6;
+  margin-bottom: 6px;
 }
 
-.prelude-language-en {
-  color: #f5e6b8;
-  text-shadow:
-    0 0 10px rgba(251, 216, 143, 0.9),
-    0 0 22px rgba(251, 216, 143, 0.65);
-}
-
-.prelude-language-de {
-  color: #c6ddff;
-  text-shadow:
-    0 0 12px rgba(145, 189, 255, 0.95),
-    0 0 28px rgba(145, 189, 255, 0.7);
-}
-
-/* pulsing emphasis */
-@keyframes preludeLangPulse {
-  0% {
-    transform: translate(-50%, -50%) rotate(90deg) scale(0.95);
-    opacity: 0.8;
-  }
-  50% {
-    transform: translate(-50%, -50%) rotate(90deg) scale(1.08);
-    opacity: 1;
-  }
-  100% {
-    transform: translate(-50%, -50%) rotate(90deg) scale(0.95);
-    opacity: 0.8;
-  }
-}
-
-/* Tap feedback */
-.prelude-zone:active .prelude-language-label {
-  filter: brightness(1.3);
-  transform: translate(-50%, -50%) rotate(90deg) scale(1.1);
+.prelude-voice-status {
+  font-size: 11px;
+  color: var(--accent-soft);
+  opacity: 0.85;
 }
 
 /* Main app */
@@ -595,11 +486,10 @@ body.muted-world .app-shell {
   margin-bottom: 8px;
 }
 
-/* Mute pill with icon pair */
 .music-pill {
   position: relative;
-  min-width: 120px;
-  padding: 6px 12px;
+  min-width: 150px;
+  padding: 6px 10px;
   border-radius: 999px;
   border: 1px solid rgba(245, 230, 184, 0.6);
   display: inline-flex;
@@ -608,7 +498,7 @@ body.muted-world .app-shell {
   gap: 6px;
   cursor: pointer;
   background: rgba(10, 12, 18, 0.7);
-  opacity: 0.95;
+  opacity: 0.9;
   transition:
     background 0.25s ease,
     box-shadow 0.25s ease,
@@ -620,87 +510,60 @@ body.muted-world .app-shell {
   transform: scale(0.97);
 }
 
-.music-icons {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 18px;
+.music-icon {
+  font-size: 22px;
+  line-height: 1;
 }
 
-.music-icon-on,
-.music-icon-off {
+.music-label {
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+/* unmuted: icon only */
+
+.music-pill.music-on .music-label {
+  display: none;
+}
+
+/* muted: label only */
+
+.music-pill.music-muted .music-icon {
+  display: none;
+}
+
+.music-pill.music-muted .music-label {
   display: inline-block;
-  transition:
-    opacity 0.25s ease,
-    transform 0.25s ease,
-    filter 0.25s ease;
+  font-size: 12px;
+  font-weight: 600;
 }
 
-/* Unmuted: 🔊 active, 🔇 dimmed */
-.music-pill.music-on .music-icon-on {
-  opacity: 1;
-  transform: scale(1.05);
-  filter: none;
+.music-pill.music-on {
+  background: radial-gradient(
+    circle at top,
+    rgba(245, 230, 184, 0.4) 0,
+    rgba(10, 12, 18, 0.85) 70%
+  );
+  box-shadow: 0 0 14px var(--glow);
 }
 
-.music-pill.music-on .music-icon-off {
-  opacity: 0.35;
-  transform: scale(0.9);
-  filter: grayscale(0.4);
+/* subtle breathing animation for unmuted */
+
+.music-pill.music-on .music-icon {
+  animation: musicBreath 2.6s ease-in-out infinite;
 }
 
-/* Muted: 🔇 active, 🔊 dimmed */
-.music-pill.music-muted .music-icon-on {
-  opacity: 0.35;
-  transform: scale(0.9);
-  filter: grayscale(0.5);
-}
-
-.music-pill.music-muted .music-icon-off {
-  opacity: 1;
-  transform: scale(1.07);
-}
-
-/* Base breathing animation when on */
 @keyframes musicBreath {
   0% { transform: translateY(0); opacity: 0.8; }
   50% { transform: translateY(-1px); opacity: 1; }
   100% { transform: translateY(0); opacity: 0.8; }
 }
 
-.music-pill.music-on {
-  animation: musicBreath 4s ease-in-out infinite;
-}
-
-/* Muted-world: make the pill the obvious switch */
-body.muted-world .music-pill.music-muted {
-  background: rgba(20, 24, 36, 0.96);
-  box-shadow:
-    0 0 16px rgba(245, 230, 184, 0.75),
-    0 0 34px rgba(245, 230, 184, 0.45);
-  animation: muteCall 3.4s ease-in-out infinite;
-}
-
-/* Stronger mute pulse */
-@keyframes muteCall {
-  0% {
-    transform: scale(0.97);
-    box-shadow:
-      0 0 8px rgba(245, 230, 184, 0.4),
-      0 0 16px rgba(245, 230, 184, 0.25);
-  }
-  50% {
-    transform: scale(1.05);
-    box-shadow:
-      0 0 22px rgba(245, 230, 184, 0.9),
-      0 0 40px rgba(245, 230, 184, 0.6);
-  }
-  100% {
-    transform: scale(0.97);
-    box-shadow:
-      0 0 8px rgba(245, 230, 184, 0.4),
-      0 0 16px rgba(245, 230, 184, 0.25);
-  }
+.music-pill.music-muted {
+  background: rgba(10, 12, 18, 0.6);
+  box-shadow: none;
+  opacity: 0.8;
 }
 
 /* Instrument pill */
@@ -1110,4 +973,18 @@ body.muted-world .music-pill.music-muted {
   .map-frame {
     height: 160px;
   }
+}
+
+
+.preintro-line-main {
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.preintro-line-recommended {
+  font-size: 11px;
+  font-weight: 400;
+  color: rgba(248, 247, 244, 0.6);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
 }

@@ -1,5 +1,12 @@
+
 // --------------------------
 // Global audio + state
+let preludeMaleAudio = null;
+let preludeFemaleAudio = null;
+let preludeInterruptAudio = null;
+let preludeFadeInterval = null;
+let preludeInterruptFlowStarted = false;
+
 // --------------------------
 
 let bgAudio = null;
@@ -52,12 +59,9 @@ const sceneMain = document.getElementById("scene-main");
 const preintroOverlay = document.getElementById("preintroOverlay");
 const preintroPopup = document.getElementById("preintroPopup");
 const preintroTouchBtn = document.getElementById("preintroTouchBtn");
-const preintroRipple = document.getElementById("preintroRipple");
 
 // Prelude elements
 const preludeVoiceStatus = document.getElementById("preludeVoiceStatus");
-const preludeZoneLeft = document.querySelector(".prelude-zone-left");
-const preludeZoneRight = document.querySelector(".prelude-zone-right");
 
 // Orchestra tab
 const orchestraJoinBtn = document.getElementById("orchestraJoinBtn");
@@ -74,13 +78,6 @@ let geoWatchId = null;
 const heroDots = document.getElementById("heroDots");
 let heroCaptionIndex = 0;
 let heroCaptionTimer = null;
-
-// Preintro / Prelude timing state
-let preintroHasTapped = false;
-let preintroIdleTimer = null;
-
-let preludeAutoTimer = null;
-let preludeTransitionStarted = false;
 
 // --------------------------
 // Utility: audio registration
@@ -106,16 +103,22 @@ function applyMuteState() {
 
 function toggleMute() {
   muted = !muted;
-
-  if (muted) {
-    document.body.classList.add("muted-world");
-    clearHeroGlow();
-  } else {
-    document.body.classList.remove("muted-world");
-  }
-
   updateMusicPillVisual();
   applyMuteState();
+
+  if (muted) clearHeroGlow();
+}
+
+function updateMusicPillVisual() {
+  if (!musicToggle || !musicLabel) return;
+  musicToggle.classList.remove("music-on", "music-muted");
+  if (muted) {
+    musicToggle.classList.add("music-muted");
+    musicLabel.textContent = "Muted · Tap to let it in";
+  } else {
+    musicToggle.classList.add("music-on");
+    musicLabel.textContent = "";
+  }
 }
 
 // --------------------------
@@ -291,10 +294,6 @@ function updateTuneIcons() {
 function playTuningSample(src, instrumentId) {
   const audio = new Audio(src);
   audio._baseVolume = 0.7;
-  // special case: timpani tuning louder
-  if (instrumentId === "timpani") {
-    audio._baseVolume = 1.0;
-  }
   audio.volume = muted ? 0 : audio._baseVolume;
   registerAudio(audio);
 
@@ -335,50 +334,21 @@ function showScene(sceneId) {
 
 function goToPrelude() {
   showScene("scene-prelude");
-  // timpani accent entering Prelude
-  playTimpani();
   schedulePreludeVoices();
 
   preludeTransitionStarted = false;
+  preludeInterruptFlowStarted = false;
   if (preludeAutoTimer) {
     clearTimeout(preludeAutoTimer);
   }
   preludeAutoTimer = setTimeout(() => {
-    leavePreludeToMain();
+    handlePreludeAutoTimeout();
   }, 30000);
 }
 
+
 function goToMain() {
   showScene("scene-main");
-}
-
-function leavePreintroToPrelude() {
-  if (preintroIdleTimer) {
-    clearTimeout(preintroIdleTimer);
-    preintroIdleTimer = null;
-  }
-  if (preintroRipple) {
-    preintroRipple.classList.remove("preintro-ripple-active");
-    preintroRipple.classList.add("preintro-ripple-leaving");
-  }
-  // timpani accent for door between -1 and 0
-  playTimpani();
-  setTimeout(() => {
-    goToPrelude();
-  }, 400);
-}
-
-function leavePreludeToMain() {
-  if (preludeTransitionStarted) return;
-  preludeTransitionStarted = true;
-
-  if (preludeAutoTimer) {
-    clearTimeout(preludeAutoTimer);
-    preludeAutoTimer = null;
-  }
-
-  playTimpani();
-  goToMain();
 }
 
 // --------------------------
@@ -390,9 +360,7 @@ let preludeVoicesStarted = false;
 function schedulePreludeVoices() {
   if (preludeVoicesStarted) return;
   preludeVoicesStarted = true;
-  if (preludeVoiceStatus) {
-    preludeVoiceStatus.textContent = "Voices: waiting…";
-  }
+  if (preludeVoiceStatus) preludeVoiceStatus.textContent = "Voices: waiting…";
 
   const maleDelay = 4000; // ms
   setTimeout(() => {
@@ -401,7 +369,8 @@ function schedulePreludeVoices() {
 }
 
 function playPreludeVoices() {
-  const male = new Audio("media/prelude_voice_de_male.wav");
+  preludeMaleAudio = new Audio("media/prelude_de.mp3");
+  const male = preludeMaleAudio;
   male._baseVolume = 0.8;
   male.volume = muted ? 0 : male._baseVolume;
   registerAudio(male);
@@ -412,8 +381,10 @@ function playPreludeVoices() {
   duckBgDuring(5000);
 
   male.addEventListener("ended", () => {
+    preludeMaleAudio = null;
     setTimeout(() => {
-      const female = new Audio("media/prelude_voice_en_female.wav");
+      preludeFemaleAudio = new Audio("media/prelude_en.mp3");
+      const female = preludeFemaleAudio;
       female._baseVolume = 0.8;
       female.volume = muted ? 0 : female._baseVolume;
       registerAudio(female);
@@ -424,11 +395,11 @@ function playPreludeVoices() {
       duckBgDuring(5000);
 
       female.addEventListener("ended", () => {
+        preludeFemaleAudio = null;
         if (preludeVoiceStatus) {
           preludeVoiceStatus.textContent =
             "Voices: finished – the room is listening.";
         }
-        // no automatic goToMain(); transition is handled by taps / timeout
       });
 
       female.play().catch(() => {
@@ -445,6 +416,7 @@ function playPreludeVoices() {
     }
   });
 }
+
 
 // --------------------------
 // Hero caption rotation
@@ -569,10 +541,7 @@ function updateOrchestraDistances() {
 // --------------------------
 
 function handlePreintroTap() {
-  if (preintroHasTapped) return;
-  preintroHasTapped = true;
-
-  // timpani accent on first touch
+  // timpani accent
   playTimpani();
 
   // fade overlay
@@ -583,37 +552,12 @@ function handlePreintroTap() {
     preintroPopup.classList.add("preintro-popup-hidden");
   }
 
-  if (preintroTouchBtn) {
-    preintroTouchBtn.disabled = true;
-  }
-
   startBackgroundMusicFromPreintro();
 
-  // After brightness fade, show central ripple and start 7s idle timer
-  const rippleDelay = 1300; // match overlay transition timing
+  // move to prelude after brightness fade
   setTimeout(() => {
-    if (preintroRipple) {
-      preintroRipple.classList.add("preintro-ripple-active");
-    }
-
-    preintroIdleTimer = setTimeout(() => {
-      leavePreintroToPrelude();
-    }, 7000);
-  }, rippleDelay);
-}
-
-// --------------------------
-// Music pill label update
-// --------------------------
-
-function updateMusicPillVisual() {
-  if (!musicToggle) return;
-  musicToggle.classList.remove("music-on", "music-muted");
-  if (muted) {
-    musicToggle.classList.add("music-muted");
-  } else {
-    musicToggle.classList.add("music-on");
-  }
+    goToPrelude();
+  }, 1800);
 }
 
 // --------------------------
@@ -627,25 +571,6 @@ document.addEventListener("DOMContentLoaded", () => {
   // Preintro button
   if (preintroTouchBtn) {
     preintroTouchBtn.addEventListener("click", handlePreintroTap);
-  }
-
-  // Preintro central ripple -> Prelude
-  if (preintroRipple) {
-    preintroRipple.addEventListener("click", () => {
-      leavePreintroToPrelude();
-    });
-  }
-
-  // Prelude EN / DE zones -> Main
-  if (preludeZoneLeft) {
-    preludeZoneLeft.addEventListener("click", () => {
-      leavePreludeToMain();
-    });
-  }
-  if (preludeZoneRight) {
-    preludeZoneRight.addEventListener("click", () => {
-      leavePreludeToMain();
-    });
   }
 
   // Instrument assignment
@@ -710,3 +635,134 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 });
 
+function fadeOutPreludeVoiceAndThenInterrupt(targetLang) {
+  if (preludeFadeInterval) {
+    clearInterval(preludeFadeInterval);
+    preludeFadeInterval = null;
+  }
+
+  const current =
+    (preludeMaleAudio && !preludeMaleAudio.paused) ? preludeMaleAudio :
+    (preludeFemaleAudio && !preludeFemaleAudio.paused) ? preludeFemaleAudio :
+    null;
+
+  function startInterruptTts() {
+    let src;
+    if (targetLang === "en") {
+      src = "media/interrupt_en.mp3";
+    } else {
+      src = "media/interrupt_de.mp3";
+    }
+
+    preludeInterruptAudio = new Audio(src);
+    const a = preludeInterruptAudio;
+    a._baseVolume = 0.9;
+    a.volume = muted ? 0 : a._baseVolume;
+    registerAudio(a);
+
+    if (preludeVoiceStatus) {
+      preludeVoiceStatus.textContent =
+        targetLang === "en"
+          ? "Voices: switching gently to English…"
+          : "Voices: switching gently to German…";
+    }
+
+    a.addEventListener("ended", () => {
+      preludeInterruptAudio = null;
+      if (preludeVoiceStatus) {
+        preludeVoiceStatus.textContent = "Voices: handover finished.";
+      }
+      leavePreludeToMain();
+    });
+
+    a.play().catch(() => {
+      leavePreludeToMain();
+    });
+  }
+
+  if (!current) {
+    startInterruptTts();
+    return;
+  }
+
+  const steps = 10;
+  let i = 0;
+  const startVol = current.volume;
+  preludeFadeInterval = setInterval(() => {
+    i++;
+    const t = i / steps;
+    const v = startVol * (1 - t * 0.8); // down to ~20%
+    current.volume = muted ? 0 : Math.max(0, v);
+
+    if (i >= steps) {
+      clearInterval(preludeFadeInterval);
+      preludeFadeInterval = null;
+      current.pause();
+      try {
+        current.currentTime = 0;
+      } catch (_) {}
+      activeAudios.delete(current);
+      if (preludeVoiceStatus) {
+        preludeVoiceStatus.textContent = "Voices: softly interrupted.";
+      }
+      startInterruptTts();
+    }
+  }, 100);
+}
+
+function handlePreludeAutoTimeout() {
+  if (preludeTransitionStarted || preludeInterruptFlowStarted) return;
+
+  const current =
+    (preludeMaleAudio && !preludeMaleAudio.paused) ? preludeMaleAudio :
+    (preludeFemaleAudio && !preludeFemaleAudio.paused) ? preludeFemaleAudio :
+    null;
+
+  // If interrupt audio is playing, let it finish and do nothing here
+  if (preludeInterruptAudio && !preludeInterruptAudio.paused) {
+    return;
+  }
+
+  if (!current) {
+    leavePreludeToMain();
+    return;
+  }
+
+  if (preludeFadeInterval) {
+    clearInterval(preludeFadeInterval);
+    preludeFadeInterval = null;
+  }
+
+  const steps = 10;
+  let i = 0;
+  const startVol = current.volume;
+  preludeFadeInterval = setInterval(() => {
+    i++;
+    const t = i / steps;
+    const v = startVol * (1 - t * 0.8); // down to ~20%
+    current.volume = muted ? 0 : Math.max(0, v);
+
+    if (i >= steps) {
+      clearInterval(preludeFadeInterval);
+      preludeFadeInterval = null;
+      current.pause();
+      try {
+        current.currentTime = 0;
+      } catch (_) {}
+      activeAudios.delete(current);
+      leavePreludeToMain();
+    }
+  }, 100);
+}
+
+function handlePreludeLanguageClick(lang) {
+  if (preludeInterruptFlowStarted) return;
+  preludeInterruptFlowStarted = true;
+
+  if (preludeAutoTimer) {
+    clearTimeout(preludeAutoTimer);
+    preludeAutoTimer = null;
+  }
+
+  fadeOutPreludeVoiceAndThenInterrupt(lang);
+}
