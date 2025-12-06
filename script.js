@@ -55,6 +55,8 @@ const preintroTouchBtn = document.getElementById("preintroTouchBtn");
 
 // Prelude elements
 const preludeVoiceStatus = document.getElementById("preludeVoiceStatus");
+const preludeZoneLeft = document.querySelector(".prelude-zone-left");
+const preludeZoneRight = document.querySelector(".prelude-zone-right");
 
 // Orchestra tab
 const orchestraJoinBtn = document.getElementById("orchestraJoinBtn");
@@ -71,6 +73,10 @@ let geoWatchId = null;
 const heroDots = document.getElementById("heroDots");
 let heroCaptionIndex = 0;
 let heroCaptionTimer = null;
+
+// Prelude auto-transition
+let preludeAutoTimer = null;
+let preludeHasLeft = false;
 
 // --------------------------
 // Utility: audio registration
@@ -322,11 +328,30 @@ function goToPrelude() {
   showScene("scene-prelude");
   // small timpani accent entering 0-scene
   playTimpani();
+  preludeHasLeft = false;
   schedulePreludeVoices();
+
+  if (preludeAutoTimer) {
+    clearTimeout(preludeAutoTimer);
+  }
+  preludeAutoTimer = setTimeout(() => {
+    leavePreludeToMain();
+  }, 30000);
 }
 
 function goToMain() {
   showScene("scene-main");
+}
+
+function leavePreludeToMain() {
+  if (preludeHasLeft) return;
+  preludeHasLeft = true;
+  if (preludeAutoTimer) {
+    clearTimeout(preludeAutoTimer);
+    preludeAutoTimer = null;
+  }
+  playTimpani();
+  goToMain();
 }
 
 // --------------------------
@@ -368,21 +393,17 @@ function playPreludeVoices() {
 
       female.addEventListener("ended", () => {
         preludeVoiceStatus.textContent = "Voices: finished – the room is listening.";
-        setTimeout(() => {
-          goToMain();
-        }, 1200);
       });
 
       female.play().catch(() => {
         preludeVoiceStatus.textContent = "Voices: playback blocked.";
-        setTimeout(() => goToMain(), 1200);
       });
     }, 500);
   });
 
   male.play().catch(() => {
     preludeVoiceStatus.textContent = "Voices: playback blocked.";
-    setTimeout(() => goToMain(), 1200);
+    // scene transition now handled by timeout or tap
   });
 }
 
@@ -504,6 +525,14 @@ function updateOrchestraDistances() {
   grantHarmonics(inst);
 }
 
+function flashPreludeZone(zoneEl) {
+  if (!zoneEl) return;
+  zoneEl.classList.add("flash");
+  setTimeout(() => {
+    zoneEl.classList.remove("flash");
+  }, 180);
+}
+
 // --------------------------
 // Preintro interaction
 // --------------------------
@@ -529,6 +558,23 @@ function handlePreintroTap() {
 }
 
 // --------------------------
+// Music pill label update
+// --------------------------
+
+function updateMusicPillVisual() {
+  if (!musicToggle || !musicLabel) return;
+  if (muted) {
+    musicToggle.classList.remove("music-on");
+    musicToggle.classList.add("music-muted");
+    musicLabel.textContent = "Muted · Tap to let it in";
+  } else {
+    musicToggle.classList.remove("music-muted");
+    musicToggle.classList.add("music-on");
+    musicLabel.textContent = "Music is alive";
+  }
+}
+
+// --------------------------
 // DOMContentLoaded init
 // --------------------------
 
@@ -539,6 +585,20 @@ document.addEventListener("DOMContentLoaded", () => {
   // Preintro button
   if (preintroTouchBtn) {
     preintroTouchBtn.addEventListener("click", handlePreintroTap);
+  }
+
+  // Prelude left/right zones
+  if (preludeZoneLeft) {
+    preludeZoneLeft.addEventListener("click", () => {
+      flashPreludeZone(preludeZoneLeft);
+      leavePreludeToMain();
+    });
+  }
+  if (preludeZoneRight) {
+    preludeZoneRight.addEventListener("click", () => {
+      flashPreludeZone(preludeZoneRight);
+      leavePreludeToMain();
+    });
   }
 
   // Instrument assignment

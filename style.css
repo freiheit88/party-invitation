@@ -119,6 +119,7 @@ body.muted-world .app-shell {
   letter-spacing: 0.16em;
   text-transform: uppercase;
   cursor: pointer;
+  animation: preintroBtnBreath 2.8s ease-in-out infinite;
 }
 
 .preintro-btn:active {
@@ -129,6 +130,12 @@ body.muted-world .app-shell {
   font-size: 11px;
   color: var(--text-soft);
   line-height: 1.5;
+}
+
+/* show button only (hide title/sub visually) */
+.preintro-title,
+.preintro-sub {
+  display: none;
 }
 
 @keyframes preintroPulse {
@@ -142,6 +149,21 @@ body.muted-world .app-shell {
   }
   100% {
     transform: translateY(0);
+    box-shadow: 0 18px 40px rgba(0, 0, 0, 0.8);
+  }
+}
+
+@keyframes preintroBtnBreath {
+  0% {
+    transform: scale(1.0);
+    box-shadow: 0 18px 40px rgba(0, 0, 0, 0.8);
+  }
+  50% {
+    transform: scale(1.03);
+    box-shadow: 0 22px 50px rgba(0, 0, 0, 0.95);
+  }
+  100% {
+    transform: scale(1.0);
     box-shadow: 0 18px 40px rgba(0, 0, 0, 0.8);
   }
 }
@@ -191,49 +213,97 @@ body.muted-world .app-shell {
   margin-top: 4px;
 }
 
+/* Rotated Prelude chapter bar */
 .prelude-tag {
-  display: inline-block;
-  font-size: 11px;
-  letter-spacing: 0.18em;
+  position: absolute;
+  left: 50%;
+  bottom: 18px;
+  transform: translateX(-50%) rotate(90deg);
+  transform-origin: center;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 28px;
+  min-width: 70%;
+  border-radius: 999px;
+  border: 1px solid rgba(245, 230, 184, 0.7);
+  background: rgba(0, 0, 0, 0.75);
+  font-size: 18px;
+  letter-spacing: 0.22em;
   text-transform: uppercase;
   color: var(--accent-soft);
-  padding: 4px 10px;
-  border-radius: 999px;
-  border: 1px solid rgba(245, 230, 184, 0.55);
-  background: rgba(0, 0, 0, 0.65);
+  text-align: center;
 }
 
 .prelude-title {
-  margin-top: 10px;
-  font-family: "Playfair Display", serif;
-  font-size: 18px;
-  line-height: 1.5;
-  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.9);
+  display: none;
 }
 
 .prelude-instructions {
-  background: linear-gradient(
-    to top,
-    rgba(0, 0, 0, 0.9),
-    rgba(0, 0, 0, 0.4)
-  );
-  border-radius: 18px;
-  padding: 10px 14px;
-  max-width: 420px;
-  pointer-events: auto;
+  display: none;
 }
 
 .prelude-hint {
-  font-size: 12px;
-  color: var(--text-main);
-  line-height: 1.6;
-  margin-bottom: 6px;
+  display: none;
 }
 
 .prelude-voice-status {
   font-size: 11px;
   color: var(--accent-soft);
   opacity: 0.85;
+  display: none;
+}
+
+/* Prelude left/right language zones */
+.prelude-zones {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.prelude-zone {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 50%;
+  pointer-events: auto;
+  background: transparent;
+  transition: background 0.25s ease;
+}
+
+.prelude-zone-left {
+  left: 0;
+}
+
+.prelude-zone-right {
+  right: 0;
+}
+
+.prelude-zone.flash {
+  background: radial-gradient(circle at center,
+    rgba(255, 255, 255, 0.14),
+    transparent 65%);
+}
+
+.prelude-zone-label {
+  position: absolute;
+  top: 18px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(245, 230, 184, 0.5);
+  background: rgba(0, 0, 0, 0.6);
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--accent-soft);
+}
+
+.prelude-zone-label-left {
+  left: 14px;
+}
+
+.prelude-zone-label-right {
+  right: 14px;
 }
 
 /* Main app */
