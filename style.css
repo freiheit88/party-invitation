@@ -129,6 +129,19 @@ body {
   color: rgba(248, 247, 242, 0.6);
 }
 
+
+.preintro-btn-line-main {
+  display: block;
+  font-size: 1.5em;
+}
+
+.preintro-btn-line-sub {
+  display: block;
+  margin: 4px 0 8px;
+  font-size: 0.7em;
+  letter-spacing: 0.16em;
+  color: rgba(248, 247, 242, 0.6);
+}
 /* Ripple */
 
 .preintro-ripple {
@@ -254,6 +267,12 @@ body {
   filter: brightness(1.2);
 }
 
+
+/* Hide legacy Prelude text blocks */
+.prelude-title,
+.prelude-instructions {
+  display: none;
+}
 /* Prelude status text */
 
 .prelude-status {
