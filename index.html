@@ -1,338 +1,355 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <title>Sean’s Party Invitation · tuned in A</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<head>
+  <meta charset="UTF-8" />
+  <title>Sean’s Party Invitation · tuned in A</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;700&family=Manrope:wght@300;400;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <!-- Scene -1 : Pre-intro (fogged glass) -->
+    <section id="scene-preintro" class="scene scene-visible">
+      <video
+        id="preintroVideo"
+        class="scene-video"
+        autoplay
+        muted
+        playsinline
+        loop
+      >
+        <source src="media/preintro_glass_fog.mp4" type="video/mp4" />
+      </video>
 
-    <!-- Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;700&family=Manrope:wght@300;400;600&display=swap"
-      rel="stylesheet"
-    />
+      <div class="scene-overlay scene-overlay-dark" id="preintroOverlay"></div>
 
-    <link rel="stylesheet" href="style.css" />
-  </head>
-  <body>
-    <div class="app-shell">
-      <main class="app-inner">
-        <!-- Scene -1: Pre-intro fogged glass -->
-        <section class="scene scene-visible" id="scene-preintro" aria-label="Pre-intro">
-          <div class="scene-bg-video-frame">
-            <video
-              id="preintroVideo"
-              class="scene-bg-video"
-              src="media/preintro_glass_fog.mp4"
-              autoplay
-              muted
-              loop
-              playsinline
-            ></video>
-          </div>
-
-          <div class="scene-overlay scene-overlay-dark" id="preintroOverlay"></div>
-
-          <div class="scene-foreground preintro-foreground">
-            <div class="preintro-ui" id="preintroUi">
-              <div class="preintro-popup" id="preintroPopup">
-                <button class="preintro-btn" id="preintroTouchBtn" type="button">
-                  <span class="preintro-line preintro-line-main">Tap to begin</span>
-                </button>
-              </div>
-            </div>
-          </div>
-
-          <!-- Central ripple / halo after brightening -->
-          <button
-            class="preintro-ripple"
-            id="preintroRipple"
-            type="button"
-            aria-label="Continue to the study room"
-          >
-            <span class="preintro-ripple-label">Click again!</span>
+      <div class="preintro-ui" id="preintroUi">
+        <div class="preintro-popup" id="preintroPopup">
+          <button class="preintro-btn" id="preintroTouchBtn" type="button">
+            <span class="preintro-line preintro-line-main">Tap to begin</span>
           </button>
-        </section>
+        </div>
+      </div>
 
-        <!-- Scene 0: Prelude sideways study room -->
-        <section class="scene" id="scene-prelude" aria-label="Prelude room">
-          <div class="prelude-video-frame">
-            <video
-              id="preludeVideo"
-              class="prelude-video prelude-video-rotated"
-              src="media/prelude_study_sideways.mp4"
-              autoplay
-              muted
-              loop
-              playsinline
-            ></video>
+      <!-- Central ripple / halo that appears after brightening -->
+      <button
+        class="preintro-ripple"
+        id="preintroRipple"
+        type="button"
+        aria-label="Continue to the study room"
+      ></button>
+    </section>
+
+    <!-- Scene 0 : Prelude room (sideways study room) -->
+    <section id="scene-prelude" class="scene">
+      <div class="prelude-video-frame">
+        <video
+          id="preludeVideo"
+          class="prelude-video-rotated"
+          autoplay
+          muted
+          playsinline
+          loop
+        >
+          <source src="media/prelude_study_sideways.mp4" type="video/mp4" />
+        </video>
+      </div>
+
+      <div class="prelude-overlay">
+        <div class="prelude-header">
+          <div class="prelude-tag">Select the language</div>
+        </div>
+      </div>
+
+      <!-- Rotated language zones -->
+      <div class="prelude-zones">
+        <button class="prelude-zone prelude-zone-left" type="button">
+          <span class="prelude-language-label prelude-language-en">EN 🇬🇧</span>
+        </button>
+        <button class="prelude-zone prelude-zone-right" type="button">
+          <span class="prelude-language-label prelude-language-de">DE 🇩🇪</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- Scene 1 : Main invitation app -->
+    <section id="scene-main" class="scene">
+      <div class="app">
+        <div class="app-inner">
+          <!-- hero glow background layer -->
+          <div class="hero-glow-layer" id="heroGlow"></div>
+
+          <!-- Tabs -->
+          <div class="tabs">
+            <button class="tab-btn active" data-tab="invitation">Invitation</button>
+            <button class="tab-btn" data-tab="howto">How to start</button>
+            <button class="tab-btn" data-tab="board">Board</button>
+            <button class="tab-btn" data-tab="orchestra">Orchestra game</button>
           </div>
 
-          <div class="prelude-overlay">
-            <!-- Rotated PRELUDE bar -->
-            <div class="prelude-chapter-bar">
-              <span class="prelude-tag">PRELUDE</span>
-            </div>
+          <main class="tab-container">
+            <!-- Invitation TAB -->
+            <section id="tab-invitation" class="tab-panel active">
+              <header class="inv-header">
+                <h1 class="title">
+                  <span class="accent">Invitation</span>
+                  One square, one note,<br />
+                  one evening in Frankfurt.<br />
+                  <span class="title-soft">everything else will tune itself.</span>
+                </h1>
+              </header>
 
-            <!-- Left / Right language zones -->
-            <div class="prelude-zones">
-              <button
-                class="prelude-zone prelude-zone-left"
-                id="preludeZoneLeft"
-                type="button"
-                aria-label="Switch everything to English"
-              >
-                <span class="prelude-lang-label prelude-lang-en">EN 🇬🇧</span>
-              </button>
-              <button
-                class="prelude-zone prelude-zone-right"
-                id="preludeZoneRight"
-                type="button"
-                aria-label="Switch everything to German"
-              >
-                <span class="prelude-lang-label prelude-lang-de">DE 🇩🇪</span>
-              </button>
-            </div>
-          </div>
-        </section>
-
-        <!-- Scene 1: Main invitation -->
-        <section class="scene" id="scene-main" aria-label="Main invitation">
-          <header class="main-header">
-            <div class="main-title-group">
-              <p class="main-tagline">Invitation</p>
-              <h1 class="main-heading">
-                One square, one note,<br />
-                one evening in Frankfurt.<br />
-                <span class="main-heading-soft">everything else will tune itself.</span>
-              </h1>
-            </div>
-
-            <div class="music-pills">
-              <button
-                class="music-pill"
-                id="musicToggle"
-                type="button"
-                aria-label="Toggle all music"
-              >
-                <span class="music-pill-icon music-pill-icon-loud">🔊</span>
-                <span class="music-pill-separator">|</span>
-                <span class="music-pill-icon music-pill-icon-muted">🔇</span>
-              </button>
-
-              <div class="instrument-pill" id="instrumentPill">
-                <span class="instrument-label">You are</span>
-                <span class="instrument-role" id="instrumentRole">Violins II</span>
-              </div>
-            </div>
-          </header>
-
-          <!-- Main layout: hero + tabs -->
-          <div class="main-layout">
-            <section class="hero-column">
-              <div class="hero-card">
-                <div class="hero-media-frame" id="heroGlowFrame">
-                  <img
-                    src="picture/AlteOper.png"
-                    alt="Alte Oper square at night"
-                    class="hero-image"
-                  />
-                  <div class="hero-glow-layer" id="heroGlowLayer"></div>
-                </div>
-
-                <div class="hero-caption">
-                  <div class="hero-caption-text" id="heroCaptionText">
-                    <!-- Filled by JS -->
+              <!-- hero box with Alte Oper + rotating caption -->
+              <section class="hero-section">
+                <div class="hero-image-box" id="heroBox">
+                  <img src="picture/AlteOper.png" alt="Frankfurt Alte Oper at night" />
+                  <div class="hero-caption-slider">
+                    <div class="hero-caption hero-caption-active" data-index="0">
+                      <span class="hero-keyword">Cinematic night view</span>
+                      of Frankfurt Alte Oper with warm streetlights and a slightly blurred square.
+                    </div>
+                    <div class="hero-caption" data-index="1">
+                      Saturday, 14 June 2025 · 19:30 · Start at Alte Oper, Frankfurt.<br />
+                      The final location reveals itself only when you stand on the square.
+                    </div>
                   </div>
-                  <div class="hero-caption-dots" id="heroCaptionDots">
-                    <!-- ● ○ from JS -->
+                  <div class="hero-dots" id="heroDots">
+                    <span class="hero-dot hero-dot-active" data-index="0"></span>
+                    <span class="hero-dot" data-index="1"></span>
                   </div>
                 </div>
+              </section>
 
-                <div class="hero-controls">
-                  <button
-                    class="a-button"
-                    id="letARingBtn"
-                    type="button"
-                    aria-label="Let A ring"
-                  >
-                    <span class="a-button-label">Let A ring</span>
-                    <span class="a-button-emoji" id="aButtonEmoji">🎻</span>
+              <!-- Tune section -->
+              <section class="tune-section">
+                <div class="tune-header-row">
+                  <button id="musicToggle" class="music-pill music-on" type="button">
+                    <span class="music-icons" id="musicLabel" aria-hidden="true">
+                      <span class="music-icon-on">🔊</span>
+                      <span class="music-icon-off">🔇</span>
+                    </span>
                   </button>
-                  <p class="hero-note">
-                    A single orchestral A, tuned quietly against the city noise.
-                  </p>
+
+                  <div class="instrument-pill">
+                    <span class="instrument-pill-label">You are</span>
+                    <span class="instrument-name" id="instrumentLabel">Violins II</span>
+                  </div>
+                </div>
+
+                <div class="tune-row">
+                  <button id="tuneButton" class="tune-button" type="button">
+                    <span class="tune-button-label">Let A ring</span>
+                    <span class="tune-button-icons" id="tuneIcons">
+                      <!-- instrument emojis will be injected -->
+                    </span>
+                  </button>
+                </div>
+
+                <!-- optional debug line for owned instruments -->
+                <p class="hint-small" id="ownedInstrumentsHint"></p>
+              </section>
+            </section>
+
+            <!-- How to start TAB -->
+            <section id="tab-howto" class="tab-panel">
+              <header class="inv-header">
+                <h1 class="title">
+                  <span class="accent">How to start</span>
+                  Alte Oper · warm-up instructions
+                </h1>
+              </header>
+
+              <section class="section-block">
+                <div class="section-title">English</div>
+                <p class="section-text">
+                  When you step onto the square in front of Alte Oper, don’t rush.
+                  Let the traffic, the footsteps and the small conversations move
+                  around you for a moment. Imagine the whole place breathing in
+                  and out together, like a slow tide you happen to stand inside.
+                </p>
+                <p class="section-text">
+                  At some point you will feel that everything is drifting in one
+                  direction – a quiet current under the noise. That is your moment.
+                  Open this page, put on your headphones, let the music icon
+                  glow, and let <em>A</em> ring once.
+                </p>
+                <p class="section-text">
+                  You don’t have to force anything. Just follow the tiny shifts:
+                  who arrives, who leaves, which light turns on, which sound suddenly
+                  feels closer. The rest of the evening will unfold from there,
+                  almost as if the square had already decided it for you.
+                </p>
+              </section>
+
+              <section class="section-block">
+                <div class="section-title">Deutsch</div>
+                <p class="section-text">
+                  Wenn du auf den Opernplatz vor der Alten Oper trittst, beeile dich
+                  nicht. Lass für einen Moment Verkehr, Schritte und Gespräche um dich
+                  herum weiterlaufen. Stell dir vor, der ganze Platz atmet gemeinsam
+                  ein und aus – wie eine langsame Welle, in der du einfach stehst.
+                </p>
+                <p class="section-text">
+                  Irgendwann spürst du, dass alles leicht in eine Richtung treibt –
+                  ein leiser Strom unter dem Geräusch. Das ist dein Moment. Öffne
+                  diese Seite, setz deine Kopfhörer auf, lass das Musik-Symbol
+                  leuchten und lass einmal ein <em>A</em> klingen.
+                </p>
+                <p class="section-text">
+                  Du musst nichts erzwingen. Folge nur den kleinen Verschiebungen:
+                  wer ankommt, wer geht, welches Licht angeht, welcher Klang plötzlich
+                  näher wirkt. Der Rest des Abends entfaltet sich von dort, fast
+                  so, als hätte der Platz längst beschlossen, wie er mit dir spielt.
+                </p>
+              </section>
+
+              <section class="map-card">
+                <div class="map-card-header">
+                  <span class="left">Alte Oper · Map preview</span>
+                  <span class="right">Google Maps embed</span>
+                </div>
+                <div class="map-frame">
+                  <iframe
+                    src="https://www.google.com/maps?q=Alte+Oper+Frankfurt&output=embed"
+                    loading="lazy"
+                    referrerpolicy="no-referrer-when-downgrade"
+                  ></iframe>
+                </div>
+                <p class="map-caption">
+                  This map is just a quiet anchor. On the night itself, the real line
+                  you follow is the flow of people, light and sound on the square.
+                  Die Karte ist nur ein leiser Anker. Am Abend selbst folgst du vor
+                  allem dem Fluss von Menschen, Licht und Klang auf dem Platz.
+                </p>
+              </section>
+            </section>
+
+            <!-- Board TAB -->
+            <section id="tab-board" class="tab-panel">
+              <div class="board-wrapper">
+                <header class="inv-header">
+                  <h1 class="title">
+                    <span class="accent">Board</span>
+                    Posters, QR codes & tiny victories
+                  </h1>
+                </header>
+                <p class="board-subtitle">
+                  Imagine a wall where every small poster belongs to someone who was
+                  here tonight. Some get scanned, some get ignored, some collect more
+                  silent <span class="highlight-word">likes</span> than they expected.
+                </p>
+                <div class="board-images">
+                  <div class="board-placeholder">
+                    <div class="board-placeholder-title">
+                      POSTER BOARD IMAGE
+                    </div>
+                    Moody wooden or cork notice board under warm indoor light,
+                    layers of torn paper, tiny empty spaces where QR codes and names
+                    will live.
+                  </div>
+                  <div class="board-placeholder">
+                    <div class="board-placeholder-title">
+                      SUBWAY WALL IMAGE
+                    </div>
+                    Night-time metro station wall with overlapping posters,
+                    tape, and soft fluorescent light – like an urban gallery for QR
+                    codes.
+                  </div>
+                </div>
+                <div class="board-list">
+                  <div class="board-list-title">
+                    tonight’s wall · draft layout
+                  </div>
+                  <div class="board-item">
+                    <div class="board-poster-label">
+                      “Streetlight duet” · poster #07
+                    </div>
+                    <div class="board-meta">
+                      <div class="qr-box">QR</div>
+                      <div class="like-chip">23 likes</div>
+                    </div>
+                  </div>
+                  <div class="board-item">
+                    <div class="board-poster-label">
+                      “Silent violin II” · poster #12
+                    </div>
+                    <div class="board-meta">
+                      <div class="qr-box">QR</div>
+                      <div class="like-chip">15 likes</div>
+                    </div>
+                  </div>
+                  <div class="board-item">
+                    <div class="board-poster-label">
+                      “Timpani in the metro” · poster #03
+                    </div>
+                    <div class="board-meta">
+                      <div class="qr-box">QR</div>
+                      <div class="like-chip">31 likes</div>
+                    </div>
+                  </div>
                 </div>
               </div>
             </section>
 
-            <section class="tabs-column">
-              <div class="tabs-header" role="tablist" aria-label="Invitation details">
-                <button
-                  class="tab-button tab-button-active"
-                  data-tab="invitation"
-                  id="tabInvitation"
-                  type="button"
-                  role="tab"
-                  aria-selected="true"
-                  aria-controls="tab-panel-invitation"
-                >
-                  Invitation
-                </button>
-                <button
-                  class="tab-button"
-                  data-tab="how"
-                  id="tabHow"
-                  type="button"
-                  role="tab"
-                  aria-selected="false"
-                  aria-controls="tab-panel-how"
-                >
-                  How to start
-                </button>
-                <button
-                  class="tab-button"
-                  data-tab="board"
-                  id="tabBoard"
-                  type="button"
-                  role="tab"
-                  aria-selected="false"
-                  aria-controls="tab-panel-board"
-                >
-                  Board
-                </button>
-                <button
-                  class="tab-button"
-                  data-tab="orchestra"
-                  id="tabOrchestra"
-                  type="button"
-                  role="tab"
-                  aria-selected="false"
-                  aria-controls="tab-panel-orchestra"
-                >
-                  Orchestra Game
-                </button>
-              </div>
+            <!-- Orchestra game TAB -->
+            <section id="tab-orchestra" class="tab-panel">
+              <header class="inv-header">
+                <h1 class="title">
+                  <span class="accent">Orchestra game</span>
+                  Harmonics, distance and tiny ensembles
+                </h1>
+              </header>
 
-              <div class="tabs-panels">
-                <!-- Invitation tab -->
-                <section
-                  class="tab-panel tab-panel-active"
-                  id="tab-panel-invitation"
-                  role="tabpanel"
-                  aria-labelledby="tabInvitation"
-                >
-                  <p class="tab-lead">
-                    Start on the square in front of Alte Oper. Let one quiet note decide where the
-                    evening goes.
-                  </p>
-                  <p class="tab-body">
-                    This isn’t a fixed-spot party. It’s a small group, tuning itself in real time
-                    somewhere between the opera house, the streets, and wherever feels right once
-                    everyone arrives.
-                  </p>
-                  <ul class="tab-list">
-                    <li>Come as you are, slightly early rather than late.</li>
-                    <li>Stand on the square, listen to the traffic and footsteps like a low orchestra.</li>
-                    <li>When your phone and the square agree, the next location reveals itself.</li>
-                  </ul>
-                </section>
+              <p class="section-text">
+                This tab is a quiet test-rig for the real game. When you softly allow
+                location, the app watches how far you drift from one point – as if
+                you were walking through an invisible orchestra score on the square.
+              </p>
 
-                <!-- How to start tab -->
-                <section
-                  class="tab-panel"
-                  id="tab-panel-how"
-                  role="tabpanel"
-                  aria-labelledby="tabHow"
-                >
-                  <h2 class="tab-subheading">How to start</h2>
-                  <p class="tab-body">
-                    Arrive at Alte Oper a little before the time. Don’t rush. Let the square breathe
-                    around you.
-                  </p>
-                  <p class="tab-body">
-                    Watch people crossing, cars idling at the lights, fragments of conversations
-                    passing by. All of that is part of the overture.
-                  </p>
-                  <div class="map-card">
-                    <p class="map-caption">Alte Oper, Frankfurt</p>
-                    <iframe
-                      class="map-embed"
-                      src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2628.8535146956483!2d8.669795476629025!3d50.116806871519894!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x47bd0ea41b9c6c6d%3A0x26e4b3aa8e1cc06d!2sAlte%20Oper!5e0!3m2!1sen!2sde!4v1700000000000"
-                      loading="lazy"
-                      referrerpolicy="no-referrer-when-downgrade"
-                      title="Alte Oper on Google Maps"
-                    ></iframe>
+              <button id="orchestraJoinBtn" class="orchestra-btn">
+                Share a soft location trace
+              </button>
+
+              <div class="orchestra-popup hidden" id="orchestraPopup">
+                <div class="orchestra-popup-inner">
+                  <div class="orchestra-popup-header">
+                    <h3 class="orchestra-popup-title">
+                      Share a soft location trace
+                    </h3>
                   </div>
-                </section>
-
-                <!-- Board tab -->
-                <section
-                  class="tab-panel"
-                  id="tab-panel-board"
-                  role="tabpanel"
-                  aria-labelledby="tabBoard"
-                >
-                  <h2 class="tab-subheading">Board</h2>
-                  <p class="tab-body">
-                    Imagine a physical board somewhere in the city — part subway wall, part backstage
-                    cork board. Each poster is a small parallel evening.
-                  </p>
-                  <div class="board-grid">
-                    <article class="board-card">
-                      <h3 class="board-title">Late strings upstairs</h3>
-                      <div class="board-qr-placeholder"></div>
-                      <p class="board-meta">132 people would tap this.</p>
-                    </article>
-                    <article class="board-card">
-                      <h3 class="board-title">Neon coffee after 23:00</h3>
-                      <div class="board-qr-placeholder"></div>
-                      <p class="board-meta">89 people are quietly curious.</p>
-                    </article>
-                    <article class="board-card">
-                      <h3 class="board-title">Silent balcony, loud city</h3>
-                      <div class="board-qr-placeholder"></div>
-                      <p class="board-meta">47 people are almost there.</p>
-                    </article>
+                  <div class="orchestra-popup-body">
+                    <p class="section-text">
+                      We need permission to see your location in order to softly
+                      plot your path on the square. The map will show where you walk,
+                      not who you are. Even if you stop sharing, any future data
+                      (or people) will not be added to this trace.
+                    </p>
+                    <p class="section-text">
+                      <button
+                        class="orchestra-popup-btn agree"
+                        id="orchestraAgreeBtn"
+                      >
+                        Yes, share softly
+                      </button>
+                      <button
+                        class="orchestra-popup-btn disagree"
+                        id="orchestraPopupClose"
+                      >
+                        No, thanks
+                      </button>
+                    </p>
                   </div>
-                </section>
-
-                <!-- Orchestra Game tab -->
-                <section
-                  class="tab-panel"
-                  id="tab-panel-orchestra"
-                  role="tabpanel"
-                  aria-labelledby="tabOrchestra"
-                >
-                  <h2 class="tab-subheading">Orchestra Game</h2>
-                  <p class="tab-body">
-                    The idea is simple: everyone on the square is a single instrument. When you
-                    drift close enough to someone else, your phones quietly agree that you’re
-                    forming a small ensemble.
-                  </p>
-                  <button
-                    class="location-button"
-                    id="locationEnableBtn"
-                    type="button"
-                  >
-                    Let the square listen to where you stand
-                  </button>
-                  <p class="tab-body small">
-                    Your browser may ask for location permission. It’s only used to feel how close
-                    you are to others in this moment — nothing is stored.
-                  </p>
-                  <div class="location-readout" id="locationReadout">
-                    Waiting for location…
-                  </div>
-                </section>
+                </div>
               </div>
             </section>
-          </div>
-        </section>
-      </main>
-    </div>
-
-    <script src="script.js" defer></script>
-  </body>
+          </main>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script src="script.js"></script>
+</body>
 </html>
