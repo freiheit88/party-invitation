@@ -349,8 +349,6 @@ function goToPrelude() {
     clearTimeout(preludeAutoTimer);
   }
   preludeAutoTimer = setTimeout(() => {
-    // auto transition after 30s also gets a timpani accent
-    playTimpani();
     leavePreludeToMain();
   }, 30000);
 }
@@ -368,8 +366,10 @@ function leavePreintroToPrelude() {
     preintroRipple.classList.remove("preintro-ripple-active");
     preintroRipple.classList.add("preintro-ripple-leaving");
   }
-  // timpani accent for door between -1 and 0
-  playTimpani();
+  // Now brighten the overlay and move on to Prelude
+  if (preintroOverlay) {
+    preintroOverlay.classList.add("preintro-overlay-clear");
+  }
   setTimeout(() => {
     goToPrelude();
   }, 400);
@@ -382,6 +382,12 @@ function leavePreludeToMain() {
   if (preludeAutoTimer) {
     clearTimeout(preludeAutoTimer);
     preludeAutoTimer = null;
+  }
+
+  // Make sure background music returns to its base level as we enter the main scene
+  if (bgAudio) {
+    bgTargetVolume = 0.05;
+    fadeBgTo(bgTargetVolume, 800);
   }
 
   goToMain();
@@ -400,14 +406,20 @@ function schedulePreludeVoices() {
     preludeVoiceStatus.textContent = "Voices: waiting…";
   }
 
-  const maleDelay = 4000; // ms
+  const maleDelay = 1000; // ms (start quicker)
   setTimeout(() => {
     playPreludeVoices();
   }, maleDelay);
 }
 
 function playPreludeVoices() {
-  preludeMaleAudio = new Audio("media/prelude_voice_de_male.wav");
+  // While the prelude voices are speaking, keep the background music very soft
+  if (bgAudio) {
+    bgTargetVolume = 0.01;
+    fadeBgTo(bgTargetVolume, 300);
+  }
+
+  preludeMaleAudio = new Audio("media/prelude_voice_de_male.mp3");
   const male = preludeMaleAudio;
   male._baseVolume = 0.8;
   male.volume = muted ? 0 : male._baseVolume;
@@ -416,12 +428,11 @@ function playPreludeVoices() {
   if (preludeVoiceStatus) {
     preludeVoiceStatus.textContent = "Voices: German voice playing…";
   }
-  duckBgDuring(5000);
 
   male.addEventListener("ended", () => {
     preludeMaleAudio = null;
     setTimeout(() => {
-      preludeFemaleAudio = new Audio("media/prelude_voice_en_female.wav");
+      preludeFemaleAudio = new Audio("media/prelude_voice_en_female.mp3");
       const female = preludeFemaleAudio;
       female._baseVolume = 0.8;
       female.volume = muted ? 0 : female._baseVolume;
@@ -430,13 +441,17 @@ function playPreludeVoices() {
       if (preludeVoiceStatus) {
         preludeVoiceStatus.textContent = "Voices: English voice playing…";
       }
-      duckBgDuring(5000);
 
       female.addEventListener("ended", () => {
         preludeFemaleAudio = null;
         if (preludeVoiceStatus) {
           preludeVoiceStatus.textContent =
             "Voices: finished – the room is listening.";
+        }
+        // restore background music to its base level after voices
+        if (bgAudio) {
+          bgTargetVolume = 0.05;
+          fadeBgTo(bgTargetVolume, 800);
         }
         // no automatic goToMain(); transition is handled by taps / timeout / interrupt
       });
@@ -470,9 +485,9 @@ function fadeOutPreludeVoiceAndThenInterrupt(targetLang) {
   function startInterruptTts() {
     let src;
     if (targetLang === "en") {
-      src = "media/prelude_interrupt_en.wav";
+      src = "media/prelude_interrupt_en_female.mp3";
     } else {
-      src = "media/prelude_interrupt_de.wav";
+      src = "media/prelude_interrupt_de_male.mp3";
     }
 
     preludeInterruptAudio = new Audio(src);
@@ -536,9 +551,6 @@ function fadeOutPreludeVoiceAndThenInterrupt(targetLang) {
 function handlePreludeLanguageClick(lang) {
   if (preludeInterruptFlowStarted) return;
   preludeInterruptFlowStarted = true;
-
-  // play timpani on every language tap in prelude
-  playTimpani();
 
   if (preludeAutoTimer) {
     clearTimeout(preludeAutoTimer);
@@ -673,15 +685,10 @@ function handlePreintroTap() {
   if (preintroHasTapped) return;
   preintroHasTapped = true;
 
-  // play timpani on every button press in preintro
+  // Play timpani on every button press in pre-intro
   playTimpani();
 
-  // fade and music start
-
-  // fade overlay
-  if (preintroOverlay) {
-    preintroOverlay.classList.add("preintro-overlay-clear");
-  }
+  // Do not brighten yet; only hide popup and later show ripple
   if (preintroPopup) {
     preintroPopup.classList.add("preintro-popup-hidden");
   }
@@ -735,6 +742,8 @@ document.addEventListener("DOMContentLoaded", () => {
   // Preintro central ripple -> Prelude
   if (preintroRipple) {
     preintroRipple.addEventListener("click", () => {
+      // Timpani on the second button as well, but not again inside leavePreintroToPrelude
+      playTimpani();
       leavePreintroToPrelude();
     });
   }
@@ -742,11 +751,15 @@ document.addEventListener("DOMContentLoaded", () => {
   // Prelude EN / DE zones -> interrupt TTS then Main
   if (preludeZoneLeft) {
     preludeZoneLeft.addEventListener("click", () => {
+      // Every tap in Prelude should also get a timpani accent
+      playTimpani();
       handlePreludeLanguageClick("en");
     });
   }
   if (preludeZoneRight) {
     preludeZoneRight.addEventListener("click", () => {
+      // Every tap in Prelude should also get a timpani accent
+      playTimpani();
       handlePreludeLanguageClick("de");
     });
   }

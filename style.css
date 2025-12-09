@@ -46,7 +46,7 @@ body:not(.muted-world) .app-shell {
 }
 
 body.muted-world .app-shell {
-  filter: grayscale(0.4) saturate(0.6) brightness(0.9);
+  filter: grayscale(0.6) saturate(0.4) brightness(0.75);
 }
 
 /* Scenes */
@@ -66,6 +66,11 @@ body.muted-world .app-shell {
   height: 100%;
   object-fit: cover;
 }
+
+#scene-preintro .scene-video {
+  filter: brightness(1.3);
+}
+
 
 .scene-overlay {
   position: absolute;
@@ -196,6 +201,29 @@ body.muted-world .app-shell {
     box-shadow 0.4s ease;
 }
 
+.preintro-ripple::after {
+  content: "Click again!";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: var(--accent-soft);
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  opacity: 0;
+  pointer-events: none;
+  text-shadow:
+    0 0 12px rgba(0, 0, 0, 0.9),
+    0 0 22px rgba(245, 230, 184, 0.8);
+  transition: opacity 0.4s ease;
+}
+
+.preintro-ripple.preintro-ripple-active::after {
+  opacity: 1;
+}
+
 .preintro-ripple.preintro-ripple-active {
   opacity: 1;
   pointer-events: auto;
@@ -281,7 +309,7 @@ body.muted-world .app-shell {
   background: rgba(5, 7, 10, 0.88);
   border: 1px solid rgba(245, 230, 184, 0.6);
   font-size: 18px;
-  letter-spacing: 0.25em;
+  letter-spacing: 0.18em;
   text-transform: uppercase;
   text-align: center;
   color: var(--accent-soft);
@@ -294,6 +322,7 @@ body.muted-world .app-shell {
   position: absolute;
   inset: 0;
   display: flex;
+  flex-direction: column;
   pointer-events: none;
 }
 
@@ -315,11 +344,11 @@ body.muted-world .app-shell {
   left: 50%;
   transform: translate(-50%, -50%) rotate(90deg);
   transform-origin: center;
-  font-size: 30px;
+  font-size: clamp(30px, 7vw, 52px);
   font-weight: 700;
-  letter-spacing: 0.28em;
+  letter-spacing: 0.32em;
   text-transform: uppercase;
-  opacity: 0.95;
+  opacity: 0.97;
   text-align: center;
   animation: preludeLangPulse 2.2s ease-in-out infinite;
 }
