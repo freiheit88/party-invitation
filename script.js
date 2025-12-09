@@ -1,59 +1,92 @@
 // --------------------------
-// Preintro interaction
+// DOMContentLoaded init (moved out of event listener)
 // --------------------------
 
-function handlePreintroTap() {
-  if (preintroHasTapped) return;
-  preintroHasTapped = true;
+// Scene setup
+showScene("scene-preintro");
 
-  // no timpani here – just fade and music start
-
-  // fade overlay
-  if (preintroOverlay) {
-    preintroOverlay.classList.add("preintro-overlay-clear");
-  }
-  if (preintroPopup) {
-    preintroPopup.classList.add("preintro-popup-hidden");
-  }
-
-  if (preintroTouchBtn) {
-    preintroTouchBtn.disabled = true;
-  }
-
-  startBackgroundMusicFromPreintro();
-
-  // Immediately increase video brightness by 30%
-  const preintroVideo = document.getElementById("preintroVideo");
-  if (preintroVideo) {
-    preintroVideo.style.filter = "brightness(1.3)";
-  }
-
-  // After brightness fade, show central ripple (requires second tap to continue)
-  const rippleDelay = 1300;
-  setTimeout(() => {
-    if (preintroRipple) {
-      preintroRipple.classList.add("preintro-ripple-active");
-    }
-  }, rippleDelay);
+// Preintro button
+if (preintroTouchBtn) {
+  preintroTouchBtn.addEventListener("click", handlePreintroTap);
 }
 
-// ... (other code remains unchanged) ...
+// Preintro central ripple -> Prelude
+if (preintroRipple) {
+  preintroRipple.addEventListener("click", () => {
+    leavePreintroToPrelude();
+  });
+}
 
-document.addEventListener("DOMContentLoaded", () => {
-  // Scene setup
-  showScene("scene-preintro");
+// Prelude EN / DE zones -> interrupt TTS then Main
+if (preludeZoneLeft) {
+  preludeZoneLeft.addEventListener("click", () => {
+    handlePreludeLanguageClick("en");
+  });
+}
+if (preludeZoneRight) {
+  preludeZoneRight.addEventListener("click", () => {
+    handlePreludeLanguageClick("de");
+  });
+}
 
-  // Preintro button
-  if (preintroTouchBtn) {
-    preintroTouchBtn.addEventListener("click", handlePreintroTap);
-  }
+// Instrument assignment
+assignedInstrument = getAssignedInstrument();
+ownedInstruments = [assignedInstrument.id];
+ownedIndex = 0;
 
-  // Preintro central ripple -> Prelude
-  if (preintroRipple) {
-    preintroRipple.addEventListener("click", () => {
-      leavePreintroToPrelude();
-    });
-  }
+if (instrumentLabelEl) {
+  instrumentLabelEl.textContent = assignedInstrument.display;
+}
+updateOwnedInstrumentsHint();
+updateTuneIcons();
+updateMusicPillVisual();
 
-  // ... (remaining initialization code unchanged) ...
-});
+// Music toggle
+if (musicToggle) {
+  musicToggle.addEventListener("click", toggleMute);
+}
+
+// Let A ring
+if (tuneButton) {
+  tuneButton.addEventListener("click", () => {
+    playNextOwnedInstrument();
+  });
+}
+
+// Tabs + hero caption
+initTabs();
+initHeroCaptionSlider();
+
+// Orchestra game
+initGhostPlayers();
+if (orchestraJoinBtn) {
+  orchestraJoinBtn.addEventListener("click", () => {
+    if (orchestraPopup) orchestraPopup.classList.remove("hidden");
+    if (!navigator.geolocation) {
+      if (myCoordsEl) myCoordsEl.textContent = "Geolocation not supported";
+      return;
+    }
+    if (geoWatchId !== null) return;
+
+    geoWatchId = navigator.geolocation.watchPosition(
+      (pos) => {
+        myPosition = pos.coords;
+        if (myCoordsEl) {
+          myCoordsEl.textContent =
+            pos.coords.latitude.toFixed(6) + ", " +
+            pos.coords.longitude.toFixed(6);
+        }
+        updateOrchestraDistances();
+      },
+      (err) => {
+        if (myCoordsEl) myCoordsEl.textContent = "Error: " + err.message;
+      },
+      { enableHighAccuracy: true, maximumAge: 2000, timeout: 8000 }
+    );
+  });
+}
+if (orchestraPopupClose) {
+  orchestraPopupClose.addEventListener("click", () => {
+    orchestraPopup.classList.add("hidden");
+  });
+}
