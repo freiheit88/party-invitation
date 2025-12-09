@@ -144,7 +144,6 @@ body.muted-world .app-shell {
   font-weight: 600;
 }
 
-
 .preintro-line-recommended {
   font-size: 11px;
   font-weight: 400;
@@ -163,15 +162,6 @@ body.muted-world .app-shell {
     transform: scale(1.0);
     box-shadow: 0 18px 40px rgba(0, 0, 0, 0.8);
   }
-  50% {
-    transform: scale(1.12);
-    box-shadow: 0 36px 80px rgba(0, 0, 0, 0.95);
-  }
-  100% {
-    transform: scale(1.0);
-    box-shadow: 0 18px 40px rgba(0, 0, 0, 0.8);
-  }
-}
   50% {
     transform: scale(1.05);
     box-shadow: 0 24px 52px rgba(0, 0, 0, 0.95);
@@ -1168,14 +1158,4 @@ body.muted-world .music-pill.music-muted {
   .map-frame {
     height: 160px;
   }
-}
-
-
-/* Pre-intro sub line under 'Touch here!' */
-.preintro-line-sub{
-  display:block;
-  margin-top:6px;
-  font-size:11px;
-  letter-spacing:0.08em;
-  opacity:0.8; /* slightly softer but same color family */
 }
