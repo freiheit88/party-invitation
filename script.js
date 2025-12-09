@@ -249,7 +249,11 @@ function updateOwnedInstrumentsHint() {
 }
 
 // Round-robin through owned instruments
+let tunePressCount=0; let mozartUnlocked=false;
 function playNextOwnedInstrument() {
+  tunePressCount++;
+  if (!mozartUnlocked && tunePressCount>=10){ mozartUnlocked=true; triggerMozartUnlock(); }
+
   if (!ownedInstruments.length) return;
   const instrumentId = ownedInstruments[ownedIndex];
   ownedIndex = (ownedIndex + 1) % ownedInstruments.length;
@@ -357,19 +361,29 @@ function goToMain() {
   showScene("scene-main");
 }
 
-function leavePreintroToPrelude() {
-  if (preintroIdleTimer) {
-    clearTimeout(preintroIdleTimer);
-    preintroIdleTimer = null;
+function leavePreintroToPrelude(){
+  if (preintroTransitioning) return;
+  preintroTransitioning = true;
+  // play timpani once here
+  playTimpani();
+  // brighten overlay to clear (transition is 5s in CSS)
+  if (preintroOverlay){
+    preintroOverlay.classList.add("preintro-overlay-clear");
   }
+  if (preintroRipple){
+    preintroRipple.classList.add("preintro-ripple-leaving");
+  }
+  // wait ~5.2s then go to prelude
+  setTimeout(() => {
+    goToPrelude();
+  }, 5200);
+}
   if (preintroRipple) {
     preintroRipple.classList.remove("preintro-ripple-active");
     preintroRipple.classList.add("preintro-ripple-leaving");
   }
-  // Now brighten the overlay and move on to Prelude
-  if (preintroOverlay) {
-    preintroOverlay.classList.add("preintro-overlay-clear");
-  }
+  // timpani accent for door between -1 and 0
+  playTimpani();
   setTimeout(() => {
     goToPrelude();
   }, 400);
@@ -384,12 +398,7 @@ function leavePreludeToMain() {
     preludeAutoTimer = null;
   }
 
-  // Make sure background music returns to its base level as we enter the main scene
-  if (bgAudio) {
-    bgTargetVolume = 0.05;
-    fadeBgTo(bgTargetVolume, 800);
-  }
-
+  playTimpani();
   goToMain();
 }
 
@@ -406,20 +415,14 @@ function schedulePreludeVoices() {
     preludeVoiceStatus.textContent = "Voices: waiting…";
   }
 
-  const maleDelay = 1000; // ms (start quicker)
+  const maleDelay = 4000; // ms
   setTimeout(() => {
     playPreludeVoices();
   }, maleDelay);
 }
 
 function playPreludeVoices() {
-  // While the prelude voices are speaking, keep the background music very soft
-  if (bgAudio) {
-    bgTargetVolume = 0.01;
-    fadeBgTo(bgTargetVolume, 300);
-  }
-
-  preludeMaleAudio = new Audio("media/prelude_voice_de_male.mp3");
+  preludeMaleAudio = playVoiceWithPan("media/prelude_voice_de_male.mp3", +0.6);
   const male = preludeMaleAudio;
   male._baseVolume = 0.8;
   male.volume = muted ? 0 : male._baseVolume;
@@ -428,11 +431,12 @@ function playPreludeVoices() {
   if (preludeVoiceStatus) {
     preludeVoiceStatus.textContent = "Voices: German voice playing…";
   }
+  duckBgDuring(5000);
 
   male.addEventListener("ended", () => {
     preludeMaleAudio = null;
     setTimeout(() => {
-      preludeFemaleAudio = new Audio("media/prelude_voice_en_female.mp3");
+      preludeFemaleAudio = playVoiceWithPan("media/prelude_voice_en_female.mp3", -0.6);
       const female = preludeFemaleAudio;
       female._baseVolume = 0.8;
       female.volume = muted ? 0 : female._baseVolume;
@@ -441,17 +445,13 @@ function playPreludeVoices() {
       if (preludeVoiceStatus) {
         preludeVoiceStatus.textContent = "Voices: English voice playing…";
       }
+      duckBgDuring(5000);
 
       female.addEventListener("ended", () => {
         preludeFemaleAudio = null;
         if (preludeVoiceStatus) {
           preludeVoiceStatus.textContent =
             "Voices: finished – the room is listening.";
-        }
-        // restore background music to its base level after voices
-        if (bgAudio) {
-          bgTargetVolume = 0.05;
-          fadeBgTo(bgTargetVolume, 800);
         }
         // no automatic goToMain(); transition is handled by taps / timeout / interrupt
       });
@@ -681,14 +681,20 @@ function updateOrchestraDistances() {
 // Preintro interaction
 // --------------------------
 
+let preintroTransitioning = false;
+function safePlayTimpaniOnce(){ if (preintroTransitioning) return; playTimpani(); }
+
 function handlePreintroTap() {
   if (preintroHasTapped) return;
   preintroHasTapped = true;
 
-  // Play timpani on every button press in pre-intro
-  playTimpani();
+  // timpani on every tap in scene -1 (but prevent duplicates on scene leave)
+  safePlayTimpaniOnce();
 
-  // Do not brighten yet; only hide popup and later show ripple
+  // fade overlay
+  if (preintroOverlay) {
+    preintroOverlay.classList.add("preintro-overlay-clear");
+  }
   if (preintroPopup) {
     preintroPopup.classList.add("preintro-popup-hidden");
   }
@@ -742,8 +748,6 @@ document.addEventListener("DOMContentLoaded", () => {
   // Preintro central ripple -> Prelude
   if (preintroRipple) {
     preintroRipple.addEventListener("click", () => {
-      // Timpani on the second button as well, but not again inside leavePreintroToPrelude
-      playTimpani();
       leavePreintroToPrelude();
     });
   }
@@ -751,16 +755,12 @@ document.addEventListener("DOMContentLoaded", () => {
   // Prelude EN / DE zones -> interrupt TTS then Main
   if (preludeZoneLeft) {
     preludeZoneLeft.addEventListener("click", () => {
-      // Every tap in Prelude should also get a timpani accent
-      playTimpani();
-      handlePreludeLanguageClick("en");
+      playTimpani(); handlePreludeLanguageClick("en");
     });
   }
   if (preludeZoneRight) {
     preludeZoneRight.addEventListener("click", () => {
-      // Every tap in Prelude should also get a timpani accent
-      playTimpani();
-      handlePreludeLanguageClick("de");
+      playTimpani(); handlePreludeLanguageClick("de");
     });
   }
 
@@ -826,3 +826,59 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 });
 
+
+
+/** Stereo panned voice playback for prelude */
+let voiceCtx, voiceGain;
+function ensureVoiceCtx(){
+  if (!voiceCtx){
+    voiceCtx = new (window.AudioContext || window.webkitAudioContext)();
+    voiceGain = voiceCtx.createGain();
+    voiceGain.gain.value = muted ? 0 : 1;
+    voiceGain.connect(voiceCtx.destination);
+  }
+}
+function playVoiceWithPan(url, pan){
+  ensureVoiceCtx();
+  const audio = new Audio(url);
+  audio.crossOrigin = "anonymous";
+  activeAudios.add(audio);
+  const src = voiceCtx.createMediaElementSource(audio);
+  const panner = voiceCtx.createStereoPanner ? voiceCtx.createStereoPanner() : null;
+  if (panner){
+    panner.pan.value = pan;
+    src.connect(panner).connect(voiceGain);
+  }else{
+    src.connect(voiceGain);
+  }
+  audio.onended = ()=>{ activeAudios.delete(audio); };
+  audio.play().catch(()=>{});
+  return audio;
+}
+
+
+function triggerMozartUnlock(){
+  const pill = document.querySelector(".instrument-pill");
+  if (pill){
+    pill.classList.add("mozart-charging");
+    setTimeout(()=>{
+      const nameEl = document.getElementById("instrumentLabel");
+      if (nameEl){
+        nameEl.textContent = "YOU ARE MOZART !";
+        nameEl.classList.add("mozart-reveal");
+        setTimeout(()=>{
+          pill.classList.remove("mozart-charging");
+          pill.classList.add("mozart-glory");
+          setTimeout(()=>{ pill.classList.remove("mozart-glory"); }, 2000);
+        }, 1000);
+      }
+    }, 3000);
+  }
+}
+function addMozartEmoji(emoji){
+  const ic = document.getElementById("tuneIcons");
+  if (!ic) return;
+  const span = document.createElement("span");
+  span.textContent = emoji;
+  ic.appendChild(span);
+}
