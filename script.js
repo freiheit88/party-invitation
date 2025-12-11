@@ -12,7 +12,7 @@ document.addEventListener("DOMContentLoaded", () => {
     { id: "timpani", name: "Timpani", icon: "🥁" }
   ];
   
-  // Corrected Paths
+  // Audio Paths
   const sounds = {
     cellos: "media/SI_Cac_fx_cellos_tuning_one_shot_imaginative.wav",
     trumpets: "media/SI_Cac_fx_trumpets_tuning_one_shot_growing.wav",
@@ -20,10 +20,8 @@ document.addEventListener("DOMContentLoaded", () => {
     timpani: "media/zoid_percussion_timpani_roll_A.wav",
     timpani_sfx: "media/TS_IFD_kick_timpani_heavy.wav",
     bg_music: "media/Serenade For Strings Op.48_2nd movt.wav",
-    // Voices
     voice_de: "media/prelude_voice_de_male.mp3",
     voice_en: "media/prelude_voice_en_female.mp3",
-    // Interrupts
     int_de: "media/prelude_interrupt_de_male.mp3",
     int_en: "media/prelude_interrupt_en_female.mp3"
   };
@@ -48,7 +46,6 @@ document.addEventListener("DOMContentLoaded", () => {
       bgAudio.volume = 0;
     }
     bgAudio.play().then(() => {
-      // Fade in to 30%
       let v = 0;
       const fade = setInterval(() => {
         if (isMuted) { clearInterval(fade); return; }
@@ -59,20 +56,36 @@ document.addEventListener("DOMContentLoaded", () => {
     }).catch(e => console.log("BG play error:", e));
   };
 
+  /* --- Scene Transition Logic (검은 화면 버그 수정 핵심) --- */
+  const switchScene = (fromId, toId) => {
+    const fromEl = document.getElementById(fromId);
+    const toEl = document.getElementById(toId);
+
+    // 1. 현재 씬 숨기기 (opacity 0 -> display none)
+    fromEl.classList.remove("scene-visible");
+    setTimeout(() => {
+      fromEl.style.display = "none";
+      
+      // 2. 다음 씬 준비 (display block -> opacity 1)
+      toEl.style.display = "block";
+      // 브라우저가 display:block을 인식할 시간을 아주 잠깐 줌
+      requestAnimationFrame(() => {
+        toEl.classList.add("scene-visible");
+      });
+    }, 1000); // 1초 뒤 완전히 교체
+  };
+
   /* --- Scene -1: Pre-intro --- */
   const btnTouch = document.getElementById("preintroTouchBtn");
   const btnRipple = document.getElementById("preintroRipple");
   const overlay = document.getElementById("preintroOverlay");
-  const scenePre = document.getElementById("scene-preintro");
   
   btnTouch.addEventListener("click", () => {
     playSfx(sounds.timpani_sfx);
     playBgMusic();
     
-    // Hide UI 1
     document.getElementById("preintroUi").style.display = "none";
     
-    // Show UI 2 (Ripple)
     btnRipple.style.display = "block";
     setTimeout(() => btnRipple.classList.add("active"), 100);
   });
@@ -81,81 +94,70 @@ document.addEventListener("DOMContentLoaded", () => {
     playSfx(sounds.timpani_sfx);
     btnRipple.classList.remove("active");
     
-    // 3초 동안 서서히 밝아짐 (Overlay 제거)
+    // 오버레이 밝아짐 (3초)
     overlay.classList.add("preintro-overlay-clear"); 
     
+    // 3초 뒤 씬 전환 (Pre-intro -> Prelude)
     setTimeout(() => {
-      scenePre.style.display = "none";
-      document.getElementById("scene-prelude").style.display = "block";
+      switchScene("scene-preintro", "scene-prelude");
     }, 3000);
   });
 
   /* --- Scene 0: Prelude --- */
   const zones = document.querySelectorAll(".prelude-language-btn");
   const dimLayer = document.getElementById("preludeDimLayer");
-  let isInterrupting = false; // 인터럽트 상태 플래그
+  let isInterrupting = false; 
 
   zones.forEach(btn => {
     btn.addEventListener("click", (e) => {
-      if (isInterrupting) return; // 이미 전환 중이면 무시
+      if (isInterrupting) return; 
 
       const lang = btn.dataset.lang;
       playSfx(sounds.timpani_sfx, 0.5);
 
-      // 이미 음성이 재생 중이라면? (Interrupt 로직)
+      // Interrupt Logic
       if (currentVoiceAudio && !currentVoiceAudio.paused) {
         isInterrupting = true;
-        currentVoiceAudio.pause(); // 기존 음성 중지
+        currentVoiceAudio.pause(); 
         
-        // Interrupt 사운드 재생
         const intFile = lang === "en" ? sounds.int_en : sounds.int_de;
         const intAudio = playSfx(intFile, 1.0);
         
-        // Interrupt 끝나면 메인으로
         if (intAudio) {
-          intAudio.onended = () => { setTimeout(goToMain, 1000); };
+          intAudio.onended = () => { setTimeout(() => switchScene("scene-prelude", "scene-main"), 1000); initMain(); };
         } else {
-          setTimeout(goToMain, 2000);
+          setTimeout(() => switchScene("scene-prelude", "scene-main"), 2000);
+          initMain();
         }
         return;
       }
 
-      // --- 정상 재생 (처음 클릭 시) ---
-      
-      // Dimming Logic (EN=Left/Top, DE=Right/Bottom)
+      // Normal Play Logic
       if (lang === "en") {
-        dimLayer.classList.add("dim-right"); // Dim the DE side
+        dimLayer.classList.add("dim-right"); 
         document.querySelector('[data-lang="de"]').classList.add("fade-out");
       } else {
-        dimLayer.classList.add("dim-left"); // Dim the EN side
+        dimLayer.classList.add("dim-left"); 
         document.querySelector('[data-lang="en"]').classList.add("fade-out");
       }
 
-      // Duck BG music
       if (bgAudio) bgAudio.volume = 0.05;
 
-      // Play Main Voice
       const voiceFile = lang === "en" ? sounds.voice_en : sounds.voice_de;
       currentVoiceAudio = playSfx(voiceFile, 1.0);
 
-      // Wait for end
       if (currentVoiceAudio) {
         currentVoiceAudio.onended = () => {
           if (bgAudio && !isMuted) bgAudio.volume = 0.3;
-          // 끝나고 2초 뒤 이동
-          setTimeout(goToMain, 2000); 
+          setTimeout(() => switchScene("scene-prelude", "scene-main"), 2000); 
+          initMain();
         };
       } else {
-        setTimeout(goToMain, 4000);
+        setTimeout(() => switchScene("scene-prelude", "scene-main"), 4000);
+        initMain();
       }
     });
   });
-
-  const goToMain = () => {
-    document.getElementById("scene-prelude").style.display = "none";
-    document.getElementById("scene-main").style.display = "block";
-    initMain();
-  };
 
   /* --- Scene 1: Main --- */
   const heroImgWrapper = document.getElementById("heroImageWrapper");
@@ -164,7 +166,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const lblId = document.getElementById("idLabel");
   
   const initMain = () => {
-    // Random Instrument on Load (항상 랜덤)
+    // Random Instrument
     myRole = roles[Math.floor(Math.random() * roles.length)];
     lblRole.textContent = myRole.name;
     
@@ -196,30 +198,24 @@ document.addEventListener("DOMContentLoaded", () => {
   btnTune.addEventListener("click", () => {
     clickCount++;
     
-    // Mozart Egg (10th click)
     if (clickCount === 10 && !isMozart) {
       isMozart = true;
       lblRole.textContent = "MOZART";
       lblRole.classList.add("mozart");
-      // "You are" 라벨 숨김 (겹침 방지)
       lblId.style.opacity = "0"; 
       playSfx(sounds.timpani, 1.0); 
     }
 
-    // Play Sound
     let soundFile = sounds[myRole.id];
     if (isMozart) {
-      // Random sound in Mozart mode
       const keys = ["cellos", "trumpets", "violins2", "timpani"];
       soundFile = sounds[keys[Math.floor(Math.random() * keys.length)]];
     }
     playSfx(soundFile);
 
-    // Glow Effect (Border + Screen spread)
     heroImgWrapper.classList.add("glowing");
     screenGlow.classList.add("screen-glow-active");
     
-    // Remove glow after 5s
     setTimeout(() => {
       heroImgWrapper.classList.remove("glowing");
       screenGlow.classList.remove("screen-glow-active");
@@ -245,12 +241,10 @@ document.addEventListener("DOMContentLoaded", () => {
   
   btnOrch.addEventListener("click", () => {
     btnOrch.textContent = "Searching...";
-    // Simulate finding people
     setTimeout(() => {
       document.getElementById("orchestraMode").textContent = "Connected";
       orchStatus.textContent = "Trio formed";
       
-      // Add fake dots
       for(let i=0; i<3; i++) {
         const dot = document.createElement("div");
         dot.className = "radar-dot ghost";
