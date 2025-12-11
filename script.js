@@ -461,6 +461,9 @@ function leavePreintroToPrelude() {
   // Scene 전환 시 Timpani 중복 재생 방지
   // playTimpani(); // 제거
 
+  // [수정/보완] 다음 Scene으로 전환되기 직전에 플래그를 false로 초기화하여 Scene 0에서 다시 활용할 수 있도록 합니다.
+  preintroTransitionStarted = false; 
+
   setTimeout(() => {
     goToPrelude();
   }, 400);
@@ -783,6 +786,10 @@ function updateMusicPillVisual() {
 document.addEventListener("DOMContentLoaded", () => {
   // Scene setup
   showScene("scene-preintro");
+  
+  // [수정/보완] 상태 플래그 초기화 보장
+  preintroHasTapped = false; 
+  preintroTransitionStarted = false; 
 
   // Preintro button
   if (preintroTouchBtn) {
