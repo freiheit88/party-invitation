@@ -16,8 +16,6 @@
 <body>
   <div class="app-shell">
     
-    <div id="muteOverlay" class="mute-overlay"></div>
-
     <section id="scene-preintro" class="scene scene-visible">
       <video id="preintroVideo" class="scene-video dark-filter" autoplay muted playsinline loop>
         <source src="media/preintro_glass_fog.mp4" type="video/mp4" />
@@ -48,7 +46,6 @@
         <div class="prelude-header">
           <div class="prelude-tag">Dress the page in a language</div>
         </div>
-        <div id="preludeMessage" class="prelude-message hidden">Listen to the guide</div>
       </div>
 
       <div class="prelude-zones">
@@ -88,8 +85,7 @@
                       <button id="musicToggle" class="icon-btn" aria-label="Mute Toggle">
                         <span class="icon-on">🔊</span><span class="icon-off">🔇</span>
                       </button>
-                      
-                      <div class="user-identity" id="userIdentityBox">
+                      <div class="user-identity">
                         <span class="id-label" id="idLabel">You are</span>
                         <span class="id-value" id="instrumentLabel">...</span>
                       </div>
@@ -121,11 +117,20 @@
                <div class="orchestra-wrapper">
                  <h1 class="orch-title">Ensemble Radar</h1>
                  <p class="orch-desc">Locating your instrument...</p>
+                 
                  <div id="map" class="radar-map"></div>
+
                  <div class="orchestra-status-box">
-                   <div class="status-row"><span class="lbl">GPS Status</span><span class="val" id="gpsStatus">Waiting...</span></div>
-                   <div class="status-row"><span class="lbl">Ensemble Size</span><span class="val" id="harmonicsStatus">Solo</span></div>
+                   <div class="status-row">
+                     <span class="lbl">GPS Status</span>
+                     <span class="val" id="gpsStatus">Waiting...</span>
+                   </div>
+                   <div class="status-row">
+                     <span class="lbl">Ensemble Size</span>
+                     <span class="val" id="harmonicsStatus">Solo</span>
+                   </div>
                  </div>
+                 
                  <button id="orchestraJoinBtn" class="orchestra-btn">Start Radar</button>
                </div>
             </section>
@@ -136,6 +141,7 @@
       </div>
     </section>
   </div>
+  
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
   <script src="script.js"></script>
 </body>

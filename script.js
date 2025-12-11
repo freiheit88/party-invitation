@@ -3,9 +3,7 @@ document.addEventListener("DOMContentLoaded", () => {
   let bgAudio = null;
   let isMuted = false;
   let currentVoiceAudio = null; 
-  let duckTimer = null; 
-  let activeAudios = new Set(); 
-
+  
   const roles = [
     { id: "cellos", name: "Cellos", icon: "🎻" },
     { id: "trumpets", name: "Trumpets", icon: "🎺" },
@@ -37,8 +35,6 @@ document.addEventListener("DOMContentLoaded", () => {
     const a = new Audio(path);
     a.volume = vol;
     a.play().catch(e => console.log("Audio play error:", e));
-    activeAudios.add(a);
-    a.onended = () => activeAudios.delete(a);
     return a;
   };
 
@@ -51,7 +47,7 @@ document.addEventListener("DOMContentLoaded", () => {
     bgAudio.play().then(() => {
       let v = 0;
       const fade = setInterval(() => {
-        if (isMuted) { clearInterval(fade); bgAudio.volume = 0; return; }
+        if (isMuted) { clearInterval(fade); return; }
         v += 0.01;
         if (v >= 0.3) { v = 0.3; clearInterval(fade); }
         bgAudio.volume = v;
@@ -59,44 +55,26 @@ document.addEventListener("DOMContentLoaded", () => {
     }).catch(e => console.log("BG play error:", e));
   };
 
-  // [수정] 배경음악 줄이기 (Ducking) 타이머 충돌 방지
-  const duckBgDuring = (duration = 3000) => {
-    if (!bgAudio || isMuted) return;
-    
-    // 기존 복구 타이머가 있다면 취소 (연타 시 꼬임 방지)
-    if (duckTimer) {
-      clearTimeout(duckTimer);
-      duckTimer = null;
-    }
-    
-    // 즉시 볼륨 줄임
-    bgAudio.volume = 0.05;
-    
-    // Duration 후에 서서히 복구
-    duckTimer = setTimeout(() => {
-      if (!isMuted && bgAudio) {
-        let v = 0.05;
-        const restoreFade = setInterval(() => {
-          if (isMuted) { clearInterval(restoreFade); return; }
-          v += 0.02;
-          if (v >= 0.3) { v = 0.3; clearInterval(restoreFade); }
-          bgAudio.volume = v;
-        }, 100);
-      }
-    }, duration);
-  };
-
-  /* --- Scene Transition --- */
+  /* --- Scene Transition Logic --- */
   const switchScene = (fromId, toId) => {
     const fromEl = document.getElementById(fromId);
     const toEl = document.getElementById(toId);
+
     fromEl.style.display = "none";
     fromEl.classList.remove("scene-visible");
+
     toEl.style.display = "block";
     if (toId === "scene-prelude") {
       toEl.classList.add("fade-in-slow");
     } else {
       toEl.classList.add("scene-visible");
+    }
+    
+    // 맵 사이즈 재조정
+    if (toId === "scene-main") {
+      setTimeout(() => {
+        if(map) map.invalidateSize();
+      }, 100);
     }
   };
 
@@ -110,43 +88,31 @@ document.addEventListener("DOMContentLoaded", () => {
     playSfx(sounds.timpani_sfx);
     playBgMusic();
     
-    // [수정] 1초 페이드 아웃
-    btnTouch.classList.add("fade-out-btn");
+    document.getElementById("preintroUi").style.display = "none";
     
-    // 1초 뒤 리플 등장
-    setTimeout(() => {
-      document.getElementById("preintroUi").style.display = "none";
-      btnRipple.style.display = "block";
-      requestAnimationFrame(() => btnRipple.classList.add("visible"));
-    }, 1000);
+    btnRipple.style.display = "block";
+    setTimeout(() => btnRipple.classList.add("active"), 100);
   });
 
   btnRipple.addEventListener("click", () => {
     playSfx(sounds.timpani_sfx);
+    btnRipple.classList.remove("active");
+    btnRipple.classList.add("hidden"); // [수정] 즉시 사라짐
     
-    // [수정] 리플 페이드 아웃 (1초)
-    btnRipple.classList.remove("visible");
-    btnRipple.classList.add("fading-out");
+    // 밝아지는 효과 시작 (비디오 필터 제거 & 오버레이 제거)
+    videoPre.classList.remove("dark-filter"); 
+    videoPre.classList.add("video-bright");
+    overlay.classList.add("preintro-overlay-clear");
     
+    // 3초 뒤 씬 전환
     setTimeout(() => {
-      btnRipple.classList.add("hidden"); 
-      
-      // 영상 밝아짐 (3초 트랜지션)
-      videoPre.classList.remove("dark-filter"); 
-      videoPre.classList.add("video-bright");
-      overlay.classList.add("preintro-overlay-clear");
-      
-      // 3초 대기 후 전환
-      setTimeout(() => {
-        switchScene("scene-preintro", "scene-prelude");
-      }, 3000);
-    }, 1000);
+      switchScene("scene-preintro", "scene-prelude");
+    }, 3000);
   });
 
   /* --- Scene 0: Prelude --- */
   const zones = document.querySelectorAll(".prelude-language-btn");
   const dimLayer = document.getElementById("preludeDimLayer");
-  const msgBox = document.getElementById("preludeMessage");
   let isInterrupting = false; 
 
   zones.forEach(btn => {
@@ -156,13 +122,13 @@ document.addEventListener("DOMContentLoaded", () => {
       const lang = btn.dataset.lang;
       playSfx(sounds.timpani_sfx, 0.5);
 
+      // Interrupt Logic
       if (currentVoiceAudio && !currentVoiceAudio.paused) {
         isInterrupting = true;
         currentVoiceAudio.pause(); 
         
         const intFile = lang === "en" ? sounds.int_en : sounds.int_de;
         const intAudio = playSfx(intFile, 1.0);
-        msgBox.classList.remove("show"); // Hide msg
         
         if (intAudio) {
           intAudio.onended = () => { setTimeout(() => switchScene("scene-prelude", "scene-main"), 1000); initMain(); };
@@ -173,18 +139,15 @@ document.addEventListener("DOMContentLoaded", () => {
         return;
       }
 
+      // Normal Play Logic
+      // 50% 분할 디밍
       if (lang === "en") {
         dimLayer.classList.add("dim-right"); 
         document.querySelector('[data-lang="de"]').classList.add("fade-out");
-        msgBox.textContent = "Listen to the guide"; // EN Message
       } else {
         dimLayer.classList.add("dim-left"); 
         document.querySelector('[data-lang="en"]').classList.add("fade-out");
-        msgBox.textContent = "Lauschen Sie der Anleitung"; // DE Message
       }
-
-      msgBox.classList.remove("hidden");
-      msgBox.classList.add("show");
 
       if (bgAudio) bgAudio.volume = 0.05;
 
@@ -193,8 +156,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
       if (currentVoiceAudio) {
         currentVoiceAudio.onended = () => {
-          msgBox.classList.remove("show");
-          msgBox.classList.add("hidden");
           if (bgAudio && !isMuted) bgAudio.volume = 0.3;
           setTimeout(() => switchScene("scene-prelude", "scene-main"), 2000); 
           initMain();
@@ -211,15 +172,16 @@ document.addEventListener("DOMContentLoaded", () => {
   const screenGlow = document.getElementById("screenGlow");
   const lblRole = document.getElementById("instrumentLabel");
   const lblId = document.getElementById("idLabel");
-  const userIdentityBox = document.getElementById("userIdentityBox"); // 박스 전체
   const tuneIcons = document.getElementById("tuneIcons");
   
   const initMain = () => {
+    // Random Instrument on Load
     myRole = roles[Math.floor(Math.random() * roles.length)];
     lblRole.textContent = myRole.name;
     ownedInstruments = [myRole.id]; 
     updateIcons();
     
+    // Captions slider
     let capIdx = 0;
     const caps = document.querySelectorAll(".hero-caption");
     const dots = document.querySelectorAll(".hero-dot");
@@ -248,43 +210,23 @@ document.addEventListener("DOMContentLoaded", () => {
     btnMute.classList.toggle("muted", isMuted);
     document.body.classList.toggle("muted-world", isMuted);
     
-    if (isMuted) {
-      if (bgAudio) bgAudio.volume = 0;
-      activeAudios.forEach(audio => {
-        audio.pause();
-        audio.currentTime = 0;
-      });
-      activeAudios.clear();
-    } else {
-      if (bgAudio) bgAudio.volume = 0.3;
-    }
+    if (bgAudio) bgAudio.volume = isMuted ? 0 : 0.3;
   });
 
   // Let A Ring Logic
   const btnTune = document.getElementById("tuneButton");
   btnTune.addEventListener("click", () => {
+    // [수정] Mute면 Let A Ring도 안 들림
     if (isMuted) return;
 
     clickCount++;
-    duckBgDuring(3000); 
-
-    // [수정] Mozart 예술적 효과 (3단계)
+    
     if (clickCount === 10 && !isMozart) {
       isMozart = true;
-      
-      // Phase 1: Buildup (3초간 떨림)
-      userIdentityBox.classList.add("mozart-buildup");
+      lblRole.textContent = "MOZART";
+      lblRole.classList.add("mozart");
+      lblId.style.opacity = "0"; 
       playSfx(sounds.timpani, 1.0); 
-      
-      setTimeout(() => {
-        // Phase 2: Transformation
-        userIdentityBox.classList.remove("mozart-buildup");
-        lblId.style.opacity = "0"; // "You are" 숨김
-        lblRole.textContent = "YOU ARE MOZART !";
-        lblRole.classList.add("mozart-reveal");
-        
-        // Phase 3: Sustain (Reveal 클래스 유지)
-      }, 3000);
     }
 
     if (isMozart) {
@@ -306,7 +248,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }, 5000);
   });
 
-  // Tabs & Map Logic (Omitted for brevity, kept same)
+  // Tabs
   const tabBtns = document.querySelectorAll(".tab-btn");
   const tabPanels = document.querySelectorAll(".tab-panel");
   tabBtns.forEach(btn => {
@@ -317,13 +259,123 @@ document.addEventListener("DOMContentLoaded", () => {
       document.getElementById("tab-" + btn.dataset.tab).classList.add("active");
     });
   });
-  
-  // (Orchestra map logic included in previous version is preserved here implicitly)
+
+  // --- Orchestra Game (Real GPS + Leaflet) ---
   const btnOrch = document.getElementById("orchestraJoinBtn");
-  if(btnOrch) {
-      // ... (Map logic same as before)
-      btnOrch.addEventListener("click", () => {
-        // ...
+  const orchStatus = document.getElementById("harmonicsStatus");
+  const gpsStatus = document.getElementById("gpsStatus");
+  let map = null;
+  let myMarker = null;
+  let ghostMarkers = [];
+  let ghosts = [];
+
+  const generateGhosts = (centerLat, centerLng) => {
+    const ghostRoles = ["cellos", "trumpets", "violins2", "timpani"];
+    for(let i=0; i<20; i++) {
+      const latOffset = (Math.random() - 0.5) * 0.001; 
+      const lngOffset = (Math.random() - 0.5) * 0.001;
+      const roleId = ghostRoles[Math.floor(Math.random() * ghostRoles.length)];
+      ghosts.push({
+        lat: centerLat + latOffset,
+        lng: centerLng + lngOffset,
+        roleId: roleId,
+        collected: false
       });
-  }
+    }
+  };
+
+  const getDistance = (lat1, lon1, lat2, lon2) => {
+    const R = 6371e3; 
+    const φ1 = lat1 * Math.PI/180;
+    const φ2 = lat2 * Math.PI/180;
+    const Δφ = (lat2-lat1) * Math.PI/180;
+    const Δλ = (lon2-lon1) * Math.PI/180;
+    const a = Math.sin(Δφ/2) * Math.sin(Δφ/2) +
+              Math.cos(φ1) * Math.cos(φ2) *
+              Math.sin(Δλ/2) * Math.sin(Δλ/2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    return R * c;
+  };
+
+  btnOrch.addEventListener("click", () => {
+    if (!navigator.geolocation) {
+      alert("Geolocation is not supported");
+      return;
+    }
+
+    btnOrch.textContent = "Scanning...";
+    
+    navigator.geolocation.watchPosition((position) => {
+      const lat = position.coords.latitude;
+      const lng = position.coords.longitude;
+      
+      gpsStatus.textContent = `Active (${lat.toFixed(4)}, ${lng.toFixed(4)})`;
+      btnOrch.style.display = "none";
+
+      if (!map) {
+        map = L.map('map').setView([lat, lng], 18);
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+          attribution: '&copy; OpenStreetMap &copy; CARTO',
+          subdomains: 'abcd',
+          maxZoom: 20
+        }).addTo(map);
+
+        const myIcon = L.divIcon({
+          className: 'custom-pin',
+          html: '<div style="font-size:20px;">😊</div>',
+          iconSize: [20, 20],
+          iconAnchor: [10, 10]
+        });
+        myMarker = L.marker([lat, lng], {icon: myIcon}).addTo(map);
+
+        generateGhosts(lat, lng);
+        
+        ghosts.forEach((g, idx) => {
+          const ghostIcon = L.divIcon({
+            className: 'custom-pin',
+            html: `<div style="font-size:15px; opacity:0.6;">👻</div>`,
+            iconSize: [15, 15],
+            iconAnchor: [7, 7]
+          });
+          const marker = L.marker([g.lat, g.lng], {icon: ghostIcon}).addTo(map);
+          ghostMarkers[idx] = marker;
+        });
+      } else {
+        myMarker.setLatLng([lat, lng]);
+        map.panTo([lat, lng]);
+      }
+
+      let nearbyCount = 0;
+      ghosts.forEach((g, idx) => {
+        const dist = getDistance(lat, lng, g.lat, g.lng);
+        
+        if (dist < 5 && !g.collected) {
+          g.collected = true;
+          ownedInstruments.push(g.roleId); 
+          
+          playSfx(sounds.timpani_sfx); 
+          ghostMarkers[idx].setIcon(L.divIcon({
+            className: 'custom-pin',
+            html: `<div style="font-size:20px;">🎻</div>`, 
+            iconSize: [20, 20],
+            iconAnchor: [10, 10]
+          }));
+          
+          updateIcons();
+        }
+        
+        if (g.collected) nearbyCount++;
+      });
+      
+      orchStatus.textContent = `Ensemble: ${nearbyCount + 1} players`;
+
+    }, (error) => {
+      console.log("Geo error:", error);
+      gpsStatus.textContent = "Error";
+    }, {
+      enableHighAccuracy: true,
+      maximumAge: 0
+    });
+  });
+
 });
