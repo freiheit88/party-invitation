@@ -46,7 +46,7 @@ body:not(.muted-world) .app-shell {
 }
 
 body.muted-world .app-shell {
-  /* [최신 수정] 채도 0.4로 더 낮춤 */
+  /* [최종] 채도 0.4로 더 낮춤 */
   filter: grayscale(0.4) saturate(0.4) brightness(0.9);
 }
 
@@ -80,7 +80,7 @@ body.muted-world .app-shell {
 }
 
 .scene-overlay-dark {
-  /* [최신 수정] 오버레이 어둡기 30% 수준으로 줄여 영상이 더 보이게 함 */
+  /* [최종] 오버레이 어둡기 30% 수준으로 줄여 영상이 더 보이게 함 */
   background: radial-gradient(circle at top, rgba(0, 0, 0, 0.4), #000);
   /* JS에서 5.0s로 오버라이드될 수 있음 */
   transition: background 1.2s ease; 
@@ -100,8 +100,6 @@ body.muted-world .app-shell {
   justify-content: center;
   pointer-events: none;
 }
-
-/* [최신 수정] preintro-popup 제거됨 */
 
 .preintro-title,
 .preintro-sub {
@@ -126,7 +124,7 @@ body.muted-world .app-shell {
   cursor: pointer;
   white-space: nowrap;
   box-shadow: 0 18px 40px rgba(0, 0, 0, 0.9);
-  /* [최신 수정] 움찔거리는 효과 빈도 증가 */
+  /* [최종] 움찔거리는 효과 빈도 증가 */
   animation: preintroBtnBreath 1.0s ease-in-out infinite;
   transition:
     transform 0.15s ease,
@@ -138,14 +136,14 @@ body.muted-world .app-shell {
 }
 
 .preintro-line-main {
-  /* [최신 수정] 폰트 크기 3배 확장 */
+  /* [최종] 폰트 크기 3배 확장 */
   font-size: clamp(36px, 10vw, 54px); 
   font-weight: 700;
   display: block;
 }
 
 .preintro-line-soft {
-  /* [최신 수정] 보조 텍스트 스타일 */
+  /* [최종] 보조 텍스트 스타일 */
   font-size: clamp(8px, 2vw, 10px); 
   font-weight: 300;
   color: rgba(248, 247, 244, 0.4); 
@@ -159,12 +157,12 @@ body.muted-world .app-shell {
 /* Breathing animation for the CTA */
 @keyframes preintroBtnBreath {
   0% {
-    transform: scale(0.90); /* [최신 수정] 움찔거림 폭 증가 */
+    transform: scale(0.90); /* [최종] 움찔거림 폭 증가 */
     box-shadow: 0 18px 40px rgba(245, 230, 184, 0.1); 
   }
   50% {
-    transform: scale(1.10); /* [최신 수정] 움찔거림 폭 증가 */
-    box-shadow: 0 24px 70px rgba(245, 230, 184, 1.0); /* [최신 수정] 글로우 3배 강화 */
+    transform: scale(1.10); /* [최종] 움찔거림 폭 증가 */
+    box-shadow: 0 24px 70px rgba(245, 230, 184, 1.0); /* [최종] 글로우 3배 강화 */
   }
   100% {
     transform: scale(0.90);
@@ -202,7 +200,7 @@ body.muted-world .app-shell {
 }
 
 .preintro-ripple::after {
-  content: "Click again!"; /* [최신 수정] 문구 복원 */
+  content: "Click again!"; /* [최종] 문구 복원 */
   position: absolute;
   top: 50%;
   left: 50%;
@@ -221,13 +219,13 @@ body.muted-world .app-shell {
 }
 
 .preintro-ripple.preintro-ripple-active::after {
-  opacity: 1; /* [최신 수정] Ripple 활성화 시 텍스트 보이게 */
+  opacity: 1; /* [최종] Ripple 활성화 시 텍스트 보이게 */
 }
 
 .preintro-ripple.preintro-ripple-active {
   opacity: 1;
   pointer-events: auto;
-  animation: preintroRipplePulse 1.3s ease-in-out infinite; /* [최신 수정] 빈도 증가 */
+  animation: preintroRipplePulse 1.3s ease-in-out infinite; /* [최종] 빈도 증가 */
 }
 
 .preintro-ripple.preintro-ripple-leaving {
@@ -240,11 +238,11 @@ body.muted-world .app-shell {
 /* Ripple pulse */
 @keyframes preintroRipplePulse {
   0% {
-    transform: scale(0.80); /* [최신 수정] 움찔거림 폭 증가 */
+    transform: scale(0.80); /* [최종] 움찔거림 폭 증가 */
     box-shadow: 0 0 0 rgba(245, 230, 184, 0.0);
   }
   50% {
-    transform: scale(1.20); /* [최신 수정] 움찔거림 폭 증가 */
+    transform: scale(1.20); /* [최종] 움찔거림 폭 증가 */
     box-shadow: 0 0 60px rgba(245, 230, 184, 0.9); 
   }
   100% {
@@ -298,7 +296,7 @@ body.muted-world .app-shell {
 /* Rotated Prelude chapter bar */
 .prelude-tag {
   position: absolute;
-  /* [최신 수정] 정방향 기준으로 좌측 중앙에 배치 */
+  /* [최종] 정방향 기준으로 좌측 중앙에 배치 */
   left: 18px; 
   right: auto; 
   bottom: auto; 
@@ -328,7 +326,7 @@ body.muted-world .app-shell {
   display: flex;
   pointer-events: none;
   
-  /* [최신 수정] 정방향에서 수직으로 정렬 (회전된 화면에서는 좌우로 보임) */
+  /* [최종] 정방향에서 수직으로 정렬 (회전된 화면에서는 좌우로 보임) */
   flex-direction: column;
   
   /* [유지] 뷰포트에 맞게 크기 조정 및 중앙 배치 */
@@ -378,7 +376,7 @@ body.muted-world .app-shell {
   border: none;
   background: transparent;
   
-  /* [최신 수정] 폰트 크기 극대화 */
+  /* [최종] 폰트 크기 극대화 */
   font-size: clamp(40px, 14vw, 72px); 
   font-weight: 700;
   letter-spacing: 0.32em;
@@ -455,7 +453,7 @@ body.muted-world .app-shell {
   transition: all 0.1s ease-out; /* 텍스트 변경 애니메이션 기반 */
 }
 
-/* [추가] 모차르트 모드 - 3초간 화려한 효과 (Stage 1) */
+/* [최종] 모차르트 모드 - 3초간 화려한 효과 (Stage 1) */
 .instrument-name.mozart-effect-stage1 {
   font-family: "Playfair Display", serif; 
   font-size: 14px; 
@@ -478,7 +476,7 @@ body.muted-world .app-shell {
   }
 }
 
-/* [추가] 모차르트 모드 - 텍스트 변경 및 효과 (Stage 2) */
+/* [최종] 모차르트 모드 - 텍스트 변경 및 효과 (Stage 2) */
 .instrument-name.mozart-effect-stage2 {
   font-family: "Playfair Display", serif; 
   font-size: 18px; 
