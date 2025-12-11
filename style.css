@@ -22,13 +22,19 @@ body {
 /* --- Global Shell --- */
 .app-shell { position: relative; width: 100%; height: 100%; overflow: hidden; }
 
-/* Mute 시각 효과: 배경 요소만 흑백 처리 */
+/* [수정] Mute 시각 효과: 2초 트랜지션 적용 */
 body.muted-world .stage-image, 
 body.muted-world .stage-caption-area,
 body.muted-world .tabs {
+  /* 채도 5%까지 낮춤, 밝기도 살짝 낮춤 */
   filter: grayscale(0.95) saturate(0.05) brightness(0.6);
   transition: filter 2s ease;
 }
+/* Unmute 상태일 때도 2초에 걸쳐 돌아오도록 기본 상태에 트랜지션 추가 */
+.stage-image, .stage-caption-area, .tabs {
+  transition: filter 2s ease;
+}
+
 /* Mute 버튼 강조 */
 body.muted-world #musicToggle {
   background: rgba(200, 50, 50, 0.8);
@@ -63,18 +69,17 @@ body.muted-world #musicToggle {
   z-index: 20; pointer-events: none;
 }
 
-/* 1단계 버튼 */
 .preintro-btn {
   pointer-events: auto; cursor: pointer;
   display: inline-block; margin: 0; padding: 20px 40px;
   border-radius: 999px; border: 1px solid rgba(245, 230, 184, 0.5);
-  background: rgba(10, 12, 18, 0.8); color: var(--accent); text-align: center;
+  background: rgba(10, 12, 18, 0.8);
+  color: var(--accent); text-align: center;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8);
   animation: breathe 2s ease-in-out infinite;
   backdrop-filter: blur(5px);
-  transition: opacity 1s ease, transform 0.5s ease; /* 페이드 아웃용 트랜지션 추가 */
+  transition: opacity 1s ease, transform 0.5s ease;
 }
-/* 페이드 아웃 클래스 */
 .fade-out-btn { opacity: 0; pointer-events: none; transform: scale(0.9); }
 
 .preintro-line-main {
@@ -90,17 +95,17 @@ body.muted-world #musicToggle {
   50% { transform: scale(1.03); box-shadow: 0 15px 40px rgba(245,230,184,0.3); } 
 }
 
-/* 2단계 Ripple */
 .preintro-ripple {
   position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
   width: 140px; height: 140px; border-radius: 50%;
   background: rgba(255,255,255,0.05); border: 1px solid var(--accent);
-  display: none; opacity: 0; /* 초기엔 투명 */
+  display: none; opacity: 0;
   z-index: 30; cursor: pointer; pointer-events: auto;
-  transition: opacity 1s ease; /* 서서히 나타남 */
+  transition: opacity 1s ease;
 }
 .preintro-ripple.visible { display: block; opacity: 1; }
 .preintro-ripple.fading-out { opacity: 0; pointer-events: none; }
+.preintro-ripple.hidden { display: none !important; }
 
 .preintro-ripple::after {
   content: "Click Again!"; position: absolute; top: 50%; left: 50%; 
@@ -136,14 +141,38 @@ body.muted-world #musicToggle {
 .prelude-overlay { position: absolute; inset: 0; z-index: 10; pointer-events: none; }
 .prelude-tag {
   position: absolute;
-  /* [수정] 90도 회전을 풀고, 좌측 중앙(하단 중앙)에 배치 */
-  top: 50%; left: 30px; transform: translateY(-50%) rotate(0deg); 
+  /* [수정] 180도 회전 적용 (rotate(0) -> rotate(180)) */
+  top: 50%; left: 30px; 
+  /* vertical-rl 상태에서 180도 돌려서 반대편에서 읽히게 함 */
+  transform: translateY(-50%) rotate(0deg); 
   font-size: 1.1rem; color: var(--accent); letter-spacing: 0.1em;
   background: rgba(0,0,0,0.6); padding: 10px 20px; border-radius: 20px;
   text-align: center;
-  /* 가로 모드일 때 텍스트가 세워져 보이지 않도록 함 */
-  writing-mode: vertical-rl; text-orientation: mixed; transform: translateY(-50%) rotate(180deg);
+  writing-mode: vertical-rl; text-orientation: mixed;
 }
+
+/* [추가] 안내 메시지 스타일 */
+.prelude-message {
+  position: absolute; top: 50%; left: 50%;
+  transform: translate(-50%, -50%) rotate(90deg); /* 화면 중앙, 90도 회전 */
+  font-family: "Playfair Display", serif;
+  font-size: 1.5rem; color: #fff;
+  background: rgba(0, 0, 0, 0.7);
+  padding: 15px 30px; border-radius: 30px;
+  border: 1px solid var(--accent);
+  text-shadow: 0 0 10px var(--accent-glow);
+  pointer-events: none;
+  opacity: 0; transition: opacity 0.5s ease;
+  z-index: 50;
+}
+.prelude-message.show {
+  animation: pulseOpacity 1s infinite alternate;
+}
+@keyframes pulseOpacity {
+  0% { opacity: 0.5; }
+  100% { opacity: 1; }
+}
+.hidden { display: none; }
 
 .prelude-zones {
   position: absolute; inset: 0; z-index: 20; display: flex; flex-direction: column;
@@ -161,6 +190,12 @@ body.muted-world #musicToggle {
 .fade-out { opacity: 0.2; pointer-events: none; }
 
 /* --- Scene 1: Main --- */
+/* [수정] 배경 이미지 복구 */
+.app { 
+  position: absolute; inset: 0; display: flex; flex-direction: column; 
+  background: #05070a url("picture/AlteOper.png") center/cover no-repeat fixed; 
+}
+
 .screen-glow-layer {
   position: absolute; inset: 0; pointer-events: none; z-index: 50;
   background: radial-gradient(circle, var(--accent-glow) 0%, transparent 0%);
@@ -210,19 +245,11 @@ body.muted-world #musicToggle {
 .user-identity { text-align: right; text-shadow: 0 2px 4px rgba(0,0,0,0.8); }
 .id-label { display: block; font-size: 0.7rem; color: var(--accent); text-transform: uppercase; letter-spacing: 0.1em; transition: opacity 0.5s; }
 .id-value { display: block; font-size: 1.1rem; font-weight: 700; color: #fff; }
-
-/* [수정] Mozart 모드 디자인 (Genius Ver.) */
 .id-value.mozart {
   font-family: "Playfair Display", serif; 
-  font-size: 2rem; /* 크기 확대 */
+  font-size: 2rem; 
   color: #fff;
-  /* 황금빛과 네온 느낌의 텍스트 쉐도우 */
-  text-shadow: 
-    0 0 5px #fff,
-    0 0 10px #fff,
-    0 0 20px var(--accent),
-    0 0 30px var(--accent),
-    0 0 40px var(--accent);
+  text-shadow: 0 0 5px #fff, 0 0 10px #fff, 0 0 20px var(--accent), 0 0 30px var(--accent), 0 0 40px var(--accent);
   animation: geniusGlow 2s ease-in-out infinite alternate;
 }
 @keyframes geniusGlow {
