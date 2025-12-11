@@ -16,7 +16,7 @@ body { font-family: "Manrope", sans-serif; background: #000; color: var(--text-m
 
 .app-shell { position: relative; width: 100%; height: 100%; overflow: hidden; }
 
-/* Mute Overlay: 버튼 제외 흑백 */
+/* Mute Overlay */
 .mute-overlay {
   position: absolute; inset: 0; pointer-events: none; z-index: 900;
   background: rgba(0,0,0,0.6);
@@ -24,14 +24,6 @@ body { font-family: "Manrope", sans-serif; background: #000; color: var(--text-m
   opacity: 0; transition: opacity 0.5s ease;
 }
 body.muted-world .mute-overlay { opacity: 1; }
-
-/* Popup Backdrop (Blur) */
-.popup-backdrop {
-  position: absolute; inset: 0; z-index: 1900; pointer-events: none;
-  background: rgba(0,0,0,0.4); backdrop-filter: blur(8px);
-  opacity: 0; transition: opacity 0.5s ease;
-}
-.popup-backdrop.visible { opacity: 1; pointer-events: auto; }
 
 .scene { position: absolute; inset: 0; display: none; }
 .scene-visible { display: block; }
@@ -95,11 +87,12 @@ body.muted-world .mute-overlay { opacity: 1; }
 
 .prelude-overlay { position: absolute; inset: 0; z-index: 10; pointer-events: none; }
 
-/* [수정] Dress the page... 왼쪽 90도 회전 (-90deg), 왼쪽 끝 (left: 20px) */
+/* [수정] Dress the page... 왼쪽 벽에 붙이고, 90도(위->아래) 회전 */
+/* 이전에 -90deg(아래->위) 였는데 180도 돌려서 90deg(위->아래)로 변경 */
 .prelude-tag {
   position: absolute;
   top: 50%; left: 20px; 
-  transform: translateY(-50%) rotate(-90deg);
+  transform: translateY(-50%) rotate(90deg);
   font-size: 1.1rem; color: var(--accent); letter-spacing: 0.1em;
   background: rgba(0,0,0,0.6); padding: 10px 20px; border-radius: 20px;
   text-align: center; white-space: nowrap;
@@ -257,7 +250,7 @@ body.muted-world .mute-overlay { opacity: 1; }
 .timeline-item .time { display: block; color: var(--accent); font-weight: 700; font-size: 0.9rem; }
 .timeline-item .event { display: block; color: #fff; font-size: 1.1rem; }
 
-/* Intro Slider Popup */
+/* Slider Popup */
 .intro-slider-popup {
   position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0.9);
   width: 90%; max-width: 320px;
@@ -289,14 +282,12 @@ body.muted-world .mute-overlay { opacity: 1; }
 }
 .slider-close-btn.visible { opacity: 1; pointer-events: auto; }
 
-/* Coming Soon Toast */
 .coming-soon-toast {
   position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
   background: rgba(0,0,0,0.8); border: 1px solid var(--accent);
-  padding: 15px 30px; border-radius: 30px; z-index: 100;
-  display: none;
+  padding: 15px 30px; border-radius: 30px; z-index: 100; display: none;
 }
-.coming-soon-toast.show { display: block; animation: fadeUpOut 2s forwards; }
+.coming-soon-toast.show { display: block; animation: fadeUpOut 5s forwards; /* 5초 지속 */ }
 .typing-text { font-family: "Courier New", monospace; color: var(--accent); font-weight: 700; white-space: nowrap; overflow: hidden; border-right: 2px solid var(--accent); animation: typing 1.5s steps(20); }
 @keyframes typing { from { width: 0; } to { width: 100%; } }
 @keyframes fadeUpOut { 0% { opacity: 1; transform: translate(-50%, -50%); } 80% { opacity: 1; transform: translate(-50%, -50%); } 100% { opacity: 0; transform: translate(-50%, -80%); } }

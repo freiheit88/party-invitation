@@ -85,8 +85,6 @@ document.addEventListener("DOMContentLoaded", () => {
         initParallax(); 
         resetIdleTimer(); 
         initShakeDetection(); 
-        
-        // 메인 진입 시 배경 블러 처리 후 팝업
         document.getElementById("popupBackdrop").classList.add("visible");
         startIntroSlider(); 
       }, 100);
@@ -118,7 +116,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     closeBtn.addEventListener("click", () => {
       popup.classList.remove("show");
-      document.getElementById("popupBackdrop").classList.remove("visible"); // 배경 블러 제거
+      document.getElementById("popupBackdrop").classList.remove("visible"); 
       clearInterval(sliderTimer);
     });
   };
@@ -160,7 +158,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const lang = btn.dataset.lang;
       playSfx(sounds.timpani_sfx, 0.5);
 
-      statusText.textContent = lang === "en" ? "Dressing in English..." : "Deutsche Sprache wird angelegt...";
+      statusText.textContent = lang === "en" ? "Putting on English..." : "Deutsche Sprache wird angelegt...";
       statusText.classList.add("show");
 
       if (currentVoiceAudio && !currentVoiceAudio.paused) {
@@ -293,7 +291,6 @@ document.addEventListener("DOMContentLoaded", () => {
           if(i >= target.length) clearInterval(typer);
         }, 200); 
         
-        // lblId 색상은 CSS에서 변경됨 (Gold)
         playSfx(sounds.timpani, 1.0); 
       }, 3000);
     }
@@ -326,13 +323,12 @@ document.addEventListener("DOMContentLoaded", () => {
   const tabPanels = document.querySelectorAll(".tab-panel");
   tabBtns.forEach(btn => {
     btn.addEventListener("click", () => {
-      // Orchestra 탭 예고 팝업
+      // [수정] 오케스트라 탭 토스트 5초
       if (btn.dataset.tab === "orchestra") {
         const toast = document.getElementById("orchestraToast");
         toast.classList.add("show");
-        setTimeout(() => toast.classList.remove("show"), 2500);
+        setTimeout(() => toast.classList.remove("show"), 5000);
       }
-
       tabBtns.forEach(b => b.classList.remove("active"));
       tabPanels.forEach(p => p.classList.remove("active"));
       btn.classList.add("active");
