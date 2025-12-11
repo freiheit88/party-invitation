@@ -22,30 +22,18 @@ body {
 /* --- Global Shell --- */
 .app-shell { position: relative; width: 100%; height: 100%; overflow: hidden; }
 
-/* [수정] Mute 시각 효과: 2초 트랜지션 적용 */
-body.muted-world .stage-image, 
-body.muted-world .stage-caption-area,
-body.muted-world .tabs {
-  /* 채도 5%까지 낮춤, 밝기도 살짝 낮춤 */
-  filter: grayscale(0.95) saturate(0.05) brightness(0.6);
-  transition: filter 2s ease;
+/* Mute Overlay Layer */
+.mute-overlay {
+  position: absolute; inset: 0; z-index: 900; pointer-events: none;
+  backdrop-filter: grayscale(0) saturate(1);
+  transition: backdrop-filter 2s ease;
 }
-/* Unmute 상태일 때도 2초에 걸쳐 돌아오도록 기본 상태에 트랜지션 추가 */
-.stage-image, .stage-caption-area, .tabs {
-  transition: filter 2s ease;
+/* Mute 활성화 시: 전체 흑백 처리 */
+body.muted-world .mute-overlay {
+  backdrop-filter: grayscale(1) saturate(0) brightness(0.7);
 }
 
-/* Mute 버튼 강조 */
-body.muted-world #musicToggle {
-  background: rgba(200, 50, 50, 0.8);
-  border-color: #ff6666;
-  box-shadow: 0 0 20px rgba(255, 100, 100, 0.6);
-  animation: pulseMute 2s infinite;
-}
-@keyframes pulseMute {
-  0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); }
-}
-
+/* Scene */
 .scene { position: absolute; inset: 0; display: none; }
 .scene-visible { display: block; }
 .scene-video { width: 100%; height: 100%; object-fit: cover; }
@@ -56,9 +44,9 @@ body.muted-world #musicToggle {
 }
 .video-bright { filter: brightness(1.0) !important; }
 
-/* 오버레이: 60% (0.6) */
+/* 배경 오버레이 (85% 어둡게) */
 .scene-overlay-dark {
-  background-color: rgba(0, 0, 0, 0.6); 
+  background-color: rgba(0, 0, 0, 0.85); 
   transition: opacity 3s ease; opacity: 1;
   position: absolute; inset: 0; pointer-events: none; z-index: 10;
 }
@@ -69,16 +57,18 @@ body.muted-world #musicToggle {
   z-index: 20; pointer-events: none;
 }
 
+/* Touch Here 버튼 */
 .preintro-btn {
   pointer-events: auto; cursor: pointer;
   display: inline-block; margin: 0; padding: 20px 40px;
   border-radius: 999px; border: 1px solid rgba(245, 230, 184, 0.5);
-  background: rgba(10, 12, 18, 0.8);
-  color: var(--accent); text-align: center;
+  background: rgba(10, 12, 18, 0.8); color: var(--accent); text-align: center;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8);
   animation: breathe 2s ease-in-out infinite;
   backdrop-filter: blur(5px);
+  /* 사라질 때 1초 페이드 */
   transition: opacity 1s ease, transform 0.5s ease;
+  opacity: 1;
 }
 .fade-out-btn { opacity: 0; pointer-events: none; transform: scale(0.9); }
 
@@ -90,18 +80,15 @@ body.muted-world #musicToggle {
   display: block; font-size: 1rem; color: #fff; opacity: 0.6; margin-top: 10px;
   font-weight: 300; letter-spacing: 0.1em;
 }
-@keyframes breathe { 
-  0%, 100% { transform: scale(1); box-shadow: 0 10px 30px rgba(0,0,0,0.8); } 
-  50% { transform: scale(1.03); box-shadow: 0 15px 40px rgba(245,230,184,0.3); } 
-}
+@keyframes breathe { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.03); } }
 
+/* Ripple Button */
 .preintro-ripple {
   position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
   width: 140px; height: 140px; border-radius: 50%;
   background: rgba(255,255,255,0.05); border: 1px solid var(--accent);
-  display: none; opacity: 0;
-  z-index: 30; cursor: pointer; pointer-events: auto;
-  transition: opacity 1s ease;
+  display: none; opacity: 0; z-index: 30; cursor: pointer; pointer-events: auto;
+  transition: opacity 1s ease; /* 나타날 때/사라질 때 1초 */
 }
 .preintro-ripple.visible { display: block; opacity: 1; }
 .preintro-ripple.fading-out { opacity: 0; pointer-events: none; }
@@ -116,15 +103,11 @@ body.muted-world #musicToggle {
 @keyframes ripplePulse { 
   0% { box-shadow: 0 0 0 0 rgba(245, 230, 184, 0.4); } 
   70% { box-shadow: 0 0 0 30px rgba(245, 230, 184, 0); } 
-  100% { box-shadow: 0 0 0 0 rgba(0,0,0,0); } 
 }
 
 /* --- Scene 0: Prelude --- */
 .fade-in-slow { animation: fadeIn 5s ease-in-out forwards; }
-@keyframes fadeIn {
-  from { opacity: 0; filter: brightness(0); }
-  to { opacity: 1; filter: brightness(1); }
-}
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
 .prelude-video-rotated {
   position: absolute; top: 50%; left: 50%; width: 100vh; height: 100vw;
@@ -141,48 +124,33 @@ body.muted-world #musicToggle {
 .prelude-overlay { position: absolute; inset: 0; z-index: 10; pointer-events: none; }
 .prelude-tag {
   position: absolute;
-  /* [수정] 180도 회전 적용 (rotate(0) -> rotate(180)) */
-  top: 50%; left: 30px; 
-  /* vertical-rl 상태에서 180도 돌려서 반대편에서 읽히게 함 */
-  transform: translateY(-50%) rotate(0deg); 
+  /* 왼쪽 180도 회전 -> rotate(180deg) */
+  top: 50%; left: 30px; transform: translateY(-50%) rotate(180deg); 
   font-size: 1.1rem; color: var(--accent); letter-spacing: 0.1em;
   background: rgba(0,0,0,0.6); padding: 10px 20px; border-radius: 20px;
-  text-align: center;
-  writing-mode: vertical-rl; text-orientation: mixed;
+  text-align: center; writing-mode: vertical-rl; text-orientation: mixed;
 }
 
-/* [추가] 안내 메시지 스타일 */
+/* 안내 메시지 */
 .prelude-message {
   position: absolute; top: 50%; left: 50%;
-  transform: translate(-50%, -50%) rotate(90deg); /* 화면 중앙, 90도 회전 */
+  transform: translate(-50%, -50%) rotate(90deg);
   font-family: "Playfair Display", serif;
-  font-size: 1.5rem; color: #fff;
-  background: rgba(0, 0, 0, 0.7);
-  padding: 15px 30px; border-radius: 30px;
-  border: 1px solid var(--accent);
-  text-shadow: 0 0 10px var(--accent-glow);
-  pointer-events: none;
-  opacity: 0; transition: opacity 0.5s ease;
-  z-index: 50;
+  font-size: 1.3rem; color: #fff;
+  background: rgba(0, 0, 0, 0.8);
+  padding: 15px 30px; border-radius: 30px; border: 1px solid var(--accent);
+  opacity: 0; pointer-events: none; z-index: 50; transition: opacity 0.5s ease;
 }
-.prelude-message.show {
-  animation: pulseOpacity 1s infinite alternate;
-}
-@keyframes pulseOpacity {
-  0% { opacity: 0.5; }
-  100% { opacity: 1; }
-}
+.prelude-message.show { animation: breatheOpacity 2s infinite ease-in-out; }
+@keyframes breatheOpacity { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
 .hidden { display: none; }
 
-.prelude-zones {
-  position: absolute; inset: 0; z-index: 20; display: flex; flex-direction: column;
-}
+.prelude-zones { position: absolute; inset: 0; z-index: 20; display: flex; flex-direction: column; }
 .prelude-zone { flex: 1; display: flex; align-items: center; justify-content: center; }
 .prelude-language-btn {
   background: none; border: none; cursor: pointer; transform: rotate(90deg);
   display: flex; flex-direction: column; align-items: center; gap: 15px;
-  transition: transform 0.2s, opacity 0.5s;
-  opacity: 1; 
+  transition: opacity 0.5s; opacity: 1; 
 }
 .prelude-language-btn:active { transform: rotate(90deg) scale(0.9); }
 .flag-icon { font-size: 3.5rem; filter: drop-shadow(0 0 10px rgba(0,0,0,0.5)); }
@@ -190,7 +158,6 @@ body.muted-world #musicToggle {
 .fade-out { opacity: 0.2; pointer-events: none; }
 
 /* --- Scene 1: Main --- */
-/* [수정] 배경 이미지 복구 */
 .app { 
   position: absolute; inset: 0; display: flex; flex-direction: column; 
   background: #05070a url("picture/AlteOper.png") center/cover no-repeat fixed; 
@@ -199,12 +166,10 @@ body.muted-world #musicToggle {
 .screen-glow-layer {
   position: absolute; inset: 0; pointer-events: none; z-index: 50;
   background: radial-gradient(circle, var(--accent-glow) 0%, transparent 0%);
-  opacity: 0;
-  transition: opacity 0.5s, background 5s ease-out;
+  opacity: 0; transition: opacity 0.5s, background 5s ease-out;
 }
 .screen-glow-active {
-  opacity: 1;
-  background: radial-gradient(circle, var(--accent-glow) 0%, transparent 70%);
+  opacity: 1; background: radial-gradient(circle, var(--accent-glow) 0%, transparent 70%);
 }
 
 .tabs { padding: 20px 0 10px; display: flex; justify-content: center; gap: 30px; z-index: 10; }
@@ -225,7 +190,7 @@ body.muted-world #musicToggle {
 .stage-image-wrapper {
   position: relative; border-radius: 12px; overflow: hidden;
   box-shadow: 0 10px 40px rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.1);
-  transition: border-color 0.3s, box-shadow 0.3s, filter 2s ease; 
+  transition: border-color 0.3s, box-shadow 0.3s; 
 }
 .stage-image-wrapper.glowing {
   border-color: var(--accent); box-shadow: 0 0 60px 20px var(--accent-glow); transition: box-shadow 5s ease-out;
@@ -234,7 +199,10 @@ body.muted-world #musicToggle {
 
 .stage-overlay-ui { position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: space-between; padding: 15px; }
 .stage-top-row { display: flex; justify-content: space-between; align-items: start; }
+
+/* Mute Button: z-index 최상위로 올려서 필터 영향 안 받게 */
 .icon-btn {
+  position: relative; z-index: 1000; /* Mute Overlay(900) 보다 위 */
   background: var(--glass-bg); backdrop-filter: blur(4px); border: 1px solid var(--glass-border); color: #fff;
   width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; cursor: pointer;
 }
@@ -242,19 +210,31 @@ body.muted-world #musicToggle {
 .muted .icon-on { display: none; }
 .muted .icon-off { display: inline; }
 
-.user-identity { text-align: right; text-shadow: 0 2px 4px rgba(0,0,0,0.8); }
+.user-identity { text-align: right; text-shadow: 0 2px 4px rgba(0,0,0,0.8); transition: all 0.3s; }
 .id-label { display: block; font-size: 0.7rem; color: var(--accent); text-transform: uppercase; letter-spacing: 0.1em; transition: opacity 0.5s; }
 .id-value { display: block; font-size: 1.1rem; font-weight: 700; color: #fff; }
-.id-value.mozart {
-  font-family: "Playfair Display", serif; 
-  font-size: 2rem; 
-  color: #fff;
-  text-shadow: 0 0 5px #fff, 0 0 10px #fff, 0 0 20px var(--accent), 0 0 30px var(--accent), 0 0 40px var(--accent);
-  animation: geniusGlow 2s ease-in-out infinite alternate;
+
+/* Mozart Mode: Buildup (3초간 떨림 & 에너지 모음) */
+.mozart-buildup .id-value {
+  color: var(--accent);
+  animation: shakeAndGlow 0.1s infinite;
 }
-@keyframes geniusGlow {
-  0% { opacity: 0.8; text-shadow: 0 0 10px var(--accent), 0 0 20px var(--accent); transform: scale(1); }
-  100% { opacity: 1; text-shadow: 0 0 20px #fff, 0 0 30px var(--accent), 0 0 40px var(--accent); transform: scale(1.05); }
+@keyframes shakeAndGlow {
+  0% { transform: translate(1px, 1px) rotate(0deg); text-shadow: 0 0 5px var(--accent); }
+  50% { transform: translate(-1px, -2px) rotate(-1deg); text-shadow: 0 0 20px var(--accent); }
+  100% { transform: translate(-1px, 1px) rotate(1deg); text-shadow: 0 0 5px var(--accent); }
+}
+
+/* Mozart Mode: Reveal (텍스트 변신 후) */
+.id-value.mozart-reveal {
+  font-family: "Playfair Display", serif; 
+  font-size: 1.8rem; color: #fff;
+  animation: neonPulse 2s infinite alternate;
+  text-shadow: 0 0 10px #fff, 0 0 20px var(--accent), 0 0 40px var(--accent), 0 0 80px var(--accent);
+}
+@keyframes neonPulse {
+  from { opacity: 0.8; transform: scale(1); }
+  to { opacity: 1; transform: scale(1.05); }
 }
 
 .stage-bottom-row { display: flex; justify-content: center; margin-bottom: 10px; }
@@ -267,7 +247,7 @@ body.muted-world #musicToggle {
 }
 .action-btn:active { transform: scale(0.95); background: var(--accent); color: #000; }
 
-.stage-caption-area { text-align: center; color: var(--text-soft); font-size: 0.85rem; margin-top: 5px; transition: filter 2s ease; }
+.stage-caption-area { text-align: center; color: var(--text-soft); font-size: 0.85rem; margin-top: 5px; }
 .hero-caption { display: none; line-height: 1.4; }
 .hero-caption-active { display: block; animation: fadeIn 1s; }
 .hero-dots { margin-top: 8px; display: flex; justify-content: center; gap: 5px; }
