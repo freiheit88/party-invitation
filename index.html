@@ -17,7 +17,7 @@
         <source src="media/preintro_glass_fog.mp4" type="video/mp4" />
       </video>
 
-      <div class="scene-overlay scene-overlay-darker" id="preintroOverlay"></div>
+      <div class="scene-overlay scene-overlay-dark" id="preintroOverlay"></div>
 
       <div class="preintro-ui" id="preintroUi">
         <button class="preintro-btn" id="preintroTouchBtn" type="button">
@@ -68,22 +68,19 @@
           <div class="tabs">
             <button class="tab-btn active" data-tab="invitation">Invitation</button>
             <button class="tab-btn" data-tab="orchestra">Orchestra Game</button>
-            </div>
+          </div>
 
           <main class="tab-container">
             <section id="tab-invitation" class="tab-panel active">
-              
               <div class="cinematic-stage">
                 <div class="stage-image-wrapper" id="heroImageWrapper">
                   <img src="picture/AlteOper.png" alt="Frankfurt Alte Oper" class="stage-image" />
                   
                   <div class="stage-overlay-ui">
-                    
                     <div class="stage-top-row">
                       <button id="musicToggle" class="icon-btn" aria-label="Mute Toggle">
                         <span class="icon-on">🔊</span><span class="icon-off">🔇</span>
                       </button>
-                      
                       <div class="user-identity">
                         <span class="id-label" id="idLabel">You are</span>
                         <span class="id-value" id="instrumentLabel">...</span>
@@ -96,7 +93,6 @@
                         <span class="btn-icon" id="tuneIcons"></span>
                       </button>
                     </div>
-
                   </div>
                 </div>
                 
@@ -111,19 +107,16 @@
                   </div>
                 </div>
               </div>
-
             </section>
             
             <section id="tab-orchestra" class="tab-panel">
                <div class="orchestra-wrapper">
                  <h1 class="orch-title">Ensemble Radar</h1>
                  <p class="orch-desc">Finding nearby instruments...</p>
-                 
                  <div class="radar-circle">
                    <div class="radar-sweep"></div>
                    <div class="radar-dot self"></div>
-                   </div>
-
+                 </div>
                  <div class="orchestra-status-box">
                    <div class="status-row">
                      <span class="lbl">Status</span>
@@ -134,7 +127,6 @@
                      <span class="val" id="harmonicsStatus">Solo</span>
                    </div>
                  </div>
-                 
                  <button id="orchestraJoinBtn" class="orchestra-btn">Activate Location</button>
                </div>
             </section>

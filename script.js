@@ -2,6 +2,7 @@ document.addEventListener("DOMContentLoaded", () => {
   /* --- Global State --- */
   let bgAudio = null;
   let isMuted = false;
+  let currentVoiceAudio = null; // 현재 재생 중인 음성 추적
   
   // Instrument Setup
   const roles = [
@@ -11,16 +12,20 @@ document.addEventListener("DOMContentLoaded", () => {
     { id: "timpani", name: "Timpani", icon: "🥁" }
   ];
   
-  // Audio Paths (Corrected from your list)
+  // Corrected Paths
   const sounds = {
     cellos: "media/SI_Cac_fx_cellos_tuning_one_shot_imaginative.wav",
-    trumpets: "media/SI_Cac_fx_trumpets_tuning_one_shot_growing.wav", // Using 'growing'
+    trumpets: "media/SI_Cac_fx_trumpets_tuning_one_shot_growing.wav",
     violins2: "media/SI_Cac_fx_violins_tuning_one_shot_blooming.wav",
     timpani: "media/zoid_percussion_timpani_roll_A.wav",
     timpani_sfx: "media/TS_IFD_kick_timpani_heavy.wav",
     bg_music: "media/Serenade For Strings Op.48_2nd movt.wav",
+    // Voices
     voice_de: "media/prelude_voice_de_male.mp3",
-    voice_en: "media/prelude_voice_en_female.mp3"
+    voice_en: "media/prelude_voice_en_female.mp3",
+    // Interrupts
+    int_de: "media/prelude_interrupt_de_male.mp3",
+    int_en: "media/prelude_interrupt_en_female.mp3"
   };
 
   let myRole = null;
@@ -29,7 +34,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   /* --- Utils --- */
   const playSfx = (path, vol = 1.0) => {
-    if (isMuted) return;
+    if (isMuted) return null;
     const a = new Audio(path);
     a.volume = vol;
     a.play().catch(e => console.log("Audio play error:", e));
@@ -76,8 +81,8 @@ document.addEventListener("DOMContentLoaded", () => {
     playSfx(sounds.timpani_sfx);
     btnRipple.classList.remove("active");
     
-    // 3초 동안 서서히 밝아짐
-    overlay.classList.add("preintro-overlay-clear"); // CSS transition 3s applied
+    // 3초 동안 서서히 밝아짐 (Overlay 제거)
+    overlay.classList.add("preintro-overlay-clear"); 
     
     setTimeout(() => {
       scenePre.style.display = "none";
@@ -88,40 +93,59 @@ document.addEventListener("DOMContentLoaded", () => {
   /* --- Scene 0: Prelude --- */
   const zones = document.querySelectorAll(".prelude-language-btn");
   const dimLayer = document.getElementById("preludeDimLayer");
-  
+  let isInterrupting = false; // 인터럽트 상태 플래그
+
   zones.forEach(btn => {
     btn.addEventListener("click", (e) => {
+      if (isInterrupting) return; // 이미 전환 중이면 무시
+
       const lang = btn.dataset.lang;
-      
-      // Interaction feedback
       playSfx(sounds.timpani_sfx, 0.5);
-      
-      // Dimming Logic (Rotated view: Top is Left, Bottom is Right)
-      // EN is Top (Left visually), DE is Bottom (Right visually)
-      if (lang === "en") {
-        dimLayer.classList.add("dim-right"); // Dim the bottom (DE side)
-      } else {
-        dimLayer.classList.add("dim-left"); // Dim the top (EN side)
+
+      // 이미 음성이 재생 중이라면? (Interrupt 로직)
+      if (currentVoiceAudio && !currentVoiceAudio.paused) {
+        isInterrupting = true;
+        currentVoiceAudio.pause(); // 기존 음성 중지
+        
+        // Interrupt 사운드 재생
+        const intFile = lang === "en" ? sounds.int_en : sounds.int_de;
+        const intAudio = playSfx(intFile, 1.0);
+        
+        // Interrupt 끝나면 메인으로
+        if (intAudio) {
+          intAudio.onended = () => { setTimeout(goToMain, 1000); };
+        } else {
+          setTimeout(goToMain, 2000);
+        }
+        return;
       }
 
-      // Play Voice
-      const voiceFile = lang === "en" ? sounds.voice_en : sounds.voice_de;
-      const voiceAudio = playSfx(voiceFile, 1.0);
+      // --- 정상 재생 (처음 클릭 시) ---
       
+      // Dimming Logic (EN=Left/Top, DE=Right/Bottom)
+      if (lang === "en") {
+        dimLayer.classList.add("dim-right"); // Dim the DE side
+        document.querySelector('[data-lang="de"]').classList.add("fade-out");
+      } else {
+        dimLayer.classList.add("dim-left"); // Dim the EN side
+        document.querySelector('[data-lang="en"]').classList.add("fade-out");
+      }
+
       // Duck BG music
       if (bgAudio) bgAudio.volume = 0.05;
 
-      // Disable buttons
-      zones.forEach(z => z.disabled = true);
+      // Play Main Voice
+      const voiceFile = lang === "en" ? sounds.voice_en : sounds.voice_de;
+      currentVoiceAudio = playSfx(voiceFile, 1.0);
 
       // Wait for end
-      if (voiceAudio) {
-        voiceAudio.onended = () => {
+      if (currentVoiceAudio) {
+        currentVoiceAudio.onended = () => {
           if (bgAudio && !isMuted) bgAudio.volume = 0.3;
-          setTimeout(goToMain, 2000); // 2s wait
+          // 끝나고 2초 뒤 이동
+          setTimeout(goToMain, 2000); 
         };
       } else {
-        // Fallback if audio fails
         setTimeout(goToMain, 4000);
       }
     });
@@ -140,7 +164,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const lblId = document.getElementById("idLabel");
   
   const initMain = () => {
-    // Random Instrument on Load
+    // Random Instrument on Load (항상 랜덤)
     myRole = roles[Math.floor(Math.random() * roles.length)];
     lblRole.textContent = myRole.name;
     
@@ -172,14 +196,14 @@ document.addEventListener("DOMContentLoaded", () => {
   btnTune.addEventListener("click", () => {
     clickCount++;
     
-    // Mozart Egg
+    // Mozart Egg (10th click)
     if (clickCount === 10 && !isMozart) {
       isMozart = true;
       lblRole.textContent = "MOZART";
       lblRole.classList.add("mozart");
-      // Hide "You are" label
+      // "You are" 라벨 숨김 (겹침 방지)
       lblId.style.opacity = "0"; 
-      playSfx(sounds.timpani, 1.0); // Big sound
+      playSfx(sounds.timpani, 1.0); 
     }
 
     // Play Sound
