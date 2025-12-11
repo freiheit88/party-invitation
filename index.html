@@ -159,14 +159,26 @@
       </div>
     </section>
 
-    <div id="infoToast" class="info-toast">
-      <div class="toast-content">
-        <span class="toast-icon">🎻</span>
-        <div class="toast-text">
-          <p class="toast-title">Did you know?</p>
-          <p class="toast-desc">Orchestras always tune to 'A'. The sound of various instruments finding their pitch is mesmerizing. Let's gather and tune together!</p>
+    <div id="introSlider" class="intro-slider-popup">
+      <div class="slider-content">
+        <div class="slider-track" id="sliderTrack">
+          <div class="slide">
+            <span class="slide-icon">🎻</span>
+            <p class="slide-text">Did you know?<br>Orchestras always tune to 'A'.</p>
+          </div>
+          <div class="slide">
+            <span class="slide-icon">🎼</span>
+            <p class="slide-text">The sound of various instruments<br>finding their pitch is mesmerizing.</p>
+          </div>
+          <div class="slide">
+            <span class="slide-icon">✨</span>
+            <p class="slide-text">Let's gather and<br>tune together!</p>
+          </div>
         </div>
-        <button id="closeToast" class="toast-close">×</button>
+      </div>
+      <button id="closeSlider" class="slider-close-btn hidden">✕</button>
+      <div class="slider-dots" id="sliderDots">
+        <span class="dot active"></span><span class="dot"></span><span class="dot"></span>
       </div>
     </div>
 

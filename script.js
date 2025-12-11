@@ -28,14 +28,20 @@ document.addEventListener("DOMContentLoaded", () => {
   let ownedInstruments = [];
   let clickCount = 0;
   let isMozart = false;
+  
+  // Audio 객체를 저장할 Set
+  const activeAudios = new Set();
 
   /* --- Utils --- */
-  // [수정] Mute Check First
+  // [수정] 오디오 재생 시 activeAudios에 추가하고 관리
   const playSfx = (path, vol = 1.0) => {
-    if (isMuted) return null;
+    if (isMuted) return null; // Mute 확인
     const a = new Audio(path);
     a.volume = vol;
     a.play().catch(e => console.log("Audio play error:", e));
+    
+    activeAudios.add(a);
+    a.onended = () => activeAudios.delete(a);
     return a;
   };
 
@@ -60,7 +66,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (navigator.vibrate) navigator.vibrate(50);
   };
 
-  /* --- Scene Transition Logic --- */
+  /* --- Scene Transition --- */
   const switchScene = (fromId, toId) => {
     const fromEl = document.getElementById(fromId);
     const toEl = document.getElementById(toId);
@@ -81,13 +87,41 @@ document.addEventListener("DOMContentLoaded", () => {
         initParallax(); 
         resetIdleTimer(); 
         initShakeDetection(); 
-        
-        // [추가] 메인 진입 1초 후 팝업 표시
-        setTimeout(() => {
-          document.getElementById("infoToast").classList.add("show");
-        }, 1000);
+        startIntroSlider(); // [NEW] 슬라이더 시작
       }, 100);
     }
+  };
+
+  /* --- Intro Slider Logic --- */
+  const startIntroSlider = () => {
+    const popup = document.getElementById("introSlider");
+    const track = document.getElementById("sliderTrack");
+    const dots = document.querySelectorAll(".dot");
+    const closeBtn = document.getElementById("closeSlider");
+    
+    // Show Popup
+    setTimeout(() => popup.classList.add("show"), 500);
+
+    let slideIndex = 0;
+    const totalSlides = 3;
+    
+    const nextSlide = () => {
+      slideIndex++;
+      if (slideIndex < totalSlides) {
+        track.style.transform = `translateX(-${slideIndex * 33.33}%)`; // Track width 300%
+        dots.forEach((d, i) => d.classList.toggle("active", i === slideIndex));
+        setTimeout(nextSlide, 2500); // 2.5초 대기
+      } else {
+        // 끝남: X 버튼 표시
+        closeBtn.classList.add("visible");
+      }
+    };
+
+    setTimeout(nextSlide, 2500); // 첫 슬라이드 2.5초 대기
+
+    closeBtn.addEventListener("click", () => {
+      popup.classList.remove("show");
+    });
   };
 
   /* --- Scene -1: Pre-intro --- */
@@ -127,22 +161,20 @@ document.addEventListener("DOMContentLoaded", () => {
       const lang = btn.dataset.lang;
       playSfx(sounds.timpani_sfx, 0.5);
 
-      statusText.textContent = lang === "en" ? "Tuning..." : "Stimmen...";
+      statusText.textContent = lang === "en" ? "Putting on English..." : "Deutsche Sprache wird angelegt...";
       statusText.classList.add("show");
 
       if (currentVoiceAudio && !currentVoiceAudio.paused) {
         isInterrupting = true;
         currentVoiceAudio.pause(); 
         
-        // Interrupt Effect
-        statusText.textContent = "Oops! Tuning the other ear...";
+        statusText.textContent = "Whoops! Changing outfit!";
         statusText.classList.remove("status-talk");
-        statusText.classList.add("status-panic"); // 2s fast shake
+        statusText.classList.add("status-panic"); 
         
         const intFile = lang === "en" ? sounds.int_en : sounds.int_de;
         const intAudio = playSfx(intFile, 1.0);
         
-        // 2초 후 진정 (Slow Talk)
         setTimeout(() => {
            statusText.classList.remove("status-panic");
            statusText.classList.add("status-talk");
@@ -220,14 +252,20 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   };
 
-  // Mute Logic
+  // [수정] Mute Logic: 모든 소리 0 + 클릭 차단 해제
   const btnMute = document.getElementById("musicToggle");
   btnMute.addEventListener("click", () => {
     isMuted = !isMuted;
     btnMute.classList.toggle("muted", isMuted);
     document.body.classList.toggle("muted-world", isMuted);
     
-    if (bgAudio) bgAudio.volume = isMuted ? 0 : 0.3;
+    if (isMuted) {
+      if (bgAudio) bgAudio.volume = 0;
+      activeAudios.forEach(a => a.volume = 0); // 즉시 모든 소리 0
+    } else {
+      if (bgAudio) bgAudio.volume = 0.3;
+      activeAudios.forEach(a => a.volume = 1.0);
+    }
   });
 
   // Let A Ring
@@ -238,14 +276,11 @@ document.addEventListener("DOMContentLoaded", () => {
     clickCount++;
     triggerHaptic(); 
     
-    // [복구] Mozart Effect (Shake -> Type -> Change)
     if (clickCount === 10 && !isMozart) {
       isMozart = true;
       
-      // 1. Shake for 3s
       lblRole.classList.add("shaking");
       
-      // 2. Typing Effect after 3s
       setTimeout(() => {
         lblRole.classList.remove("shaking");
         lblRole.textContent = "";
@@ -257,7 +292,7 @@ document.addEventListener("DOMContentLoaded", () => {
           lblRole.textContent += target.charAt(i);
           i++;
           if(i >= target.length) clearInterval(typer);
-        }, 200); // Typing speed
+        }, 200); 
         
         lblId.style.opacity = "0"; 
         playSfx(sounds.timpani, 1.0); 
@@ -299,11 +334,6 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 
-  // Toast Close
-  document.getElementById("closeToast").addEventListener("click", () => {
-    document.getElementById("infoToast").classList.remove("show");
-  });
-
   /* --- Genius Interactions --- */
   const initParallax = () => {
     if (window.DeviceOrientationEvent) {
@@ -341,7 +371,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const deltaY = Math.abs(acc.y - lastY);
       const deltaZ = Math.abs(acc.z - lastZ);
 
-      if (deltaX + deltaY + deltaZ > 30) { // Shake Threshold
+      if (deltaX + deltaY + deltaZ > 30) { 
         triggerHaptic();
         ownedInstruments.forEach(id => playSfx(sounds[id]));
         screenGlow.classList.add("screen-glow-active");
