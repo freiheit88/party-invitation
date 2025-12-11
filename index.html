@@ -21,7 +21,7 @@
         <source src="media/preintro_glass_fog.mp4" type="video/mp4" />
       </video>
 
-      <div class="scene-overlay scene-overlay-darker" id="preintroOverlay"></div>
+      <div class="scene-overlay scene-overlay-dark" id="preintroOverlay"></div>
 
       <div class="preintro-ui" id="preintroUi">
         <button class="preintro-btn" id="preintroTouchBtn" type="button">
@@ -67,6 +67,8 @@
     <section id="scene-main" class="scene">
       <div class="app">
         <div class="app-inner">
+          <div class="screen-glow-layer" id="screenGlow"></div>
+
           <div class="tabs">
             <button class="tab-btn active" data-tab="invitation">Invitation</button>
             <button class="tab-btn" data-tab="orchestra">Orchestra Game</button>
@@ -78,8 +80,6 @@
                 <div class="stage-image-wrapper" id="heroImageWrapper">
                   <img src="picture/AlteOper.png" alt="Frankfurt Alte Oper" class="stage-image" />
                   
-                  <div class="glow-emitter"></div>
-
                   <div class="stage-overlay-ui">
                     <div class="stage-top-row">
                       <button id="musicToggle" class="icon-btn" aria-label="Mute Toggle">
@@ -116,21 +116,17 @@
             <section id="tab-orchestra" class="tab-panel">
                <div class="orchestra-wrapper">
                  <h1 class="orch-title">Ensemble Radar</h1>
-                 <p class="orch-desc">Locating your position...</p>
+                 <p class="orch-desc">Locating your instrument...</p>
                  
                  <div id="map" class="radar-map"></div>
 
                  <div class="orchestra-status-box">
                    <div class="status-row">
-                     <span class="lbl">GPS</span>
+                     <span class="lbl">GPS Status</span>
                      <span class="val" id="gpsStatus">Waiting...</span>
                    </div>
                    <div class="status-row">
-                     <span class="lbl">Coordinate</span>
-                     <span class="val" id="myCoords">-</span>
-                   </div>
-                   <div class="status-row">
-                     <span class="lbl">Ensemble</span>
+                     <span class="lbl">Ensemble Size</span>
                      <span class="val" id="harmonicsStatus">Solo</span>
                    </div>
                  </div>
