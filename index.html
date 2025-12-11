@@ -4,7 +4,13 @@
   <meta charset="UTF-8" />
   <title>Sean’s Party Invitation</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;700&family=Manrope:wght@300;400;600&display=swap" rel="stylesheet" />
+  
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+  
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
@@ -14,6 +20,8 @@
       <video id="preintroVideo" class="scene-video dark-filter" autoplay muted playsinline loop>
         <source src="media/preintro_glass_fog.mp4" type="video/mp4" />
       </video>
+
+      <div class="scene-overlay scene-overlay-darker" id="preintroOverlay"></div>
 
       <div class="preintro-ui" id="preintroUi">
         <button class="preintro-btn" id="preintroTouchBtn" type="button">
@@ -59,8 +67,6 @@
     <section id="scene-main" class="scene">
       <div class="app">
         <div class="app-inner">
-          <div class="screen-glow-layer" id="screenGlow"></div>
-
           <div class="tabs">
             <button class="tab-btn active" data-tab="invitation">Invitation</button>
             <button class="tab-btn" data-tab="orchestra">Orchestra Game</button>
@@ -72,6 +78,8 @@
                 <div class="stage-image-wrapper" id="heroImageWrapper">
                   <img src="picture/AlteOper.png" alt="Frankfurt Alte Oper" class="stage-image" />
                   
+                  <div class="glow-emitter"></div>
+
                   <div class="stage-overlay-ui">
                     <div class="stage-top-row">
                       <button id="musicToggle" class="icon-btn" aria-label="Mute Toggle">
@@ -108,22 +116,26 @@
             <section id="tab-orchestra" class="tab-panel">
                <div class="orchestra-wrapper">
                  <h1 class="orch-title">Ensemble Radar</h1>
-                 <p class="orch-desc">Finding nearby instruments...</p>
-                 <div class="radar-circle">
-                   <div class="radar-sweep"></div>
-                   <div class="radar-dot self"></div>
-                 </div>
+                 <p class="orch-desc">Locating your position...</p>
+                 
+                 <div id="map" class="radar-map"></div>
+
                  <div class="orchestra-status-box">
                    <div class="status-row">
-                     <span class="lbl">Status</span>
-                     <span class="val" id="orchestraMode">Scanning...</span>
+                     <span class="lbl">GPS</span>
+                     <span class="val" id="gpsStatus">Waiting...</span>
                    </div>
                    <div class="status-row">
-                     <span class="lbl">Harmony</span>
+                     <span class="lbl">Coordinate</span>
+                     <span class="val" id="myCoords">-</span>
+                   </div>
+                   <div class="status-row">
+                     <span class="lbl">Ensemble</span>
                      <span class="val" id="harmonicsStatus">Solo</span>
                    </div>
                  </div>
-                 <button id="orchestraJoinBtn" class="orchestra-btn">Activate Location</button>
+                 
+                 <button id="orchestraJoinBtn" class="orchestra-btn">Start Radar</button>
                </div>
             </section>
           </main>
@@ -133,6 +145,8 @@
       </div>
     </section>
   </div>
+  
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
   <script src="script.js"></script>
 </body>
 </html>

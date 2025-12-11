@@ -4,7 +4,6 @@ document.addEventListener("DOMContentLoaded", () => {
   let isMuted = false;
   let currentVoiceAudio = null; 
   
-  // Instrument Setup
   const roles = [
     { id: "cellos", name: "Cellos", icon: "🎻" },
     { id: "trumpets", name: "Trumpets", icon: "🎺" },
@@ -12,7 +11,6 @@ document.addEventListener("DOMContentLoaded", () => {
     { id: "timpani", name: "Timpani", icon: "🥁" }
   ];
   
-  // Audio Paths
   const sounds = {
     cellos: "media/SI_Cac_fx_cellos_tuning_one_shot_imaginative.wav",
     trumpets: "media/SI_Cac_fx_trumpets_tuning_one_shot_growing.wav",
@@ -27,12 +25,14 @@ document.addEventListener("DOMContentLoaded", () => {
   };
 
   let myRole = null;
+  let ownedInstruments = [];
   let clickCount = 0;
   let isMozart = false;
 
   /* --- Utils --- */
+  // [수정] Mute 시 모든 소리(SFX 포함) 차단
   const playSfx = (path, vol = 1.0) => {
-    if (isMuted) return null;
+    if (isMuted) return null; // Mute 확인
     const a = new Audio(path);
     a.volume = vol;
     a.play().catch(e => console.log("Audio play error:", e));
@@ -57,21 +57,16 @@ document.addEventListener("DOMContentLoaded", () => {
   };
 
   /* --- Scene Transition Logic --- */
-  // 이 함수가 핵심입니다. 기존 CSS 클래스 의존도를 낮추고 직접 스타일을 제어합니다.
   const switchScene = (fromId, toId) => {
     const fromEl = document.getElementById(fromId);
     const toEl = document.getElementById(toId);
 
-    // 1. 현재 씬 숨기기
     fromEl.style.display = "none";
     fromEl.classList.remove("scene-visible");
 
-    // 2. 다음 씬 보이기
     toEl.style.display = "block";
-    
-    // 3. Prelude인 경우 5초 페이드인 효과 적용
     if (toId === "scene-prelude") {
-      toEl.classList.add("fade-in-slow"); // CSS 애니메이션 적용
+      toEl.classList.add("fade-in-slow");
     } else {
       toEl.classList.add("scene-visible");
     }
@@ -81,13 +76,16 @@ document.addEventListener("DOMContentLoaded", () => {
   const btnTouch = document.getElementById("preintroTouchBtn");
   const btnRipple = document.getElementById("preintroRipple");
   const videoPre = document.getElementById("preintroVideo");
+  const overlay = document.getElementById("preintroOverlay");
   
   btnTouch.addEventListener("click", () => {
     playSfx(sounds.timpani_sfx);
     playBgMusic();
     
+    // [수정] 1단계 버튼 즉시 사라짐 (CSS display none 직접 적용)
     document.getElementById("preintroUi").style.display = "none";
     
+    // 2단계 리플 등장
     btnRipple.style.display = "block";
     setTimeout(() => btnRipple.classList.add("active"), 100);
   });
@@ -95,12 +93,14 @@ document.addEventListener("DOMContentLoaded", () => {
   btnRipple.addEventListener("click", () => {
     playSfx(sounds.timpani_sfx);
     btnRipple.classList.remove("active");
+    btnRipple.classList.add("hidden"); 
     
-    // 비디오 필터를 제거해서 밝게 만듦 (3초 트랜지션)
+    // [수정] 배경 오버레이를 투명하게 (3초간) - 배경 영상이 서서히 밝아짐
+    overlay.classList.add("preintro-overlay-clear");
     videoPre.classList.remove("dark-filter"); 
     videoPre.classList.add("video-bright");
     
-    // 3초 뒤 씬 전환 (Pre-intro -> Prelude)
+    // 3초 뒤 씬 전환
     setTimeout(() => {
       switchScene("scene-preintro", "scene-prelude");
     }, 3000);
@@ -164,14 +164,16 @@ document.addEventListener("DOMContentLoaded", () => {
 
   /* --- Scene 1: Main --- */
   const heroImgWrapper = document.getElementById("heroImageWrapper");
-  const screenGlow = document.getElementById("screenGlow");
   const lblRole = document.getElementById("instrumentLabel");
   const lblId = document.getElementById("idLabel");
+  const tuneIcons = document.getElementById("tuneIcons");
   
   const initMain = () => {
-    // Random Instrument
+    // Random Instrument on Load
     myRole = roles[Math.floor(Math.random() * roles.length)];
     lblRole.textContent = myRole.name;
+    ownedInstruments = [myRole.id]; 
+    updateIcons();
     
     // Captions slider
     let capIdx = 0;
@@ -186,6 +188,15 @@ document.addEventListener("DOMContentLoaded", () => {
     }, 5000);
   };
 
+  const updateIcons = () => {
+    tuneIcons.textContent = "";
+    const uniqueIds = [...new Set(ownedInstruments)];
+    uniqueIds.forEach(id => {
+      const r = roles.find(role => role.id === id);
+      if(r) tuneIcons.textContent += r.icon + " ";
+    });
+  };
+
   // Mute
   const btnMute = document.getElementById("musicToggle");
   btnMute.addEventListener("click", () => {
@@ -193,6 +204,7 @@ document.addEventListener("DOMContentLoaded", () => {
     btnMute.classList.toggle("muted", isMuted);
     document.body.classList.toggle("muted-world", isMuted);
     
+    // Background Music Mute
     if (bgAudio) bgAudio.volume = isMuted ? 0 : 0.3;
   });
 
@@ -209,19 +221,22 @@ document.addEventListener("DOMContentLoaded", () => {
       playSfx(sounds.timpani, 1.0); 
     }
 
-    let soundFile = sounds[myRole.id];
+    // Play Sounds (Mine + Collected)
     if (isMozart) {
       const keys = ["cellos", "trumpets", "violins2", "timpani"];
-      soundFile = sounds[keys[Math.floor(Math.random() * keys.length)]];
+      playSfx(sounds[keys[Math.floor(Math.random() * keys.length)]]);
+    } else {
+      const uniqueIds = [...new Set(ownedInstruments)];
+      uniqueIds.forEach(id => {
+        playSfx(sounds[id]);
+      });
     }
-    playSfx(soundFile);
 
+    // [수정] Glow 효과: 사진에서 전체 화면으로 뻗어나감
     heroImgWrapper.classList.add("glowing");
-    screenGlow.classList.add("screen-glow-active");
     
     setTimeout(() => {
       heroImgWrapper.classList.remove("glowing");
-      screenGlow.classList.remove("screen-glow-active");
     }, 5000);
   });
 
@@ -237,25 +252,123 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 
-  // Orchestra Game (Mock)
+  // --- Orchestra Game (Real GPS + Leaflet) ---
   const btnOrch = document.getElementById("orchestraJoinBtn");
   const orchStatus = document.getElementById("harmonicsStatus");
-  const radar = document.querySelector(".radar-circle");
-  
+  const gpsStatus = document.getElementById("gpsStatus");
+  let map = null;
+  let myMarker = null;
+  let ghostMarkers = [];
+  let ghosts = []; 
+
+  const generateGhosts = (centerLat, centerLng) => {
+    const ghostRoles = ["cellos", "trumpets", "violins2", "timpani"];
+    for(let i=0; i<20; i++) {
+      const latOffset = (Math.random() - 0.5) * 0.001; 
+      const lngOffset = (Math.random() - 0.5) * 0.001;
+      const roleId = ghostRoles[Math.floor(Math.random() * ghostRoles.length)];
+      ghosts.push({
+        lat: centerLat + latOffset,
+        lng: centerLng + lngOffset,
+        roleId: roleId,
+        collected: false
+      });
+    }
+  };
+
+  const getDistance = (lat1, lon1, lat2, lon2) => {
+    const R = 6371e3; 
+    const φ1 = lat1 * Math.PI/180;
+    const φ2 = lat2 * Math.PI/180;
+    const Δφ = (lat2-lat1) * Math.PI/180;
+    const Δλ = (lon2-lon1) * Math.PI/180;
+    const a = Math.sin(Δφ/2) * Math.sin(Δφ/2) +
+              Math.cos(φ1) * Math.cos(φ2) *
+              Math.sin(Δλ/2) * Math.sin(Δλ/2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    return R * c;
+  };
+
   btnOrch.addEventListener("click", () => {
-    btnOrch.textContent = "Searching...";
-    setTimeout(() => {
-      document.getElementById("orchestraMode").textContent = "Connected";
-      orchStatus.textContent = "Trio formed";
+    if (!navigator.geolocation) {
+      alert("Geolocation is not supported");
+      return;
+    }
+
+    btnOrch.textContent = "Scanning...";
+    
+    navigator.geolocation.watchPosition((position) => {
+      const lat = position.coords.latitude;
+      const lng = position.coords.longitude;
       
-      for(let i=0; i<3; i++) {
-        const dot = document.createElement("div");
-        dot.className = "radar-dot ghost";
-        dot.style.top = (20 + Math.random()*60) + "%";
-        dot.style.left = (20 + Math.random()*60) + "%";
-        radar.appendChild(dot);
+      gpsStatus.textContent = `Active (${lat.toFixed(4)}, ${lng.toFixed(4)})`;
+      btnOrch.style.display = "none";
+
+      if (!map) {
+        // [수정] Leaflet Map Dark Theme
+        map = L.map('map').setView([lat, lng], 18);
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+          attribution: '&copy; OpenStreetMap &copy; CARTO',
+          subdomains: 'abcd',
+          maxZoom: 20
+        }).addTo(map);
+
+        const myIcon = L.divIcon({
+          className: 'custom-pin',
+          html: '<div style="font-size:24px;">📍</div>',
+          iconSize: [24, 24],
+          iconAnchor: [12, 24]
+        });
+        myMarker = L.marker([lat, lng], {icon: myIcon}).addTo(map);
+
+        generateGhosts(lat, lng);
+        
+        ghosts.forEach((g, idx) => {
+          const ghostIcon = L.divIcon({
+            className: 'custom-pin',
+            html: `<div style="font-size:15px; opacity:0.5;">👻</div>`,
+            iconSize: [15, 15],
+            iconAnchor: [7, 7]
+          });
+          const marker = L.marker([g.lat, g.lng], {icon: ghostIcon}).addTo(map);
+          ghostMarkers[idx] = marker;
+        });
+      } else {
+        myMarker.setLatLng([lat, lng]);
+        map.panTo([lat, lng]);
       }
-    }, 2000);
+
+      // Check Distance Logic
+      let nearbyCount = 0;
+      ghosts.forEach((g, idx) => {
+        const dist = getDistance(lat, lng, g.lat, g.lng);
+        
+        if (dist < 10 && !g.collected) { // 10m로 완화 (GPS 오차 고려)
+          g.collected = true;
+          ownedInstruments.push(g.roleId); 
+          playSfx(sounds.timpani_sfx); 
+          
+          ghostMarkers[idx].setIcon(L.divIcon({
+            className: 'custom-pin',
+            html: `<div style="font-size:20px;">🎻</div>`, 
+            iconSize: [20, 20],
+            iconAnchor: [10, 10]
+          }));
+          
+          updateIcons();
+        }
+        if (g.collected) nearbyCount++;
+      });
+      
+      orchStatus.textContent = `Ensemble: ${nearbyCount + 1} players`;
+
+    }, (error) => {
+      console.log("Geo error:", error);
+      gpsStatus.textContent = "Error";
+    }, {
+      enableHighAccuracy: true,
+      maximumAge: 0
+    });
   });
 
 });
