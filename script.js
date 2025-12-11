@@ -4,6 +4,7 @@ document.addEventListener("DOMContentLoaded", () => {
   let isMuted = false;
   let currentVoiceAudio = null; 
   
+  // 악기 정의 (순서대로 슬롯에 표시됨)
   const roles = [
     { id: "cellos", name: "Cellos", icon: "🎻" },
     { id: "trumpets", name: "Trumpets", icon: "🎺" },
@@ -31,6 +32,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   /* --- Utils --- */
   const playSfx = (path, vol = 1.0) => {
+    // [중요] Mute 상태면 오디오 생성조차 안 함
     if (isMuted) return null;
     const a = new Audio(path);
     a.volume = vol;
@@ -55,11 +57,8 @@ document.addEventListener("DOMContentLoaded", () => {
     }).catch(e => console.log("BG play error:", e));
   };
 
-  // [추가] 햅틱 피드백 함수 (진동)
   const triggerHaptic = () => {
-    if (navigator.vibrate) {
-      navigator.vibrate(50); // 50ms 동안 짧게 진동
-    }
+    if (navigator.vibrate) navigator.vibrate(50);
   };
 
   /* --- Scene Transition Logic --- */
@@ -80,9 +79,9 @@ document.addEventListener("DOMContentLoaded", () => {
     if (toId === "scene-main") {
       setTimeout(() => {
         if(map) map.invalidateSize();
-        // 메인 씬으로 넘어오면 자이로스코프 및 숨쉬기 시작
-        initParallax();
-        resetIdleTimer(); 
+        initParallax(); // 자이로스코프 시작
+        resetIdleTimer(); // 숨쉬기 시작
+        initShakeDetection(); // 지휘자 모드 시작
       }, 100);
     }
   };
@@ -96,9 +95,7 @@ document.addEventListener("DOMContentLoaded", () => {
   btnTouch.addEventListener("click", () => {
     playSfx(sounds.timpani_sfx);
     playBgMusic();
-    
     document.getElementById("preintroUi").style.display = "none";
-    
     btnRipple.style.display = "block";
     setTimeout(() => btnRipple.classList.add("active"), 100);
   });
@@ -130,14 +127,17 @@ document.addEventListener("DOMContentLoaded", () => {
       const lang = btn.dataset.lang;
       playSfx(sounds.timpani_sfx, 0.5);
 
-      statusText.textContent = lang === "en" ? "Listening to English..." : "Listening to German...";
+      // 안내 문구 (Listening...)
+      statusText.textContent = lang === "en" ? "Listening..." : "Zuhören...";
       statusText.classList.add("show");
 
       if (currentVoiceAudio && !currentVoiceAudio.paused) {
         isInterrupting = true;
         currentVoiceAudio.pause(); 
         
-        statusText.textContent = "Interrupted. Going to Main...";
+        // 재치 있는 인터럽트 문구 & 효과
+        statusText.textContent = "Oops! Tuning the other ear...";
+        statusText.classList.add("glitch");
         
         const intFile = lang === "en" ? sounds.int_en : sounds.int_de;
         const intAudio = playSfx(intFile, 1.0);
@@ -151,6 +151,7 @@ document.addEventListener("DOMContentLoaded", () => {
         return;
       }
 
+      // Normal Play
       if (lang === "en") {
         dimLayer.classList.add("dim-right"); 
         document.querySelector('[data-lang="de"]').classList.add("fade-out");
@@ -183,14 +184,17 @@ document.addEventListener("DOMContentLoaded", () => {
   const screenGlow = document.getElementById("screenGlow");
   const lblRole = document.getElementById("instrumentLabel");
   const lblId = document.getElementById("idLabel");
-  const tuneIcons = document.getElementById("tuneIcons");
+  const tuneIconsContainer = document.getElementById("tuneIcons");
+  const appBgLayer = document.getElementById("appBgLayer");
   
   const initMain = () => {
+    // Random Role
     myRole = roles[Math.floor(Math.random() * roles.length)];
     lblRole.textContent = myRole.name;
     ownedInstruments = [myRole.id]; 
-    updateIcons();
+    renderIcons();
     
+    // Captions slider
     let capIdx = 0;
     const caps = document.querySelectorAll(".hero-caption");
     const dots = document.querySelectorAll(".hero-dot");
@@ -203,11 +207,15 @@ document.addEventListener("DOMContentLoaded", () => {
     }, 5000);
   };
 
-  const updateIcons = () => {
-    tuneIcons.textContent = "";
-    ownedInstruments.forEach(id => {
-      const r = roles.find(role => role.id === id);
-      if(r) tuneIcons.textContent += r.icon + " ";
+  // [수정] 악기 슬롯 렌더링 (보유: 컬러 / 미보유: 실루엣)
+  const renderIcons = () => {
+    tuneIconsContainer.innerHTML = "";
+    roles.forEach(role => {
+      const isOwned = ownedInstruments.includes(role.id);
+      const span = document.createElement("span");
+      span.className = `slot-icon ${isOwned ? "owned" : ""}`;
+      span.textContent = role.icon;
+      tuneIconsContainer.appendChild(span);
     });
   };
 
@@ -216,7 +224,9 @@ document.addEventListener("DOMContentLoaded", () => {
   btnMute.addEventListener("click", () => {
     isMuted = !isMuted;
     btnMute.classList.toggle("muted", isMuted);
-    document.body.classList.toggle("muted-world", isMuted);
+    
+    // 배경 레이어에만 흑백 필터 적용
+    appBgLayer.classList.toggle("muted", isMuted);
     
     if (bgAudio) bgAudio.volume = isMuted ? 0 : 0.3;
   });
@@ -224,11 +234,12 @@ document.addEventListener("DOMContentLoaded", () => {
   // Let A Ring Logic
   const btnTune = document.getElementById("tuneButton");
   btnTune.addEventListener("click", () => {
-    if (isMuted) return; 
+    if (isMuted) return; // Mute 확인
 
     clickCount++;
-    triggerHaptic(); // [추가] 햅틱 피드백
+    triggerHaptic(); 
     
+    // Mozart Egg
     if (clickCount === 10 && !isMozart) {
       isMozart = true;
       lblRole.textContent = "MOZART";
@@ -238,18 +249,26 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     if (isMozart) {
+      // Play Random
       const keys = ["cellos", "trumpets", "violins2", "timpani"];
-      playSfx(sounds[keys[Math.floor(Math.random() * keys.length)]]);
+      const randomKey = keys[Math.floor(Math.random() * keys.length)];
+      playSfx(sounds[randomKey]);
+      
+      // 모차르트는 랜덤 악기 획득
+      if(!ownedInstruments.includes(randomKey)) {
+         ownedInstruments.push(randomKey);
+         renderIcons();
+      }
     } else {
-      const uniqueIds = [...new Set(ownedInstruments)];
-      uniqueIds.forEach(id => {
+      // Play All Owned
+      ownedInstruments.forEach(id => {
         playSfx(sounds[id]);
       });
     }
 
+    // Glow Effect
     heroImgWrapper.classList.add("glowing");
     screenGlow.classList.add("screen-glow-active");
-    
     setTimeout(() => {
       heroImgWrapper.classList.remove("glowing");
       screenGlow.classList.remove("screen-glow-active");
@@ -268,44 +287,64 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 
-  /* --- [추가] Genius Interactions --- */
-  // 1. Gyroscope Parallax (자이로스코프 파랄락스)
+  /* --- Genius Interactions --- */
+  // 1. Gyroscope Parallax
   const initParallax = () => {
     if (window.DeviceOrientationEvent) {
       window.addEventListener("deviceorientation", (event) => {
         if (!heroImgWrapper) return;
-        const tiltX = event.gamma; // 좌우 기울기 (-90 ~ 90)
-        const tiltY = event.beta;  // 앞뒤 기울기 (-180 ~ 180)
-        
-        // 기울기 값을 작게 나누어 이동 거리로 사용
-        const moveX = tiltX / 5;
-        const moveY = tiltY / 5;
-        
+        const tiltX = event.gamma; 
+        const tiltY = event.beta;  
+        // 움직임 강조 (x2)
+        const moveX = tiltX * 2;
+        const moveY = tiltY * 2;
         heroImgWrapper.style.transform = `translate(${moveX}px, ${moveY}px)`;
       }, true);
     }
   };
 
-  // 2. Breathing Light (숨쉬기 효과)
+  // 2. Breathing Light
   let idleTimer;
   const breathingLayer = document.getElementById("breathingLayer");
-
   const resetIdleTimer = () => {
     clearTimeout(idleTimer);
-    breathingLayer.classList.remove("active");
-    // 5초간 아무 입력이 없으면 숨쉬기 시작
+    if(breathingLayer) breathingLayer.classList.remove("active");
     idleTimer = setTimeout(() => {
-      breathingLayer.classList.add("active");
+      if(breathingLayer) breathingLayer.classList.add("active");
     }, 5000);
   };
-
-  // 사용자 입력 감지 이벤트 등록
   ['mousemove', 'touchstart', 'click', 'scroll'].forEach(evt => {
     document.addEventListener(evt, resetIdleTimer);
   });
 
+  // 3. Conducting Mode (Shake to Play)
+  const initShakeDetection = () => {
+    let lastX = 0, lastY = 0, lastZ = 0;
+    window.addEventListener('devicemotion', (event) => {
+      // 악기가 2개 이상이고 Mute가 아닐 때만
+      if (ownedInstruments.length < 2 || isMuted) return;
 
-  // --- Orchestra Game ---
+      const acc = event.accelerationIncludingGravity;
+      if (!acc) return;
+
+      const deltaX = Math.abs(acc.x - lastX);
+      const deltaY = Math.abs(acc.y - lastY);
+      const deltaZ = Math.abs(acc.z - lastZ);
+
+      // 강하게 흔들면 (Threshold 25)
+      if (deltaX + deltaY + deltaZ > 25) {
+        triggerHaptic();
+        // Play All Owned Sounds (Tutti!)
+        ownedInstruments.forEach(id => playSfx(sounds[id]));
+        screenGlow.classList.add("screen-glow-active");
+        setTimeout(() => screenGlow.classList.remove("screen-glow-active"), 2000);
+      }
+
+      lastX = acc.x; lastY = acc.y; lastZ = acc.z;
+    });
+  };
+
+  /* --- Orchestra Game --- */
   const btnOrch = document.getElementById("orchestraJoinBtn");
   const orchStatus = document.getElementById("harmonicsStatus");
   const gpsStatus = document.getElementById("gpsStatus");
@@ -347,7 +386,6 @@ document.addEventListener("DOMContentLoaded", () => {
       alert("Geolocation is not supported");
       return;
     }
-
     btnOrch.textContent = "Scanning...";
     
     navigator.geolocation.watchPosition((position) => {
@@ -376,6 +414,8 @@ document.addEventListener("DOMContentLoaded", () => {
         generateGhosts(lat, lng);
         
         ghosts.forEach((g, idx) => {
+          // 유령은 처음엔 물음표나 유령 아이콘
+          const roleIcon = roles.find(r => r.id === g.roleId).icon;
           const ghostIcon = L.divIcon({
             className: 'custom-pin',
             html: `<div style="font-size:15px; opacity:0.6;">👻</div>`,
@@ -396,18 +436,23 @@ document.addEventListener("DOMContentLoaded", () => {
         
         if (dist < 5 && !g.collected) {
           g.collected = true;
-          ownedInstruments.push(g.roleId); 
+          // [수정] 중복 체크 후 악기 추가
+          if(!ownedInstruments.includes(g.roleId)) {
+             ownedInstruments.push(g.roleId); 
+             renderIcons();
+          }
           
           playSfx(sounds.timpani_sfx);
-          triggerHaptic(); // [추가] 악기 획득 시 햅틱
+          triggerHaptic(); 
+          
+          // 유령 아이콘을 해당 악기로 변경
+          const roleIcon = roles.find(r => r.id === g.roleId).icon;
           ghostMarkers[idx].setIcon(L.divIcon({
             className: 'custom-pin',
-            html: `<div style="font-size:20px;">🎻</div>`, 
+            html: `<div style="font-size:20px; text-shadow:0 0 10px yellow;">${roleIcon}</div>`, 
             iconSize: [20, 20],
             iconAnchor: [10, 10]
           }));
-          
-          updateIcons();
         }
         
         if (g.collected) nearbyCount++;

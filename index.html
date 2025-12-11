@@ -8,9 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;700&family=Manrope:wght@300;400;600&display=swap" rel="stylesheet" />
-  
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
-  
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
@@ -20,16 +18,13 @@
       <video id="preintroVideo" class="scene-video dark-filter" autoplay muted playsinline loop>
         <source src="media/preintro_glass_fog.mp4" type="video/mp4" />
       </video>
-
       <div class="scene-overlay scene-overlay-dark" id="preintroOverlay"></div>
-
       <div class="preintro-ui" id="preintroUi">
         <button class="preintro-btn" id="preintroTouchBtn" type="button">
           <span class="preintro-line preintro-line-main">Touch here!</span>
           <span class="preintro-line preintro-line-soft">Volume UP 🎧🔊</span>
         </button>
       </div>
-
       <button class="preintro-ripple" id="preintroRipple" type="button" aria-label="Continue"></button>
     </section>
 
@@ -39,27 +34,22 @@
           <source src="media/prelude_study_sideways.mp4" type="video/mp4" />
         </video>
       </div>
-
       <div class="prelude-dim-layer" id="preludeDimLayer"></div>
-
       <div class="prelude-overlay">
         <div class="prelude-header">
           <div class="prelude-tag">Dress the page in a language</div>
           <div class="prelude-status" id="preludeStatus"></div>
         </div>
       </div>
-
       <div class="prelude-zones">
         <div class="prelude-zone prelude-zone-left" id="preludeZoneLeft">
           <button class="prelude-language-btn" data-lang="en" type="button">
-            <span class="flag-icon">🇬🇧</span>
-            <span class="lang-text">EN</span>
+            <span class="flag-icon">🇬🇧</span><span class="lang-text">EN</span>
           </button>
         </div>
         <div class="prelude-zone prelude-zone-right" id="preludeZoneRight">
           <button class="prelude-language-btn" data-lang="de" type="button">
-            <span class="flag-icon">🇩🇪</span>
-            <span class="lang-text">DE</span>
+            <span class="flag-icon">🇩🇪</span><span class="lang-text">DE</span>
           </button>
         </div>
       </div>
@@ -67,13 +57,16 @@
 
     <section id="scene-main" class="scene">
       <div class="app">
-        <div class="app-inner">
+        <div class="app-background-layer" id="appBgLayer">
           <div class="breathing-layer" id="breathingLayer"></div>
           <div class="screen-glow-layer" id="screenGlow"></div>
+        </div>
 
+        <div class="app-ui-layer">
           <div class="tabs">
             <button class="tab-btn active" data-tab="invitation">Invitation</button>
-            <button class="tab-btn" data-tab="orchestra">Orchestra Game</button>
+            <button class="tab-btn" data-tab="program">Program</button>
+            <button class="tab-btn" data-tab="orchestra">Orchestra</button>
           </div>
 
           <main class="tab-container">
@@ -96,7 +89,7 @@
                     <div class="stage-bottom-row">
                       <button id="tuneButton" class="action-btn">
                         <span class="btn-text">Let A Ring</span>
-                        <span class="btn-icons-wrapper" id="tuneIcons"></span>
+                        <div class="instrument-slots" id="tuneIcons"></div>
                       </button>
                     </div>
                   </div>
@@ -115,22 +108,49 @@
               </div>
             </section>
             
+            <section id="tab-program" class="tab-panel">
+              <div class="program-wrapper">
+                <h1 class="orch-title">The Evening</h1>
+                <div class="timeline">
+                  <div class="timeline-item">
+                    <span class="time">19:30</span>
+                    <span class="event">Gathering at Alte Oper</span>
+                  </div>
+                  <div class="timeline-item">
+                    <span class="time">20:00</span>
+                    <span class="event">The First Note (A)</span>
+                  </div>
+                  <div class="timeline-item">
+                    <span class="time">20:30</span>
+                    <span class="event">Ensemble Walk</span>
+                  </div>
+                  <div class="timeline-item">
+                    <span class="time">21:00</span>
+                    <span class="event">Secret Dinner</span>
+                  </div>
+                </div>
+              </div>
+            </section>
+
             <section id="tab-orchestra" class="tab-panel">
                <div class="orchestra-wrapper">
                  <h1 class="orch-title">Ensemble Radar</h1>
-                 <p class="orch-desc">Locating your instrument...</p>
+                 <p class="orch-desc">Collect instruments (5m)</p>
                  <div id="map" class="radar-map"></div>
                  <div class="orchestra-status-box">
                    <div class="status-row">
-                     <span class="lbl">GPS Status</span>
+                     <span class="lbl">GPS</span>
                      <span class="val" id="gpsStatus">Waiting...</span>
                    </div>
                    <div class="status-row">
-                     <span class="lbl">Ensemble Size</span>
+                     <span class="lbl">Harmony</span>
                      <span class="val" id="harmonicsStatus">Solo</span>
                    </div>
                  </div>
                  <button id="orchestraJoinBtn" class="orchestra-btn">Start Radar</button>
+                 <p class="hint-text" style="margin-top:10px; font-size: 0.7rem; color: #666;">
+                   Tip: Shake your phone to conduct!
+                 </p>
                </div>
             </section>
           </main>
