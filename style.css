@@ -29,17 +29,14 @@ body.muted-world .app-shell { filter: grayscale(0.95) saturate(0.05) brightness(
 .scene-video { width: 100%; height: 100%; object-fit: cover; }
 
 /* --- Scene -1: Pre-intro --- */
-/* 초기 상태: 매우 어둡게 (밝기 0.1) */
 #scene-preintro .scene-video.dark-filter {
-  filter: brightness(0.1); 
-  transition: filter 3s ease; /* 3초에 걸쳐 밝아짐 */
+  filter: brightness(0.15); 
+  transition: filter 3s ease; 
 }
-/* JS에서 추가할 클래스: 원래 밝기 복구 */
 .video-bright { filter: brightness(1.0) !important; }
 
-/* 배경 오버레이 */
 .scene-overlay-dark {
-  background-color: rgba(0, 0, 0, 0.7); 
+  background-color: rgba(0, 0, 0, 0.85); 
   transition: opacity 3s ease;
   opacity: 1;
   position: absolute; inset: 0; pointer-events: none; z-index: 10;
@@ -51,7 +48,6 @@ body.muted-world .app-shell { filter: grayscale(0.95) saturate(0.05) brightness(
   z-index: 20; pointer-events: none;
 }
 
-/* 1단계 버튼 */
 .preintro-btn {
   pointer-events: auto; cursor: pointer;
   display: inline-block; margin: 0; padding: 20px 40px;
@@ -75,14 +71,13 @@ body.muted-world .app-shell { filter: grayscale(0.95) saturate(0.05) brightness(
   50% { transform: scale(1.03); box-shadow: 0 15px 40px rgba(245,230,184,0.3); } 
 }
 
-/* 2단계 Ripple */
 .preintro-ripple {
   position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
   width: 140px; height: 140px; border-radius: 50%;
   background: rgba(255,255,255,0.05); border: 1px solid var(--accent);
   display: none; 
   z-index: 30; cursor: pointer; pointer-events: auto;
-  transition: opacity 0.3s;
+  transition: opacity 0.5s;
 }
 .preintro-ripple.hidden { display: none !important; } 
 
@@ -114,14 +109,12 @@ body.muted-world .app-shell { filter: grayscale(0.95) saturate(0.05) brightness(
   position: absolute; inset: 0; z-index: 5; pointer-events: none;
   background: transparent; transition: background 3s ease;
 }
-/* 반반 Dimming: 중앙(50%) 기준 */
 .dim-right { background: linear-gradient(to top, rgba(0,0,0,0.9) 50%, transparent 50%); }
 .dim-left { background: linear-gradient(to bottom, rgba(0,0,0,0.9) 50%, transparent 50%); }
 
 .prelude-overlay { position: absolute; inset: 0; z-index: 10; pointer-events: none; }
 .prelude-tag {
   position: absolute;
-  /* 좌측 중앙 배치 (회전 시 하단 중앙) */
   top: 50%; left: 20px; transform: translateY(-50%) rotate(90deg);
   font-size: 1.1rem; color: var(--accent); letter-spacing: 0.1em;
   background: rgba(0,0,0,0.6); padding: 10px 20px; border-radius: 20px;
@@ -146,12 +139,10 @@ body.muted-world .app-shell { filter: grayscale(0.95) saturate(0.05) brightness(
 /* --- Scene 1: Main --- */
 .screen-glow-layer {
   position: absolute; inset: 0; pointer-events: none; z-index: 50;
-  /* 중앙에서 퍼져나가는 글로우 */
   background: radial-gradient(circle, var(--accent-glow) 0%, transparent 0%);
   opacity: 0;
   transition: opacity 0.5s, background 5s ease-out;
 }
-/* 화면 전체로 뻗어나가는 강력한 효과 */
 .screen-glow-active {
   opacity: 1;
   background: radial-gradient(circle, rgba(245, 230, 184, 0.4) 0%, transparent 80%);
@@ -177,7 +168,6 @@ body.muted-world .app-shell { filter: grayscale(0.95) saturate(0.05) brightness(
   box-shadow: 0 10px 40px rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.1);
   transition: border-color 0.3s, box-shadow 0.3s;
 }
-/* 테두리 글로우 */
 .stage-image-wrapper.glowing {
   border-color: var(--accent); 
 }
@@ -185,10 +175,19 @@ body.muted-world .app-shell { filter: grayscale(0.95) saturate(0.05) brightness(
 
 .stage-overlay-ui { position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: space-between; padding: 15px; }
 .stage-top-row { display: flex; justify-content: space-between; align-items: start; }
+
 .icon-btn {
   background: var(--glass-bg); backdrop-filter: blur(4px); border: 1px solid var(--glass-border); color: #fff;
   width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; cursor: pointer;
+  transition: background-color 0.3s ease;
 }
+/* [추가] Mute 버튼 빨간색 효과 */
+.icon-btn.muted {
+  background-color: rgba(220, 50, 50, 0.8) !important;
+  border-color: rgba(255, 100, 100, 0.8);
+  box-shadow: 0 0 15px rgba(220, 50, 50, 0.5);
+}
+
 .icon-off { display: none; }
 .muted .icon-on { display: none; }
 .muted .icon-off { display: inline; }
@@ -216,7 +215,7 @@ body.muted-world .app-shell { filter: grayscale(0.95) saturate(0.05) brightness(
 .hero-dot { width: 6px; height: 6px; border-radius: 50%; background: #444; }
 .hero-dot-active { background: var(--accent); }
 
-/* Orchestra Map (Leaflet) */
+/* Orchestra Map */
 .orchestra-wrapper { width: 90%; max-width: 350px; text-align: center; margin-top: 20px; }
 .radar-map {
   width: 100%; height: 300px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.2);

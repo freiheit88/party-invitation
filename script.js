@@ -30,8 +30,9 @@ document.addEventListener("DOMContentLoaded", () => {
   let isMozart = false;
 
   /* --- Utils --- */
+  // [수정] Mute가 켜져 있으면 오디오 재생 안 함 (Let A Ring 포함)
   const playSfx = (path, vol = 1.0) => {
-    if (isMuted) return null;
+    if (isMuted) return null; // Mute 확인
     const a = new Audio(path);
     a.volume = vol;
     a.play().catch(e => console.log("Audio play error:", e));
@@ -97,9 +98,9 @@ document.addEventListener("DOMContentLoaded", () => {
   btnRipple.addEventListener("click", () => {
     playSfx(sounds.timpani_sfx);
     btnRipple.classList.remove("active");
-    btnRipple.classList.add("hidden"); // [수정] 즉시 사라짐
+    btnRipple.classList.add("hidden"); 
     
-    // 밝아지는 효과 시작 (비디오 필터 제거 & 오버레이 제거)
+    // 비디오 필터 제거 & 오버레이 제거 (밝아짐)
     videoPre.classList.remove("dark-filter"); 
     videoPre.classList.add("video-bright");
     overlay.classList.add("preintro-overlay-clear");
@@ -140,7 +141,6 @@ document.addEventListener("DOMContentLoaded", () => {
       }
 
       // Normal Play Logic
-      // 50% 분할 디밍
       if (lang === "en") {
         dimLayer.classList.add("dim-right"); 
         document.querySelector('[data-lang="de"]').classList.add("fade-out");
