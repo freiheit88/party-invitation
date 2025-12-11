@@ -30,9 +30,8 @@ document.addEventListener("DOMContentLoaded", () => {
   let isMozart = false;
 
   /* --- Utils --- */
-  // [수정] Mute가 켜져 있으면 오디오 재생 안 함 (Let A Ring 포함)
   const playSfx = (path, vol = 1.0) => {
-    if (isMuted) return null; // Mute 확인
+    if (isMuted) return null;
     const a = new Audio(path);
     a.volume = vol;
     a.play().catch(e => console.log("Audio play error:", e));
@@ -56,6 +55,13 @@ document.addEventListener("DOMContentLoaded", () => {
     }).catch(e => console.log("BG play error:", e));
   };
 
+  // [추가] 햅틱 피드백 함수 (진동)
+  const triggerHaptic = () => {
+    if (navigator.vibrate) {
+      navigator.vibrate(50); // 50ms 동안 짧게 진동
+    }
+  };
+
   /* --- Scene Transition Logic --- */
   const switchScene = (fromId, toId) => {
     const fromEl = document.getElementById(fromId);
@@ -71,10 +77,12 @@ document.addEventListener("DOMContentLoaded", () => {
       toEl.classList.add("scene-visible");
     }
     
-    // 맵 사이즈 재조정
     if (toId === "scene-main") {
       setTimeout(() => {
         if(map) map.invalidateSize();
+        // 메인 씬으로 넘어오면 자이로스코프 및 숨쉬기 시작
+        initParallax();
+        resetIdleTimer(); 
       }, 100);
     }
   };
@@ -100,12 +108,10 @@ document.addEventListener("DOMContentLoaded", () => {
     btnRipple.classList.remove("active");
     btnRipple.classList.add("hidden"); 
     
-    // 비디오 필터 제거 & 오버레이 제거 (밝아짐)
     videoPre.classList.remove("dark-filter"); 
     videoPre.classList.add("video-bright");
     overlay.classList.add("preintro-overlay-clear");
     
-    // 3초 뒤 씬 전환
     setTimeout(() => {
       switchScene("scene-preintro", "scene-prelude");
     }, 3000);
@@ -114,6 +120,7 @@ document.addEventListener("DOMContentLoaded", () => {
   /* --- Scene 0: Prelude --- */
   const zones = document.querySelectorAll(".prelude-language-btn");
   const dimLayer = document.getElementById("preludeDimLayer");
+  const statusText = document.getElementById("preludeStatus");
   let isInterrupting = false; 
 
   zones.forEach(btn => {
@@ -123,10 +130,14 @@ document.addEventListener("DOMContentLoaded", () => {
       const lang = btn.dataset.lang;
       playSfx(sounds.timpani_sfx, 0.5);
 
-      // Interrupt Logic
+      statusText.textContent = lang === "en" ? "Listening to English..." : "Listening to German...";
+      statusText.classList.add("show");
+
       if (currentVoiceAudio && !currentVoiceAudio.paused) {
         isInterrupting = true;
         currentVoiceAudio.pause(); 
+        
+        statusText.textContent = "Interrupted. Going to Main...";
         
         const intFile = lang === "en" ? sounds.int_en : sounds.int_de;
         const intAudio = playSfx(intFile, 1.0);
@@ -140,7 +151,6 @@ document.addEventListener("DOMContentLoaded", () => {
         return;
       }
 
-      // Normal Play Logic
       if (lang === "en") {
         dimLayer.classList.add("dim-right"); 
         document.querySelector('[data-lang="de"]').classList.add("fade-out");
@@ -156,6 +166,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
       if (currentVoiceAudio) {
         currentVoiceAudio.onended = () => {
+          statusText.textContent = "Welcome.";
           if (bgAudio && !isMuted) bgAudio.volume = 0.3;
           setTimeout(() => switchScene("scene-prelude", "scene-main"), 2000); 
           initMain();
@@ -175,13 +186,11 @@ document.addEventListener("DOMContentLoaded", () => {
   const tuneIcons = document.getElementById("tuneIcons");
   
   const initMain = () => {
-    // Random Instrument on Load
     myRole = roles[Math.floor(Math.random() * roles.length)];
     lblRole.textContent = myRole.name;
     ownedInstruments = [myRole.id]; 
     updateIcons();
     
-    // Captions slider
     let capIdx = 0;
     const caps = document.querySelectorAll(".hero-caption");
     const dots = document.querySelectorAll(".hero-dot");
@@ -196,8 +205,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const updateIcons = () => {
     tuneIcons.textContent = "";
-    const uniqueIds = [...new Set(ownedInstruments)];
-    uniqueIds.forEach(id => {
+    ownedInstruments.forEach(id => {
       const r = roles.find(role => role.id === id);
       if(r) tuneIcons.textContent += r.icon + " ";
     });
@@ -216,10 +224,10 @@ document.addEventListener("DOMContentLoaded", () => {
   // Let A Ring Logic
   const btnTune = document.getElementById("tuneButton");
   btnTune.addEventListener("click", () => {
-    // [수정] Mute면 Let A Ring도 안 들림
-    if (isMuted) return;
+    if (isMuted) return; 
 
     clickCount++;
+    triggerHaptic(); // [추가] 햅틱 피드백
     
     if (clickCount === 10 && !isMozart) {
       isMozart = true;
@@ -260,7 +268,44 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 
-  // --- Orchestra Game (Real GPS + Leaflet) ---
+  /* --- [추가] Genius Interactions --- */
+  // 1. Gyroscope Parallax (자이로스코프 파랄락스)
+  const initParallax = () => {
+    if (window.DeviceOrientationEvent) {
+      window.addEventListener("deviceorientation", (event) => {
+        if (!heroImgWrapper) return;
+        const tiltX = event.gamma; // 좌우 기울기 (-90 ~ 90)
+        const tiltY = event.beta;  // 앞뒤 기울기 (-180 ~ 180)
+        
+        // 기울기 값을 작게 나누어 이동 거리로 사용
+        const moveX = tiltX / 5;
+        const moveY = tiltY / 5;
+        
+        heroImgWrapper.style.transform = `translate(${moveX}px, ${moveY}px)`;
+      }, true);
+    }
+  };
+
+  // 2. Breathing Light (숨쉬기 효과)
+  let idleTimer;
+  const breathingLayer = document.getElementById("breathingLayer");
+
+  const resetIdleTimer = () => {
+    clearTimeout(idleTimer);
+    breathingLayer.classList.remove("active");
+    // 5초간 아무 입력이 없으면 숨쉬기 시작
+    idleTimer = setTimeout(() => {
+      breathingLayer.classList.add("active");
+    }, 5000);
+  };
+
+  // 사용자 입력 감지 이벤트 등록
+  ['mousemove', 'touchstart', 'click', 'scroll'].forEach(evt => {
+    document.addEventListener(evt, resetIdleTimer);
+  });
+
+
+  // --- Orchestra Game ---
   const btnOrch = document.getElementById("orchestraJoinBtn");
   const orchStatus = document.getElementById("harmonicsStatus");
   const gpsStatus = document.getElementById("gpsStatus");
@@ -353,7 +398,8 @@ document.addEventListener("DOMContentLoaded", () => {
           g.collected = true;
           ownedInstruments.push(g.roleId); 
           
-          playSfx(sounds.timpani_sfx); 
+          playSfx(sounds.timpani_sfx);
+          triggerHaptic(); // [추가] 악기 획득 시 햅틱
           ghostMarkers[idx].setIcon(L.divIcon({
             className: 'custom-pin',
             html: `<div style="font-size:20px;">🎻</div>`, 

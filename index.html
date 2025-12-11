@@ -45,6 +45,7 @@
       <div class="prelude-overlay">
         <div class="prelude-header">
           <div class="prelude-tag">Dress the page in a language</div>
+          <div class="prelude-status" id="preludeStatus"></div>
         </div>
       </div>
 
@@ -67,6 +68,7 @@
     <section id="scene-main" class="scene">
       <div class="app">
         <div class="app-inner">
+          <div class="breathing-layer" id="breathingLayer"></div>
           <div class="screen-glow-layer" id="screenGlow"></div>
 
           <div class="tabs">
@@ -94,7 +96,7 @@
                     <div class="stage-bottom-row">
                       <button id="tuneButton" class="action-btn">
                         <span class="btn-text">Let A Ring</span>
-                        <span class="btn-icon" id="tuneIcons"></span>
+                        <span class="btn-icons-wrapper" id="tuneIcons"></span>
                       </button>
                     </div>
                   </div>
@@ -117,9 +119,7 @@
                <div class="orchestra-wrapper">
                  <h1 class="orch-title">Ensemble Radar</h1>
                  <p class="orch-desc">Locating your instrument...</p>
-                 
                  <div id="map" class="radar-map"></div>
-
                  <div class="orchestra-status-box">
                    <div class="status-row">
                      <span class="lbl">GPS Status</span>
@@ -130,7 +130,6 @@
                      <span class="val" id="harmonicsStatus">Solo</span>
                    </div>
                  </div>
-                 
                  <button id="orchestraJoinBtn" class="orchestra-btn">Start Radar</button>
                </div>
             </section>
