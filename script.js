@@ -1,240 +1,390 @@
-:root {
-  --bg: #05070a;
-  --accent: #f5e6b8;
-  --accent-glow: rgba(245, 230, 184, 0.6);
-  --text-main: #f8f7f4;
-  --text-soft: #a7a5a0;
-  --glass-bg: rgba(20, 20, 25, 0.6);
-  --glass-border: rgba(255, 255, 255, 0.15);
-  --button-bg: #202331;
-  --button-border: rgba(245, 230, 184, 0.7);
-}
+document.addEventListener("DOMContentLoaded", () => {
+  /* --- Global State --- */
+  let bgAudio = null;
+  let isMuted = false;
+  let currentVoiceAudio = null; 
+  
+  const roles = [
+    { id: "cellos", name: "Cellos", icon: "🎻" },
+    { id: "trumpets", name: "Trumpets", icon: "🎺" },
+    { id: "violins2", name: "Violins II", icon: "🎻" },
+    { id: "timpani", name: "Timpani", icon: "🥁" }
+  ];
+  
+  const sounds = {
+    cellos: "media/SI_Cac_fx_cellos_tuning_one_shot_imaginative.wav",
+    trumpets: "media/SI_Cac_fx_trumpets_tuning_one_shot_growing.wav",
+    violins2: "media/SI_Cac_fx_violins_tuning_one_shot_blooming.wav",
+    timpani: "media/zoid_percussion_timpani_roll_A.wav",
+    timpani_sfx: "media/TS_IFD_kick_timpani_heavy.wav",
+    bg_music: "media/Serenade For Strings Op.48_2nd movt.wav",
+    voice_de: "media/prelude_voice_de_male.mp3",
+    voice_en: "media/prelude_voice_en_female.mp3",
+    int_de: "media/prelude_interrupt_de_male.mp3",
+    int_en: "media/prelude_interrupt_en_female.mp3"
+  };
 
-*, *::before, *::after { box-sizing: border-box; }
-html, body { margin: 0; padding: 0; height: 100%; width: 100%; overflow: hidden; }
-body {
-  font-family: "Manrope", sans-serif;
-  background: #000;
-  color: var(--text-main);
-  -webkit-font-smoothing: antialiased;
-}
+  let myRole = null;
+  let ownedInstruments = [];
+  let clickCount = 0;
+  let isMozart = false;
+  let activeAudios = new Set(); // 현재 재생 중인 오디오 추적
 
-/* --- Global Shell --- */
-.app-shell { position: relative; width: 100%; height: 100%; overflow: hidden; }
+  /* --- Utils --- */
+  
+  const playSfx = (path, vol = 1.0) => {
+    // Mute 상태면 아예 재생하지 않음
+    if (isMuted) return null;
+    
+    const a = new Audio(path);
+    a.volume = vol;
+    a.play().catch(e => console.log("Audio play error:", e));
+    
+    // 활성 오디오 목록에 추가 (나중에 Mute 누르면 끄기 위해)
+    activeAudios.add(a);
+    a.onended = () => activeAudios.delete(a);
+    
+    return a;
+  };
 
-/* [중요] Mute 시각 효과: 전체가 아닌 특정 요소만 타겟팅 */
-/* 배경 이미지와 캡션만 흑백/어둡게 처리하여 버튼은 강조됨 */
-body.muted-world .stage-image, 
-body.muted-world .stage-caption-area,
-body.muted-world .tabs {
-  filter: grayscale(0.95) saturate(0.05) brightness(0.6);
-  transition: filter 2s ease;
-}
-/* Mute 버튼 강조 효과 */
-body.muted-world #musicToggle {
-  background: rgba(200, 50, 50, 0.8); /* 붉은 계열로 강조 */
-  border-color: #ff6666;
-  box-shadow: 0 0 20px rgba(255, 100, 100, 0.6);
-  animation: pulseMute 2s infinite;
-}
-@keyframes pulseMute {
-  0% { transform: scale(1); }
-  50% { transform: scale(1.1); }
-  100% { transform: scale(1); }
-}
+  const playBgMusic = () => {
+    if (!bgAudio) {
+      bgAudio = new Audio(sounds.bg_music);
+      bgAudio.loop = true;
+      bgAudio.volume = 0;
+    }
+    bgAudio.play().then(() => {
+      let v = 0;
+      const fade = setInterval(() => {
+        if (isMuted) { clearInterval(fade); bgAudio.volume = 0; return; }
+        v += 0.01;
+        if (v >= 0.3) { v = 0.3; clearInterval(fade); }
+        bgAudio.volume = v;
+      }, 100);
+    }).catch(e => console.log("BG play error:", e));
+  };
 
-.scene { position: absolute; inset: 0; display: none; }
-.scene-visible { display: block; }
-.scene-video { width: 100%; height: 100%; object-fit: cover; }
+  /* --- Scene Transition Logic --- */
+  const switchScene = (fromId, toId) => {
+    const fromEl = document.getElementById(fromId);
+    const toEl = document.getElementById(toId);
 
-/* --- Scene -1: Pre-intro --- */
-#scene-preintro .scene-video.dark-filter {
-  filter: brightness(0.3); 
-  transition: filter 3s ease; 
-}
-.video-bright { filter: brightness(1.0) !important; }
+    fromEl.style.display = "none";
+    fromEl.classList.remove("scene-visible");
 
-/* [수정] 배경 오버레이: 60% (0.6) */
-.scene-overlay-dark {
-  background-color: rgba(0, 0, 0, 0.6); 
-  transition: opacity 3s ease;
-  opacity: 1;
-  position: absolute; inset: 0; pointer-events: none; z-index: 10;
-}
-.preintro-overlay-clear { opacity: 0; }
+    toEl.style.display = "block";
+    if (toId === "scene-prelude") {
+      toEl.classList.add("fade-in-slow");
+    } else {
+      toEl.classList.add("scene-visible");
+    }
+  };
 
-.preintro-ui {
-  position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
-  z-index: 20; pointer-events: none;
-}
+  /* --- Scene -1: Pre-intro --- */
+  const btnTouch = document.getElementById("preintroTouchBtn");
+  const btnRipple = document.getElementById("preintroRipple");
+  const videoPre = document.getElementById("preintroVideo");
+  const overlay = document.getElementById("preintroOverlay");
+  
+  btnTouch.addEventListener("click", () => {
+    playSfx(sounds.timpani_sfx);
+    playBgMusic();
+    
+    document.getElementById("preintroUi").style.display = "none";
+    
+    btnRipple.style.display = "block";
+    setTimeout(() => btnRipple.classList.add("active"), 100);
+  });
 
-.preintro-btn {
-  pointer-events: auto; cursor: pointer;
-  display: inline-block; margin: 0; padding: 20px 40px;
-  border-radius: 999px; border: 1px solid rgba(245, 230, 184, 0.5);
-  background: rgba(10, 12, 18, 0.8);
-  color: var(--accent); text-align: center;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8);
-  animation: breathe 2s ease-in-out infinite;
-  backdrop-filter: blur(5px);
-}
-.preintro-line-main {
-  display: block; font-family: "Playfair Display", serif; font-size: 2.5rem; 
-  color: var(--accent); text-shadow: 0 0 20px var(--accent-glow); font-weight: 700;
-}
-.preintro-line-soft {
-  display: block; font-size: 1rem; color: #fff; opacity: 0.6; margin-top: 10px;
-  font-weight: 300; letter-spacing: 0.1em;
-}
-@keyframes breathe { 
-  0%, 100% { transform: scale(1); box-shadow: 0 10px 30px rgba(0,0,0,0.8); } 
-  50% { transform: scale(1.03); box-shadow: 0 15px 40px rgba(245,230,184,0.3); } 
-}
+  btnRipple.addEventListener("click", () => {
+    playSfx(sounds.timpani_sfx);
+    btnRipple.classList.remove("active");
+    btnRipple.classList.add("hidden"); 
+    
+    videoPre.classList.remove("dark-filter"); 
+    videoPre.classList.add("video-bright");
+    overlay.classList.add("preintro-overlay-clear");
+    
+    setTimeout(() => {
+      switchScene("scene-preintro", "scene-prelude");
+    }, 3000);
+  });
 
-.preintro-ripple {
-  position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-  width: 140px; height: 140px; border-radius: 50%;
-  background: rgba(255,255,255,0.05); border: 1px solid var(--accent);
-  display: none; 
-  z-index: 30; cursor: pointer; pointer-events: auto;
-  transition: opacity 0.5s;
-}
-.preintro-ripple.hidden { display: none !important; } 
+  /* --- Scene 0: Prelude --- */
+  const zones = document.querySelectorAll(".prelude-language-btn");
+  const dimLayer = document.getElementById("preludeDimLayer");
+  let isInterrupting = false; 
 
-.preintro-ripple::after {
-  content: "Click Again!"; position: absolute; top: 50%; left: 50%; 
-  transform: translate(-50%, -50%); color: var(--accent); 
-  font-size: 1.1rem; font-weight: 700; white-space: nowrap; letter-spacing: 0.1em;
-}
-.preintro-ripple.active { animation: ripplePulse 1.5s infinite; }
-@keyframes ripplePulse { 
-  0% { box-shadow: 0 0 0 0 rgba(245, 230, 184, 0.4); } 
-  70% { box-shadow: 0 0 0 30px rgba(245, 230, 184, 0); } 
-  100% { box-shadow: 0 0 0 0 rgba(0,0,0,0); } 
-}
+  zones.forEach(btn => {
+    btn.addEventListener("click", (e) => {
+      if (isInterrupting) return; 
 
-/* --- Scene 0: Prelude --- */
-.fade-in-slow { animation: fadeIn 5s ease-in-out forwards; }
-@keyframes fadeIn {
-  from { opacity: 0; filter: brightness(0); }
-  to { opacity: 1; filter: brightness(1); }
-}
+      const lang = btn.dataset.lang;
+      playSfx(sounds.timpani_sfx, 0.5);
 
-.prelude-video-rotated {
-  position: absolute; top: 50%; left: 50%; width: 100vh; height: 100vw;
-  transform: translate(-50%, -50%) rotate(90deg); object-fit: cover;
-}
+      if (currentVoiceAudio && !currentVoiceAudio.paused) {
+        isInterrupting = true;
+        currentVoiceAudio.pause(); 
+        
+        const intFile = lang === "en" ? sounds.int_en : sounds.int_de;
+        const intAudio = playSfx(intFile, 1.0);
+        
+        if (intAudio) {
+          intAudio.onended = () => { setTimeout(() => switchScene("scene-prelude", "scene-main"), 1000); initMain(); };
+        } else {
+          setTimeout(() => switchScene("scene-prelude", "scene-main"), 2000);
+          initMain();
+        }
+        return;
+      }
 
-.prelude-dim-layer {
-  position: absolute; inset: 0; z-index: 5; pointer-events: none;
-  background: transparent; transition: background 3s ease;
-}
-.dim-right { background: linear-gradient(to top, rgba(0,0,0,0.9) 50%, transparent 50%); }
-.dim-left { background: linear-gradient(to bottom, rgba(0,0,0,0.9) 50%, transparent 50%); }
+      if (lang === "en") {
+        dimLayer.classList.add("dim-right"); 
+        document.querySelector('[data-lang="de"]').classList.add("fade-out");
+      } else {
+        dimLayer.classList.add("dim-left"); 
+        document.querySelector('[data-lang="en"]').classList.add("fade-out");
+      }
 
-.prelude-overlay { position: absolute; inset: 0; z-index: 10; pointer-events: none; }
-.prelude-tag {
-  position: absolute;
-  top: 50%; left: 30px; transform: translateY(-50%) rotate(90deg);
-  font-size: 1.1rem; color: var(--accent); letter-spacing: 0.1em;
-  background: rgba(0,0,0,0.6); padding: 10px 20px; border-radius: 20px;
-  text-align: center;
-}
+      if (bgAudio) bgAudio.volume = 0.05;
 
-.prelude-zones {
-  position: absolute; inset: 0; z-index: 20; display: flex; flex-direction: column;
-}
-.prelude-zone { flex: 1; display: flex; align-items: center; justify-content: center; }
-.prelude-language-btn {
-  background: none; border: none; cursor: pointer; transform: rotate(90deg);
-  display: flex; flex-direction: column; align-items: center; gap: 15px;
-  transition: transform 0.2s, opacity 0.5s;
-  opacity: 1; 
-}
-.prelude-language-btn:active { transform: rotate(90deg) scale(0.9); }
-.flag-icon { font-size: 3.5rem; filter: drop-shadow(0 0 10px rgba(0,0,0,0.5)); }
-.lang-text { font-size: 1.5rem; font-weight: 700; color: #fff; letter-spacing: 0.2em; }
-.fade-out { opacity: 0.2; pointer-events: none; }
+      const voiceFile = lang === "en" ? sounds.voice_en : sounds.voice_de;
+      currentVoiceAudio = playSfx(voiceFile, 1.0);
 
-/* --- Scene 1: Main --- */
-.screen-glow-layer {
-  position: absolute; inset: 0; pointer-events: none; z-index: 50;
-  background: radial-gradient(circle, var(--accent-glow) 0%, transparent 0%);
-  opacity: 0;
-  transition: opacity 0.5s, background 5s ease-out;
-}
-.screen-glow-active {
-  opacity: 1;
-  background: radial-gradient(circle, var(--accent-glow) 0%, transparent 70%);
-}
+      if (currentVoiceAudio) {
+        currentVoiceAudio.onended = () => {
+          if (bgAudio && !isMuted) bgAudio.volume = 0.3;
+          setTimeout(() => switchScene("scene-prelude", "scene-main"), 2000); 
+          initMain();
+        };
+      } else {
+        setTimeout(() => switchScene("scene-prelude", "scene-main"), 4000);
+        initMain();
+      }
+    });
+  });
 
-.tabs { padding: 20px 0 10px; display: flex; justify-content: center; gap: 30px; z-index: 10; }
-.tab-btn {
-  background: none; border: none; color: var(--text-soft); font-size: 0.9rem;
-  text-transform: uppercase; letter-spacing: 0.1em; padding-bottom: 5px;
-  border-bottom: 2px solid transparent; cursor: pointer;
-}
-.tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
+  /* --- Scene 1: Main --- */
+  const heroImgWrapper = document.getElementById("heroImageWrapper");
+  const screenGlow = document.getElementById("screenGlow");
+  const lblRole = document.getElementById("instrumentLabel");
+  const lblId = document.getElementById("idLabel");
+  const tuneIcons = document.getElementById("tuneIcons");
+  
+  const initMain = () => {
+    myRole = roles[Math.floor(Math.random() * roles.length)];
+    lblRole.textContent = myRole.name;
+    ownedInstruments = [myRole.id]; 
+    updateIcons();
+    
+    let capIdx = 0;
+    const caps = document.querySelectorAll(".hero-caption");
+    const dots = document.querySelectorAll(".hero-dot");
+    setInterval(() => {
+      caps[capIdx].classList.remove("hero-caption-active");
+      dots[capIdx].classList.remove("hero-dot-active");
+      capIdx = (capIdx + 1) % caps.length;
+      caps[capIdx].classList.add("hero-caption-active");
+      dots[capIdx].classList.add("hero-dot-active");
+    }, 5000);
+  };
 
-.tab-container { flex: 1; position: relative; width: 100%; display: flex; justify-content: center; overflow: hidden; }
-.tab-panel { display: none; width: 100%; height: 100%; flex-direction: column; align-items: center; animation: fadeInPanel 0.6s ease; }
-.tab-panel.active { display: flex; }
-@keyframes fadeInPanel { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+  const updateIcons = () => {
+    tuneIcons.textContent = "";
+    const uniqueIds = [...new Set(ownedInstruments)];
+    uniqueIds.forEach(id => {
+      const r = roles.find(role => role.id === id);
+      if(r) tuneIcons.textContent += r.icon + " ";
+    });
+  };
 
-/* Cinematic Stage */
-.cinematic-stage { position: relative; width: 90%; max-width: 400px; display: flex; flex-direction: column; gap: 20px; margin-top: 10px; }
-.stage-image-wrapper {
-  position: relative; border-radius: 12px; overflow: hidden;
-  box-shadow: 0 10px 40px rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.1);
-  transition: border-color 0.3s, box-shadow 0.3s, filter 2s ease; /* Filter transition added */
-}
-.stage-image-wrapper.glowing {
-  border-color: var(--accent); box-shadow: 0 0 60px 20px var(--accent-glow); transition: box-shadow 5s ease-out;
-}
-.stage-image { width: 100%; display: block; filter: brightness(0.8); }
+  // Mute Logic (Updated to kill all sound immediately)
+  const btnMute = document.getElementById("musicToggle");
+  btnMute.addEventListener("click", () => {
+    isMuted = !isMuted;
+    btnMute.classList.toggle("muted", isMuted);
+    document.body.classList.toggle("muted-world", isMuted);
+    
+    if (isMuted) {
+      if (bgAudio) bgAudio.volume = 0;
+      // 재생 중인 모든 효과음 즉시 정지
+      activeAudios.forEach(audio => {
+        audio.pause();
+        audio.currentTime = 0;
+      });
+      activeAudios.clear();
+    } else {
+      if (bgAudio) bgAudio.volume = 0.3;
+    }
+  });
 
-.stage-overlay-ui { position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: space-between; padding: 15px; }
-.stage-top-row { display: flex; justify-content: space-between; align-items: start; }
-.icon-btn {
-  background: var(--glass-bg); backdrop-filter: blur(4px); border: 1px solid var(--glass-border); color: #fff;
-  width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; cursor: pointer;
-}
-.icon-off { display: none; }
-.muted .icon-on { display: none; }
-.muted .icon-off { display: inline; }
+  // Let A Ring Logic
+  const btnTune = document.getElementById("tuneButton");
+  btnTune.addEventListener("click", () => {
+    if (isMuted) return;
 
-.user-identity { text-align: right; text-shadow: 0 2px 4px rgba(0,0,0,0.8); }
-.id-label { display: block; font-size: 0.7rem; color: var(--accent); text-transform: uppercase; letter-spacing: 0.1em; transition: opacity 0.5s; }
-.id-value { display: block; font-size: 1.1rem; font-weight: 700; color: #fff; }
-.id-value.mozart { font-family: "Playfair Display", serif; color: var(--highlight); font-size: 1.4rem; animation: glowText 1s ease-in-out infinite alternate; }
-@keyframes glowText { from { text-shadow: 0 0 5px var(--accent); } to { text-shadow: 0 0 20px var(--accent); } }
+    clickCount++;
+    
+    if (clickCount === 10 && !isMozart) {
+      isMozart = true;
+      // "You are" 라벨 흐리게 처리
+      lblId.style.opacity = "0"; 
+      playSfx(sounds.timpani, 1.0); 
+      
+      // 3초 대기 후 텍스트 변경
+      setTimeout(() => {
+        lblRole.textContent = "MOZART";
+        lblRole.classList.add("mozart");
+      }, 3000);
+    }
 
-.stage-bottom-row { display: flex; justify-content: center; margin-bottom: 10px; }
-.action-btn {
-  background: rgba(245, 230, 184, 0.15); backdrop-filter: blur(4px);
-  border: 1px solid var(--accent); color: var(--accent); padding: 12px 30px; border-radius: 30px;
-  font-family: "Playfair Display", serif; font-size: 1.1rem; letter-spacing: 0.1em;
-  cursor: pointer; display: flex; align-items: center; gap: 8px; transition: all 0.2s;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-}
-.action-btn:active { transform: scale(0.95); background: var(--accent); color: #000; }
+    if (isMozart) {
+      const keys = ["cellos", "trumpets", "violins2", "timpani"];
+      playSfx(sounds[keys[Math.floor(Math.random() * keys.length)]]);
+    } else {
+      const uniqueIds = [...new Set(ownedInstruments)];
+      uniqueIds.forEach(id => {
+        playSfx(sounds[id]);
+      });
+    }
 
-.stage-caption-area { text-align: center; color: var(--text-soft); font-size: 0.85rem; margin-top: 5px; transition: filter 2s ease; }
-.hero-caption { display: none; line-height: 1.4; }
-.hero-caption-active { display: block; animation: fadeIn 1s; }
-.hero-dots { margin-top: 8px; display: flex; justify-content: center; gap: 5px; }
-.hero-dot { width: 6px; height: 6px; border-radius: 50%; background: #444; }
-.hero-dot-active { background: var(--accent); }
+    heroImgWrapper.classList.add("glowing");
+    screenGlow.classList.add("screen-glow-active");
+    
+    setTimeout(() => {
+      heroImgWrapper.classList.remove("glowing");
+      screenGlow.classList.remove("screen-glow-active");
+    }, 5000);
+  });
 
-/* Orchestra Map */
-.orchestra-wrapper { width: 90%; max-width: 350px; text-align: center; margin-top: 20px; }
-.radar-map {
-  width: 100%; height: 250px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.2);
-  margin: 20px 0; overflow: hidden; background: #111;
-}
-.orchestra-status-box { background: rgba(255,255,255,0.05); border-radius: 8px; padding: 15px; margin-bottom: 15px; }
-.status-row { display: flex; justify-content: space-between; margin-bottom: 5px; font-size: 0.9rem; }
-.status-row .lbl { color: var(--text-soft); }
-.status-row .val { color: #fff; font-weight: 700; }
-.orchestra-btn { background: var(--button-bg); border: 1px solid var(--button-border); color: var(--accent); padding: 10px 20px; border-radius: 8px; margin-top: 10px; cursor: pointer; }
-.footer { margin-top: auto; padding: 20px; font-size: 0.7rem; color: #444; text-align: center; }
+  // Tabs
+  const tabBtns = document.querySelectorAll(".tab-btn");
+  const tabPanels = document.querySelectorAll(".tab-panel");
+  tabBtns.forEach(btn => {
+    btn.addEventListener("click", () => {
+      tabBtns.forEach(b => b.classList.remove("active"));
+      tabPanels.forEach(p => p.classList.remove("active"));
+      btn.classList.add("active");
+      document.getElementById("tab-" + btn.dataset.tab).classList.add("active");
+    });
+  });
+
+  // --- Orchestra Game (Real GPS) ---
+  const btnOrch = document.getElementById("orchestraJoinBtn");
+  const orchStatus = document.getElementById("harmonicsStatus");
+  const gpsStatus = document.getElementById("gpsStatus");
+  let map = null;
+  let myMarker = null;
+  let ghostMarkers = [];
+  let ghosts = [];
+
+  const generateGhosts = (centerLat, centerLng) => {
+    const ghostRoles = ["cellos", "trumpets", "violins2", "timpani"];
+    for(let i=0; i<20; i++) {
+      const latOffset = (Math.random() - 0.5) * 0.001; 
+      const lngOffset = (Math.random() - 0.5) * 0.001;
+      const roleId = ghostRoles[Math.floor(Math.random() * ghostRoles.length)];
+      ghosts.push({
+        lat: centerLat + latOffset,
+        lng: centerLng + lngOffset,
+        roleId: roleId,
+        collected: false
+      });
+    }
+  };
+
+  const getDistance = (lat1, lon1, lat2, lon2) => {
+    const R = 6371e3; 
+    const φ1 = lat1 * Math.PI/180;
+    const φ2 = lat2 * Math.PI/180;
+    const Δφ = (lat2-lat1) * Math.PI/180;
+    const Δλ = (lon2-lon1) * Math.PI/180;
+    const a = Math.sin(Δφ/2) * Math.sin(Δφ/2) +
+              Math.cos(φ1) * Math.cos(φ2) *
+              Math.sin(Δλ/2) * Math.sin(Δλ/2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    return R * c;
+  };
+
+  btnOrch.addEventListener("click", () => {
+    if (!navigator.geolocation) {
+      alert("Geolocation is not supported");
+      return;
+    }
+
+    btnOrch.textContent = "Scanning...";
+    
+    navigator.geolocation.watchPosition((position) => {
+      const lat = position.coords.latitude;
+      const lng = position.coords.longitude;
+      
+      gpsStatus.textContent = `Active (${lat.toFixed(4)}, ${lng.toFixed(4)})`;
+      btnOrch.style.display = "none";
+
+      if (!map) {
+        map = L.map('map').setView([lat, lng], 18);
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+          attribution: '&copy; OpenStreetMap &copy; CARTO',
+          subdomains: 'abcd',
+          maxZoom: 20
+        }).addTo(map);
+
+        const myIcon = L.divIcon({
+          className: 'custom-pin',
+          html: '<div style="font-size:20px;">😊</div>',
+          iconSize: [20, 20],
+          iconAnchor: [10, 10]
+        });
+        myMarker = L.marker([lat, lng], {icon: myIcon}).addTo(map);
+
+        generateGhosts(lat, lng);
+        
+        ghosts.forEach((g, idx) => {
+          const ghostIcon = L.divIcon({
+            className: 'custom-pin',
+            html: `<div style="font-size:15px; opacity:0.6;">👻</div>`,
+            iconSize: [15, 15],
+            iconAnchor: [7, 7]
+          });
+          const marker = L.marker([g.lat, g.lng], {icon: ghostIcon}).addTo(map);
+          ghostMarkers[idx] = marker;
+        });
+      } else {
+        myMarker.setLatLng([lat, lng]);
+        map.panTo([lat, lng]);
+      }
+
+      let nearbyCount = 0;
+      ghosts.forEach((g, idx) => {
+        const dist = getDistance(lat, lng, g.lat, g.lng);
+        
+        if (dist < 5 && !g.collected) {
+          g.collected = true;
+          ownedInstruments.push(g.roleId); 
+          
+          playSfx(sounds.timpani_sfx); 
+          ghostMarkers[idx].setIcon(L.divIcon({
+            className: 'custom-pin',
+            html: `<div style="font-size:20px;">🎻</div>`, 
+            iconSize: [20, 20],
+            iconAnchor: [10, 10]
+          }));
+          
+          updateIcons();
+        }
+        
+        if (g.collected) nearbyCount++;
+      });
+      
+      orchStatus.textContent = `Ensemble: ${nearbyCount + 1} players`;
+
+    }, (error) => {
+      console.log("Geo error:", error);
+      gpsStatus.textContent = "Error";
+    }, {
+      enableHighAccuracy: true,
+      maximumAge: 0
+    });
+  });
+
+});
