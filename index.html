@@ -16,6 +16,8 @@
     
     <div id="muteOverlay" class="mute-overlay"></div>
 
+    <div id="popupBackdrop" class="popup-backdrop"></div>
+
     <section id="scene-preintro" class="scene scene-visible">
       <video id="preintroVideo" class="scene-video dark-filter" autoplay muted playsinline loop>
         <source src="media/preintro_glass_fog.mp4" type="video/mp4" />
@@ -135,6 +137,10 @@
             </section>
 
             <section id="tab-orchestra" class="tab-panel">
+               <div id="orchestraToast" class="coming-soon-toast">
+                 <span class="typing-text">Coming Online Soon...</span>
+               </div>
+
                <div class="orchestra-wrapper">
                  <h1 class="orch-title">Ensemble Radar</h1>
                  <p class="orch-desc">Collect instruments (5m)</p>
@@ -164,22 +170,22 @@
         <div class="slider-track" id="sliderTrack">
           <div class="slide">
             <span class="slide-icon">🎻</span>
-            <p class="slide-text">Did you know?<br>Orchestras always tune to 'A'.</p>
+            <p class="slide-text">Orchestras always tune<br>to the note 'A'.</p>
           </div>
           <div class="slide">
-            <span class="slide-icon">🎼</span>
-            <p class="slide-text">The sound of various instruments<br>finding their pitch is mesmerizing.</p>
+            <span class="slide-icon">🎹</span>
+            <p class="slide-text">The sound of instruments<br>finding their pitch is mesmerizing.</p>
           </div>
           <div class="slide">
-            <span class="slide-icon">✨</span>
-            <p class="slide-text">Let's gather and<br>tune together!</p>
+            <span class="slide-icon">🙌</span>
+            <p class="slide-text">Let's gather everyone<br>and tune together!</p>
           </div>
         </div>
       </div>
-      <button id="closeSlider" class="slider-close-btn hidden">✕</button>
       <div class="slider-dots" id="sliderDots">
         <span class="dot active"></span><span class="dot"></span><span class="dot"></span>
       </div>
+      <button id="closeSlider" class="slider-close-btn hidden">✕</button>
     </div>
 
   </div>

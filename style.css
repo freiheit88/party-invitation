@@ -16,7 +16,7 @@ body { font-family: "Manrope", sans-serif; background: #000; color: var(--text-m
 
 .app-shell { position: relative; width: 100%; height: 100%; overflow: hidden; }
 
-/* Mute Overlay */
+/* Mute Overlay: 버튼 제외 흑백 */
 .mute-overlay {
   position: absolute; inset: 0; pointer-events: none; z-index: 900;
   background: rgba(0,0,0,0.6);
@@ -24,6 +24,14 @@ body { font-family: "Manrope", sans-serif; background: #000; color: var(--text-m
   opacity: 0; transition: opacity 0.5s ease;
 }
 body.muted-world .mute-overlay { opacity: 1; }
+
+/* Popup Backdrop (Blur) */
+.popup-backdrop {
+  position: absolute; inset: 0; z-index: 1900; pointer-events: none;
+  background: rgba(0,0,0,0.4); backdrop-filter: blur(8px);
+  opacity: 0; transition: opacity 0.5s ease;
+}
+.popup-backdrop.visible { opacity: 1; pointer-events: auto; }
 
 .scene { position: absolute; inset: 0; display: none; }
 .scene-visible { display: block; }
@@ -87,10 +95,10 @@ body.muted-world .mute-overlay { opacity: 1; }
 
 .prelude-overlay { position: absolute; inset: 0; z-index: 10; pointer-events: none; }
 
-/* [수정] Dress the page... 좌측 20% 지점, 세로(-90deg) */
+/* [수정] Dress the page... 왼쪽 90도 회전 (-90deg), 왼쪽 끝 (left: 20px) */
 .prelude-tag {
   position: absolute;
-  top: 50%; left: 20%; 
+  top: 50%; left: 20px; 
   transform: translateY(-50%) rotate(-90deg);
   font-size: 1.1rem; color: var(--accent); letter-spacing: 0.1em;
   background: rgba(0,0,0,0.6); padding: 10px 20px; border-radius: 20px;
@@ -111,7 +119,6 @@ body.muted-world .mute-overlay { opacity: 1; }
 
 @keyframes panicShake {
   0% { transform: translate(-50%, -50%) rotate(90deg) translate(2px, 1px); }
-  50% { transform: translate(-50%, -50%) rotate(90deg) translate(-1px, -2px); }
   100% { transform: translate(-50%, -50%) rotate(90deg) translate(-3px, 0px); }
 }
 @keyframes talkPulse {
@@ -170,7 +177,7 @@ body.muted-world .mute-overlay { opacity: 1; }
 .tab-panel.active { display: flex; }
 @keyframes fadeInPanel { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-/* Stage UI */
+/* Cinematic Stage */
 .cinematic-stage { position: relative; width: 90%; max-width: 400px; display: flex; flex-direction: column; gap: 20px; margin-top: 10px; }
 .stage-image-wrapper {
   position: relative; border-radius: 12px; overflow: hidden;
@@ -250,37 +257,49 @@ body.muted-world .mute-overlay { opacity: 1; }
 .timeline-item .time { display: block; color: var(--accent); font-weight: 700; font-size: 0.9rem; }
 .timeline-item .event { display: block; color: #fff; font-size: 1.1rem; }
 
-/* Slider Popup */
+/* Intro Slider Popup */
 .intro-slider-popup {
-  position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%) translateY(120%);
+  position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0.9);
   width: 90%; max-width: 320px;
-  background: rgba(25, 25, 30, 0.95); backdrop-filter: blur(10px);
-  border-radius: 20px; padding: 20px;
+  background: rgba(25, 25, 30, 0.95); backdrop-filter: blur(15px);
+  border-radius: 20px; padding: 30px 20px;
   box-shadow: 0 20px 50px rgba(0,0,0,0.8);
   border: 1px solid rgba(255,255,255,0.1);
-  z-index: 2000; transition: transform 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
+  z-index: 2000; opacity: 0; pointer-events: none;
+  transition: all 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
   display: flex; flex-direction: column; align-items: center; text-align: center;
 }
-.intro-slider-popup.show { transform: translateX(-50%) translateY(0); }
+.intro-slider-popup.show { opacity: 1; pointer-events: auto; transform: translate(-50%, -50%) scale(1); }
 
-.slider-content { width: 100%; overflow: hidden; margin-bottom: 15px; }
-/* [수정] flex box width 300% to hold 3 slides */
-.slider-track { display: flex; transition: transform 0.5s ease; width: 300%; }
-.slide { width: 100%; flex-shrink: 0; display: flex; flex-direction: column; align-items: center; gap: 10px; }
-.slide-icon { font-size: 2rem; }
-/* [수정] 텍스트 잘림 방지 (normal wrap) */
-.slide-text { font-size: 0.95rem; color: #eee; line-height: 1.5; font-weight: 500; white-space: normal; }
+.slider-content { width: 100%; overflow: hidden; margin-bottom: 20px; }
+.slider-track { display: flex; transition: transform 0.6s cubic-bezier(0.25, 1, 0.5, 1); width: 300%; }
+.slide { width: 100%; flex-shrink: 0; display: flex; flex-direction: column; align-items: center; gap: 15px; }
+.slide-icon { font-size: 3rem; margin-bottom: 10px; }
+.slide-text { font-size: 1rem; color: #eee; line-height: 1.6; font-weight: 500; white-space: normal; }
 
 .slider-dots { display: flex; gap: 8px; justify-content: center; }
 .dot { width: 8px; height: 8px; border-radius: 50%; background: #555; transition: background 0.3s; }
 .dot.active { background: var(--accent); width: 20px; border-radius: 10px; }
 
 .slider-close-btn {
+  position: absolute; bottom: 15px; right: 15px;
   background: var(--accent); color: #000; border: none;
-  width: 30px; height: 30px; border-radius: 50%; font-weight: 700;
-  cursor: pointer; margin-top: 10px; opacity: 0; pointer-events: none; transition: opacity 0.5s;
+  width: 32px; height: 32px; border-radius: 50%; font-weight: 700;
+  cursor: pointer; opacity: 0; pointer-events: none; transition: opacity 0.5s;
 }
 .slider-close-btn.visible { opacity: 1; pointer-events: auto; }
+
+/* Coming Soon Toast */
+.coming-soon-toast {
+  position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+  background: rgba(0,0,0,0.8); border: 1px solid var(--accent);
+  padding: 15px 30px; border-radius: 30px; z-index: 100;
+  display: none;
+}
+.coming-soon-toast.show { display: block; animation: fadeUpOut 2s forwards; }
+.typing-text { font-family: "Courier New", monospace; color: var(--accent); font-weight: 700; white-space: nowrap; overflow: hidden; border-right: 2px solid var(--accent); animation: typing 1.5s steps(20); }
+@keyframes typing { from { width: 0; } to { width: 100%; } }
+@keyframes fadeUpOut { 0% { opacity: 1; transform: translate(-50%, -50%); } 80% { opacity: 1; transform: translate(-50%, -50%); } 100% { opacity: 0; transform: translate(-50%, -80%); } }
 
 .orchestra-wrapper { width: 90%; max-width: 350px; text-align: center; margin-top: 20px; }
 .radar-map { width: 100%; height: 300px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.2); margin: 20px 0; overflow: hidden; background: #111; }

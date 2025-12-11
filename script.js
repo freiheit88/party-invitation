@@ -85,6 +85,9 @@ document.addEventListener("DOMContentLoaded", () => {
         initParallax(); 
         resetIdleTimer(); 
         initShakeDetection(); 
+        
+        // 메인 진입 시 배경 블러 처리 후 팝업
+        document.getElementById("popupBackdrop").classList.add("visible");
         startIntroSlider(); 
       }, 100);
     }
@@ -104,18 +107,18 @@ document.addEventListener("DOMContentLoaded", () => {
     let sliderTimer = null;
     
     const nextSlide = () => {
-      slideIndex = (slideIndex + 1) % totalSlides; // 무한 루프
+      slideIndex = (slideIndex + 1) % totalSlides; 
       track.style.transform = `translateX(-${slideIndex * 33.33}%)`;
       dots.forEach((d, i) => d.classList.toggle("active", i === slideIndex));
       
-      // X 버튼은 한 바퀴 돌면 표시
       if (slideIndex === 0) closeBtn.classList.add("visible");
     };
 
-    sliderTimer = setInterval(nextSlide, 4000); // 4초 간격
+    sliderTimer = setInterval(nextSlide, 4000); 
 
     closeBtn.addEventListener("click", () => {
       popup.classList.remove("show");
+      document.getElementById("popupBackdrop").classList.remove("visible"); // 배경 블러 제거
       clearInterval(sliderTimer);
     });
   };
@@ -157,15 +160,14 @@ document.addEventListener("DOMContentLoaded", () => {
       const lang = btn.dataset.lang;
       playSfx(sounds.timpani_sfx, 0.5);
 
-      statusText.textContent = lang === "en" ? "Putting on English..." : "Deutsche Sprache wird angelegt...";
+      statusText.textContent = lang === "en" ? "Dressing in English..." : "Deutsche Sprache wird angelegt...";
       statusText.classList.add("show");
 
       if (currentVoiceAudio && !currentVoiceAudio.paused) {
         isInterrupting = true;
         currentVoiceAudio.pause(); 
         
-        // [수정] 줄바꿈 추가 (innerHTML 사용)
-        statusText.innerHTML = "Whoops!<br>Tuning the other ear...";
+        statusText.innerHTML = "Whoops!<br>Changing outfit!";
         statusText.classList.remove("status-talk");
         statusText.classList.add("status-panic"); 
         
@@ -291,8 +293,7 @@ document.addEventListener("DOMContentLoaded", () => {
           if(i >= target.length) clearInterval(typer);
         }, 200); 
         
-        // [수정] YOU ARE 문구 유지 및 색상 변경 (CSS에서 처리됨)
-        // lblId.style.opacity = "0"; // 삭제
+        // lblId 색상은 CSS에서 변경됨 (Gold)
         playSfx(sounds.timpani, 1.0); 
       }, 3000);
     }
@@ -325,6 +326,13 @@ document.addEventListener("DOMContentLoaded", () => {
   const tabPanels = document.querySelectorAll(".tab-panel");
   tabBtns.forEach(btn => {
     btn.addEventListener("click", () => {
+      // Orchestra 탭 예고 팝업
+      if (btn.dataset.tab === "orchestra") {
+        const toast = document.getElementById("orchestraToast");
+        toast.classList.add("show");
+        setTimeout(() => toast.classList.remove("show"), 2500);
+      }
+
       tabBtns.forEach(b => b.classList.remove("active"));
       tabPanels.forEach(p => p.classList.remove("active"));
       btn.classList.add("active");
@@ -339,7 +347,6 @@ document.addEventListener("DOMContentLoaded", () => {
         if (!heroImgWrapper) return;
         const tiltX = event.gamma; 
         const tiltY = event.beta;  
-        // [수정] 약한 자이로 (0.25배)
         const moveX = tiltX / 4;
         const moveY = tiltY / 4;
         heroImgWrapper.style.transform = `translate(${moveX}px, ${moveY}px)`;
