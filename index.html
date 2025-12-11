@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <title>Sean’s Party Invitation</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;700&family=Manrope:wght@300;400;600&display=swap" rel="stylesheet" />
@@ -11,12 +11,13 @@
 </head>
 <body>
   <div class="app-shell">
+    
     <section id="scene-preintro" class="scene scene-visible">
       <video id="preintroVideo" class="scene-video" autoplay muted playsinline loop>
         <source src="media/preintro_glass_fog.mp4" type="video/mp4" />
       </video>
 
-      <div class="scene-overlay scene-overlay-dark" id="preintroOverlay"></div>
+      <div class="scene-overlay scene-overlay-darker" id="preintroOverlay"></div>
 
       <div class="preintro-ui" id="preintroUi">
         <button class="preintro-btn" id="preintroTouchBtn" type="button">
@@ -34,17 +35,27 @@
           <source src="media/prelude_study_sideways.mp4" type="video/mp4" />
         </video>
       </div>
+
+      <div class="prelude-dim-layer" id="preludeDimLayer"></div>
+
       <div class="prelude-overlay">
         <div class="prelude-header">
           <div class="prelude-tag">Dress the page in a language</div>
         </div>
       </div>
+
       <div class="prelude-zones">
         <div class="prelude-zone prelude-zone-left" id="preludeZoneLeft">
-          <button class="prelude-language-label prelude-language-en" data-lang="en" type="button">EN</button>
+          <button class="prelude-language-btn" data-lang="en" type="button">
+            <span class="flag-icon">🇬🇧</span>
+            <span class="lang-text">EN</span>
+          </button>
         </div>
         <div class="prelude-zone prelude-zone-right" id="preludeZoneRight">
-          <button class="prelude-language-label prelude-language-de" data-lang="de" type="button">DE</button>
+          <button class="prelude-language-btn" data-lang="de" type="button">
+            <span class="flag-icon">🇩🇪</span>
+            <span class="lang-text">DE</span>
+          </button>
         </div>
       </div>
     </section>
@@ -52,73 +63,79 @@
     <section id="scene-main" class="scene">
       <div class="app">
         <div class="app-inner">
-          <div class="hero-glow-layer" id="heroGlow"></div>
-          
+          <div class="screen-glow-layer" id="screenGlow"></div>
+
           <div class="tabs">
             <button class="tab-btn active" data-tab="invitation">Invitation</button>
-            <button class="tab-btn" data-tab="howto">How to start</button>
-            <button class="tab-btn" data-tab="board">Board</button>
-            <button class="tab-btn" data-tab="orchestra">Orchestra game</button>
-          </div>
+            <button class="tab-btn" data-tab="orchestra">Orchestra Game</button>
+            </div>
 
           <main class="tab-container">
             <section id="tab-invitation" class="tab-panel active">
-              <header class="inv-header">
-                <h1 class="title">
-                  <span class="accent">Invitation</span>
-                  One square, one note,<br />
-                  one evening in Frankfurt.<br />
-                  <span class="title-soft">everything else will tune itself.</span>
-                </h1>
-              </header>
-              <section class="hero-section">
-                <div class="hero-image-box" id="heroBox">
-                  <img src="picture/AlteOper.png" alt="Frankfurt Alte Oper" />
+              
+              <div class="cinematic-stage">
+                <div class="stage-image-wrapper" id="heroImageWrapper">
+                  <img src="picture/AlteOper.png" alt="Frankfurt Alte Oper" class="stage-image" />
+                  
+                  <div class="stage-overlay-ui">
+                    
+                    <div class="stage-top-row">
+                      <button id="musicToggle" class="icon-btn" aria-label="Mute Toggle">
+                        <span class="icon-on">🔊</span><span class="icon-off">🔇</span>
+                      </button>
+                      
+                      <div class="user-identity">
+                        <span class="id-label" id="idLabel">You are</span>
+                        <span class="id-value" id="instrumentLabel">...</span>
+                      </div>
+                    </div>
+
+                    <div class="stage-bottom-row">
+                      <button id="tuneButton" class="action-btn">
+                        <span class="btn-text">Let A Ring</span>
+                        <span class="btn-icon" id="tuneIcons"></span>
+                      </button>
+                    </div>
+
+                  </div>
+                </div>
+                
+                <div class="stage-caption-area">
                   <div class="hero-caption-slider">
-                    <div class="hero-caption hero-caption-active">Cinematic night view of Frankfurt Alte Oper.</div>
-                    <div class="hero-caption">Saturday, 14 June 2025 · 19:30 · Start at Alte Oper.</div>
+                    <div class="hero-caption hero-caption-active">One square, one note, one evening in Frankfurt.</div>
+                    <div class="hero-caption">Saturday, 14 June 2025 · 19:30</div>
                   </div>
                   <div class="hero-dots" id="heroDots">
                     <span class="hero-dot hero-dot-active"></span>
                     <span class="hero-dot"></span>
                   </div>
                 </div>
-              </section>
-              <section class="tune-section">
-                <div class="tune-header-row">
-                  <button id="musicToggle" class="music-pill music-on" type="button">
-                    <span class="music-icons" id="musicLabel"><span class="music-icon-on">🔊</span><span class="music-icon-off">🔇</span></span>
-                  </button>
-                  <div class="instrument-pill">
-                    <span class="instrument-pill-label">You are</span>
-                    <span class="instrument-name" id="instrumentLabel">Violins II</span>
-                  </div>
-                </div>
-                <div class="tune-row">
-                  <button id="tuneButton" class="tune-button" type="button">
-                    <span class="tune-button-label">Let A ring</span>
-                    <span class="tune-button-icons" id="tuneIcons"></span>
-                  </button>
-                </div>
-                <p class="hint-small" id="ownedInstrumentsHint"></p>
-              </section>
+              </div>
+
             </section>
             
-            <section id="tab-howto" class="tab-panel"><div class="section-block"><p>Coming soon...</p></div></section>
-            <section id="tab-board" class="tab-panel"><div class="section-block"><p>Coming soon...</p></div></section>
             <section id="tab-orchestra" class="tab-panel">
-               <header class="inv-header"><h1 class="title">Orchestra Game</h1></header>
-               <button id="orchestraJoinBtn" class="orchestra-btn">Share location trace</button>
-               <div class="orchestra-status">
-                 <span id="orchestraMode">Solo</span>
-                 <span id="myCoords">-</span>
-                 <span id="harmonicsStatus">none</span>
-               </div>
-               <div class="orchestra-popup hidden" id="orchestraPopup">
-                 <div class="orchestra-popup-inner">
-                   <p>Location used for distance only.</p>
-                   <button class="orchestra-popup-close" id="orchestraPopupClose">Close</button>
+               <div class="orchestra-wrapper">
+                 <h1 class="orch-title">Ensemble Radar</h1>
+                 <p class="orch-desc">Finding nearby instruments...</p>
+                 
+                 <div class="radar-circle">
+                   <div class="radar-sweep"></div>
+                   <div class="radar-dot self"></div>
+                   </div>
+
+                 <div class="orchestra-status-box">
+                   <div class="status-row">
+                     <span class="lbl">Status</span>
+                     <span class="val" id="orchestraMode">Scanning...</span>
+                   </div>
+                   <div class="status-row">
+                     <span class="lbl">Harmony</span>
+                     <span class="val" id="harmonicsStatus">Solo</span>
+                   </div>
                  </div>
+                 
+                 <button id="orchestraJoinBtn" class="orchestra-btn">Activate Location</button>
                </div>
             </section>
           </main>
