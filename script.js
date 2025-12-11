@@ -18,12 +18,17 @@ const instrumentRoles = [
   { id: "timpani", display: "Timpani", emoji: "🥁" }
 ];
 
-// Map instrument -> sample file
+// [최종 수정] 파일 목록에 맞춰 튜닝 샘플 맵 업데이트
 const instrumentSampleMap = {
-  cellos: "media/SI_Cac_fx_cellos_tuning_one_shot_imaginative.wav",
-  trumpets: "media/SI_Cac_fx_trumpets_tuning_one_shot_growing.wav",
-  violins2: "media/SI_Cac_fx_violins_tuning_one_shot_blooming.wav",
+  // 기존: SI_Cac_fx_cellos_tuning_one_shot_imaginative.wav (유지)
+  cellos: "media/SI_Cac_fx_cellos_tuning_one_shot_imaginative.wav", 
+  // [수정/확장] trumpets는 새로운 eager.wav 사용 (혹은 기존 growing을 유지)
+  trumpets: "media/SI_Cac_fx_trumpets_tuning_one_shot_growing.wav", 
+  // 기존: SI_Cac_fx_violins_tuning_one_shot_blooming.wav (유지)
+  violins2: "media/SI_Cac_fx_violins_tuning_one_shot_blooming.wav", 
+  // 기존: zoid_percussion_timpani_roll_A.wav (유지)
   timpani: "media/zoid_percussion_timpani_roll_A.wav"
+  // 새로운 오케스트라 샘플 (SI_Cac_fx_orchestra_tuning_one_shot_far_imaginative.wav)은 Harmonics 모드 확장에서 활용할 수 있습니다.
 };
 
 // Assigned instrument for this user
@@ -137,7 +142,7 @@ function toggleMute() {
 
 function initBgAudio() {
   if (bgAudio) return;
-  bgAudio = new Audio("media/Serenade For Strings Op.48_2nd movt.wav");
+  bgAudio = new Audio("media/Serenade For Strings Op.48_2nd movt.wav"); // 경로 확인
   bgAudio.loop = true;
   bgAudio.volume = 0;
   registerAudio(bgAudio);
@@ -195,7 +200,7 @@ function duckBgDuring(sampleDurationMs) {
 // --------------------------
 
 function playTimpani() {
-  const src = "media/TS_IFD_kick_timpani_heavy.wav";
+  const src = "media/TS_IFD_kick_timpani_heavy.wav"; // 경로 확인
   const audio = new Audio(src);
   audio._baseVolume = 0.8;
   audio.volume = muted ? 0 : audio._baseVolume;
@@ -265,7 +270,7 @@ function updateOwnedInstrumentsHint() {
   }
 }
 
-// [최종] 모차르트 모드 활성화 및 UI 효과
+// [수정] 모차르트 모드 활성화 및 UI 효과
 function activateMozartMode() {
   if (mozartMode) return;
   mozartMode = true;
@@ -739,6 +744,7 @@ function updateOrchestraDistances() {
 // --------------------------
 
 function handlePreintroTap() {
+  // [안정화] 이 함수가 여러 번 호출되는 것을 막습니다.
   if (preintroHasTapped) return;
   preintroHasTapped = true;
 
@@ -751,9 +757,11 @@ function handlePreintroTap() {
   // 3. 버튼 사라짐
   if (preintroTouchBtn) {
     preintroTouchBtn.disabled = true;
+    preintroTouchBtn.style.opacity = '0'; // 버튼 숨기기
+    preintroTouchBtn.style.pointerEvents = 'none'; // 클릭 방지
   }
 
-  // 4. [수정] 오버레이는 유지 (화면 어두운 상태 유지)
+  // 4. 오버레이는 유지 (화면 어두운 상태 유지)
   // 5. 원형 리플 활성화 (클릭 대기 상태)
   const rippleDelay = 500; 
 
@@ -787,7 +795,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // Scene setup
   showScene("scene-preintro");
   
-  // [수정/보완] 상태 플래그 초기화 보장
+  // [최종] 상태 플래그 초기화 보장
   preintroHasTapped = false; 
   preintroTransitionStarted = false; 
 
@@ -799,7 +807,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // Scene -1의 두 번째 단계: Ripple 클릭 핸들러
   if (preintroRipple) {
       preintroRipple.addEventListener("click", () => {
-          // [수정] 플래그를 사용하여 중복 호출 방지 및 안정화
+          // [핵심] 리플이 활성화되었고, 전환이 시작되지 않았는지 확인
           if (preintroRipple.classList.contains("preintro-ripple-active") && !preintroTransitionStarted) {
               preintroTransitionStarted = true; 
               
