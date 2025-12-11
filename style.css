@@ -20,11 +20,27 @@ body {
 }
 
 /* --- Global Shell --- */
-.app-shell { position: relative; width: 100%; height: 100%; overflow: hidden; transition: filter 2s ease; }
+.app-shell { position: relative; width: 100%; height: 100%; overflow: hidden; }
 
-/* [수정] Muted 상태: 채도 5%로 낮춤 (거의 흑백), 밝기도 살짝 낮춤 */
-body.muted-world .app-shell { 
-  filter: grayscale(0.95) saturate(0.05) brightness(0.7); 
+/* [중요] Mute 시각 효과: 전체가 아닌 특정 요소만 타겟팅 */
+/* 배경 이미지와 캡션만 흑백/어둡게 처리하여 버튼은 강조됨 */
+body.muted-world .stage-image, 
+body.muted-world .stage-caption-area,
+body.muted-world .tabs {
+  filter: grayscale(0.95) saturate(0.05) brightness(0.6);
+  transition: filter 2s ease;
+}
+/* Mute 버튼 강조 효과 */
+body.muted-world #musicToggle {
+  background: rgba(200, 50, 50, 0.8); /* 붉은 계열로 강조 */
+  border-color: #ff6666;
+  box-shadow: 0 0 20px rgba(255, 100, 100, 0.6);
+  animation: pulseMute 2s infinite;
+}
+@keyframes pulseMute {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+  100% { transform: scale(1); }
 }
 
 .scene { position: absolute; inset: 0; display: none; }
@@ -32,30 +48,26 @@ body.muted-world .app-shell {
 .scene-video { width: 100%; height: 100%; object-fit: cover; }
 
 /* --- Scene -1: Pre-intro --- */
-/* 비디오 자체 밝기를 매우 낮춤 (0.15) */
 #scene-preintro .scene-video.dark-filter {
-  filter: brightness(0.15); 
-  transition: filter 3s ease; /* 3초 동안 밝아짐 */
+  filter: brightness(0.3); 
+  transition: filter 3s ease; 
 }
-/* JS에서 추가할 클래스: 원래 밝기로 */
 .video-bright { filter: brightness(1.0) !important; }
+
+/* [수정] 배경 오버레이: 60% (0.6) */
+.scene-overlay-dark {
+  background-color: rgba(0, 0, 0, 0.6); 
+  transition: opacity 3s ease;
+  opacity: 1;
+  position: absolute; inset: 0; pointer-events: none; z-index: 10;
+}
+.preintro-overlay-clear { opacity: 0; }
 
 .preintro-ui {
   position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
   z-index: 20; pointer-events: none;
 }
 
-/* [수정] 오버레이를 2배 더 어둡게 */
-.scene-overlay-darker {
-  position: absolute; inset: 0; pointer-events: none; z-index: 10;
-  background: radial-gradient(circle at center, rgba(0,0,0,0.7), #000); /* 중심부도 어둡게 */
-  background-color: rgba(0, 0, 0, 0.7); /* 전체적으로 70% 어둠 */
-  opacity: 1; 
-  transition: opacity 3s ease;
-}
-.preintro-overlay-clear { opacity: 0; }
-
-/* 1단계 버튼 */
 .preintro-btn {
   pointer-events: auto; cursor: pointer;
   display: inline-block; margin: 0; padding: 20px 40px;
@@ -79,16 +91,15 @@ body.muted-world .app-shell {
   50% { transform: scale(1.03); box-shadow: 0 15px 40px rgba(245,230,184,0.3); } 
 }
 
-/* 2단계 Ripple */
 .preintro-ripple {
   position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
   width: 140px; height: 140px; border-radius: 50%;
   background: rgba(255,255,255,0.05); border: 1px solid var(--accent);
   display: none; 
   z-index: 30; cursor: pointer; pointer-events: auto;
-  transition: opacity 0.3s;
+  transition: opacity 0.5s;
 }
-.preintro-ripple.hidden { display: none !important; opacity: 0; }
+.preintro-ripple.hidden { display: none !important; } 
 
 .preintro-ripple::after {
   content: "Click Again!"; position: absolute; top: 50%; left: 50%; 
@@ -114,27 +125,17 @@ body.muted-world .app-shell {
   transform: translate(-50%, -50%) rotate(90deg); object-fit: cover;
 }
 
-/* Dim Layer: 정확히 절반을 가르는 그라데이션 */
 .prelude-dim-layer {
   position: absolute; inset: 0; z-index: 5; pointer-events: none;
   background: transparent; transition: background 3s ease;
 }
-/* [수정] 텍스트 박스 중앙(화면 중앙)을 기준으로 50% 지점에서 칼같이 나눔 */
-/* EN 선택 (회전 기준 상단/화면 왼쪽 밝음) */
-.dim-right { background: linear-gradient(to top, rgba(0,0,0,0.9) 50%, transparent 50.1%); }
-/* DE 선택 (회전 기준 하단/화면 오른쪽 밝음) */
-.dim-left { background: linear-gradient(to bottom, rgba(0,0,0,0.9) 50%, transparent 50.1%); }
+.dim-right { background: linear-gradient(to top, rgba(0,0,0,0.9) 50%, transparent 50%); }
+.dim-left { background: linear-gradient(to bottom, rgba(0,0,0,0.9) 50%, transparent 50%); }
 
 .prelude-overlay { position: absolute; inset: 0; z-index: 10; pointer-events: none; }
 .prelude-tag {
   position: absolute;
-  /* [수정] 정방향 기준 좌측 중앙 (= 회전 기준 하단 중앙) */
-  top: 50%; left: 30px; transform: translateY(-50%) rotate(0deg); /* 텍스트는 회전하지 않음? 아님 회전? "Rotate는 건들지마" -> OK, 원래대로 우측/하단으로 */
-  /* Re-reading request: "정방향 기준이라면 텍스트 박스의 위치는 좌측 중앙 이겠지" */
-  /* 기존: top 50%, right 40px (rotated bottom). New: Left center means top 50%, left something. */
-  /* Let's place it standard Left Center which becomes Bottom Center when phone rotates Left */
-  top: 50%; left: 40px; right: auto; transform: translateY(-50%); /* Rotated: This is Bottom Center */
-  
+  top: 50%; left: 30px; transform: translateY(-50%) rotate(90deg);
   font-size: 1.1rem; color: var(--accent); letter-spacing: 0.1em;
   background: rgba(0,0,0,0.6); padding: 10px 20px; border-radius: 20px;
   text-align: center;
@@ -156,6 +157,17 @@ body.muted-world .app-shell {
 .fade-out { opacity: 0.2; pointer-events: none; }
 
 /* --- Scene 1: Main --- */
+.screen-glow-layer {
+  position: absolute; inset: 0; pointer-events: none; z-index: 50;
+  background: radial-gradient(circle, var(--accent-glow) 0%, transparent 0%);
+  opacity: 0;
+  transition: opacity 0.5s, background 5s ease-out;
+}
+.screen-glow-active {
+  opacity: 1;
+  background: radial-gradient(circle, var(--accent-glow) 0%, transparent 70%);
+}
+
 .tabs { padding: 20px 0 10px; display: flex; justify-content: center; gap: 30px; z-index: 10; }
 .tab-btn {
   background: none; border: none; color: var(--text-soft); font-size: 0.9rem;
@@ -174,30 +186,14 @@ body.muted-world .app-shell {
 .stage-image-wrapper {
   position: relative; border-radius: 12px; overflow: hidden;
   box-shadow: 0 10px 40px rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.1);
-  transition: border-color 0.3s, box-shadow 0.3s;
-  z-index: 5; /* Glow 위로 올라오게 */
+  transition: border-color 0.3s, box-shadow 0.3s, filter 2s ease; /* Filter transition added */
 }
+.stage-image-wrapper.glowing {
+  border-color: var(--accent); box-shadow: 0 0 60px 20px var(--accent-glow); transition: box-shadow 5s ease-out;
+}
+.stage-image { width: 100%; display: block; filter: brightness(0.8); }
 
-/* [수정] 사진에서 뻗어나가는 강력한 Glow 효과 */
-.glow-emitter {
-  position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-  width: 100%; height: 100%; border-radius: 50%;
-  background: radial-gradient(circle, var(--accent-glow) 0%, transparent 70%);
-  opacity: 0; pointer-events: none; z-index: 1;
-  transition: opacity 0.5s ease;
-}
-/* 글로우 활성화 애니메이션 */
-.stage-image-wrapper.glowing .glow-emitter {
-  animation: glowExpand 5s ease-out forwards;
-}
-@keyframes glowExpand {
-  0% { opacity: 0.8; transform: translate(-50%, -50%) scale(0.5); }
-  100% { opacity: 0; transform: translate(-50%, -50%) scale(3.0); } /* 화면 전체로 뻗어나감 */
-}
-
-.stage-image { width: 100%; display: block; filter: brightness(0.8); position: relative; z-index: 2; }
-
-.stage-overlay-ui { position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: space-between; padding: 15px; z-index: 10; }
+.stage-overlay-ui { position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: space-between; padding: 15px; }
 .stage-top-row { display: flex; justify-content: space-between; align-items: start; }
 .icon-btn {
   background: var(--glass-bg); backdrop-filter: blur(4px); border: 1px solid var(--glass-border); color: #fff;
@@ -208,7 +204,7 @@ body.muted-world .app-shell {
 .muted .icon-off { display: inline; }
 
 .user-identity { text-align: right; text-shadow: 0 2px 4px rgba(0,0,0,0.8); }
-.id-label { display: block; font-size: 0.7rem; color: var(--accent); text-transform: uppercase; letter-spacing: 0.1em; }
+.id-label { display: block; font-size: 0.7rem; color: var(--accent); text-transform: uppercase; letter-spacing: 0.1em; transition: opacity 0.5s; }
 .id-value { display: block; font-size: 1.1rem; font-weight: 700; color: #fff; }
 .id-value.mozart { font-family: "Playfair Display", serif; color: var(--highlight); font-size: 1.4rem; animation: glowText 1s ease-in-out infinite alternate; }
 @keyframes glowText { from { text-shadow: 0 0 5px var(--accent); } to { text-shadow: 0 0 20px var(--accent); } }
@@ -223,17 +219,17 @@ body.muted-world .app-shell {
 }
 .action-btn:active { transform: scale(0.95); background: var(--accent); color: #000; }
 
-.stage-caption-area { text-align: center; color: var(--text-soft); font-size: 0.85rem; margin-top: 5px; }
+.stage-caption-area { text-align: center; color: var(--text-soft); font-size: 0.85rem; margin-top: 5px; transition: filter 2s ease; }
 .hero-caption { display: none; line-height: 1.4; }
 .hero-caption-active { display: block; animation: fadeIn 1s; }
 .hero-dots { margin-top: 8px; display: flex; justify-content: center; gap: 5px; }
 .hero-dot { width: 6px; height: 6px; border-radius: 50%; background: #444; }
 .hero-dot-active { background: var(--accent); }
 
-/* Orchestra Map (Leaflet) */
+/* Orchestra Map */
 .orchestra-wrapper { width: 90%; max-width: 350px; text-align: center; margin-top: 20px; }
 .radar-map {
-  width: 100%; height: 300px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.2);
+  width: 100%; height: 250px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.2);
   margin: 20px 0; overflow: hidden; background: #111;
 }
 .orchestra-status-box { background: rgba(255,255,255,0.05); border-radius: 8px; padding: 15px; margin-bottom: 15px; }
