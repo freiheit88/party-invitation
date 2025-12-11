@@ -152,7 +152,6 @@ document.addEventListener("DOMContentLoaded", () => {
   const statusText = document.getElementById("preludeStatus");
   const fakeError = document.getElementById("preludeError");
   let isInterrupting = false; 
-  let isErrorActive = false;
 
   zones.forEach(btn => {
     btn.addEventListener("click", (e) => {
@@ -163,7 +162,7 @@ document.addEventListener("DOMContentLoaded", () => {
       if (preludeClickSpam > 5) {
         isErrorActive = true;
         fakeError.classList.add("show"); 
-        document.body.classList.add("earthquake"); // [NEW] Body Shake
+        document.body.classList.add("earthquake"); 
         
         setTimeout(() => {
           fakeError.classList.remove("show");
@@ -179,7 +178,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const lang = btn.dataset.lang;
       playSfx(sounds.timpani_sfx, 0.5);
 
-      statusText.textContent = lang === "en" ? "Putting on English..." : "Deutsche Sprache wird angelegt...";
+      statusText.textContent = lang === "en" ? "Dressing in English..." : "Deutsche Sprache wird angelegt...";
       statusText.classList.add("show");
 
       if (currentVoiceAudio && !currentVoiceAudio.paused) {
@@ -363,8 +362,8 @@ document.addEventListener("DOMContentLoaded", () => {
         if (!heroImgWrapper) return;
         const tiltX = event.gamma; 
         const tiltY = event.beta;  
-        const moveX = tiltX / 4;
-        const moveY = tiltY / 4;
+        const moveX = tiltX / 4; 
+        const moveY = tiltY / 4; 
         heroImgWrapper.style.transform = `translate(${moveX}px, ${moveY}px)`;
       }, true);
     }
