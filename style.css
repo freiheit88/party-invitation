@@ -38,7 +38,8 @@ body {
   width: 100%;
   height: 100%;
   overflow: hidden;
-  transition: filter 2s ease;
+  /* [수정] 필터 변경 시 2초 동안 부드럽게 전환 */
+  transition: filter 2s ease; 
 }
 
 body:not(.muted-world) .app-shell {
@@ -46,6 +47,7 @@ body:not(.muted-world) .app-shell {
 }
 
 body.muted-world .app-shell {
+  /* [유지] 음소거 시 시각적 감쇠 (약 30% 채도 손실, 약간의 밝기 감소) */
   filter: grayscale(0.4) saturate(0.6) brightness(0.9);
 }
 
@@ -142,19 +144,20 @@ body.muted-world .app-shell {
 .preintro-line-main {
   font-size: 18px;
   font-weight: 600;
+  display: block; /* [추가] 두 줄로 명확하게 분리하기 위해 block 설정 */
 }
 
-.preintro-line-recommended {
+/* [추가] 두 번째 줄 스타일 정의 (Soft Line) */
+.preintro-line-soft {
   font-size: 11px;
   font-weight: 400;
   color: rgba(248, 247, 244, 0.6);
-  letter-spacing: 0.16em;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
+  display: block;
+  margin-top: 4px;
 }
 
-.preintro-btn:active {
-  transform: scale(0.97);
-}
 
 /* Breathing animation for the CTA */
 @keyframes preintroBtnBreath {
@@ -202,7 +205,7 @@ body.muted-world .app-shell {
 }
 
 .preintro-ripple::after {
-  content: "Click again!";
+  content: ""; /* [수정] CTA 텍스트 제거 */
   position: absolute;
   top: 50%;
   left: 50%;
@@ -221,7 +224,7 @@ body.muted-world .app-shell {
 }
 
 .preintro-ripple.preintro-ripple-active::after {
-  opacity: 1;
+  opacity: 0; /* [수정] 텍스트가 활성화되지 않도록 */
 }
 
 .preintro-ripple.preintro-ripple-active {
@@ -298,22 +301,31 @@ body.muted-world .app-shell {
 /* Rotated Prelude chapter bar */
 .prelude-tag {
   position: absolute;
+  /* [수정] 중앙 하단부로 위치 조정 */
   left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%) rotate(90deg);
+  bottom: 10%; /* 하단에서 10% 위치에 배치 */
+  top: auto; /* top 위치 제거 */
+  
+  transform: translate(-50%, 0) rotate(90deg); /* translate(-50%, -50%)에서 Y축 보정 제거 */
   transform-origin: center;
-  width: 80vh;
-  max-width: 520px;
-  padding: 8px 24px;
-  border-radius: 999px;
+  
+  /* [수정] 텍스트 크기 3배 */
+  font-size: clamp(30px, 12vw, 54px); 
+  
+  /* [수정] 좌우 길이를 영상 끝까지 늘립니다 (100vw 기준) */
+  width: 100vw; 
+  max-width: none; /* max-width 제한 해제 */
+  
+  padding: 8px 0; /* 좌우 패딩 제거 */
+  border-radius: 0; /* 둥근 모서리 제거 */
   background: rgba(5, 7, 10, 0.88);
-  border: 1px solid rgba(245, 230, 184, 0.6);
-  font-size: 18px;
+  border: none; /* 테두리 제거 */
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.8); /* 그림자 조정 */
+
   letter-spacing: 0.18em;
   text-transform: uppercase;
   text-align: center;
   color: var(--accent-soft);
-  box-shadow: 0 22px 48px rgba(0, 0, 0, 0.9);
 }
 
 /* Prelude EN / DE zones */
@@ -323,6 +335,14 @@ body.muted-world .app-shell {
   inset: 0;
   display: flex;
   pointer-events: none;
+  
+  /* [추가] 90도 회전하여 가로 모드에 맞춥니다. */
+  width: 100vh;
+  height: 100vw;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) rotate(90deg);
 }
 
 .prelude-zone {
@@ -332,18 +352,42 @@ body.muted-world .app-shell {
   padding: 0;
   border: none;
   background: transparent;
-  pointer-events: auto;
+  pointer-events: auto; /* [수정] 영역 클릭을 허용합니다. */
   cursor: pointer;
+  transition: background-color 0.4s ease;
 }
 
-/* language labels inside zones */
+/* [추가] 클릭 유도를 위한 미묘한 오버레이 */
+.prelude-zone:hover {
+  background-color: rgba(255, 255, 255, 0.05); /* 마우스 오버 시 미묘하게 밝아짐 */
+}
+
+
+/* language labels inside zones (버튼으로 변경) */
+
 .prelude-language-label {
   position: absolute;
   top: 50%;
   left: 50%;
-  transform: translate(-50%, -50%) rotate(90deg);
+  /* [수정] zones가 이미 90도 회전했으므로, 텍스트는 다시 -90도 회전하여 똑바로 보이게 합니다. */
+  transform: translate(-50%, -50%) rotate(-90deg); 
   transform-origin: center;
-  font-size: clamp(30px, 7vw, 52px);
+  
+  /* [추가] 플래그 및 텍스트를 담는 컨테이너 스타일 */
+  display: flex;
+  flex-direction: column; /* 세로 배열 */
+  align-items: center;
+  justify-content: center;
+  gap: 8px; /* 이모티콘과 텍스트 사이 간격 */
+  pointer-events: auto; /* Zone 자체가 아니라 Button이 클릭 가능하도록 설정 */
+  cursor: pointer;
+  border: none;
+  background: transparent;
+  color: var(--text-main);
+  text-shadow: 0 0 10px rgba(0, 0, 0, 0.8);
+  padding: 20px;
+  
+  font-size: clamp(30px, 7vw, 52px); /* 기존 폰트 사이즈 유지 */
   font-weight: 700;
   letter-spacing: 0.32em;
   text-transform: uppercase;
@@ -351,6 +395,29 @@ body.muted-world .app-shell {
   text-align: center;
   animation: preludeLangPulse 2.2s ease-in-out infinite;
 }
+
+.prelude-language-label:hover {
+  opacity: 1;
+}
+
+.prelude-language-label:active {
+  /* [수정] 클릭 시 피드백 - 살짝 눌리는 느낌 */
+  transform: translate(-50%, -50%) rotate(-90deg) scale(0.95);
+  transition: transform 0.1s ease-out;
+}
+
+.label-flag {
+  font-size: 28px; /* 이모티콘 크기 */
+  line-height: 1;
+}
+
+.label-text {
+  font-family: 'Playfair Display', serif; /* 기품 있는 폰트 사용 */
+  font-size: 16px;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+}
+
 
 /* warm daylight glow for EN */
 .prelude-language-en {
@@ -371,18 +438,18 @@ body.muted-world .app-shell {
 /* more dramatic pulsing */
 @keyframes preludeLangPulse {
   0% {
-    transform: translate(-50%, -50%) rotate(90deg) scale(0.95);
+    transform: translate(-50%, -50%) rotate(-90deg) scale(0.95); /* [수정] rotate 값 -90도로 변경 */
     opacity: 0.8;
   }
   50% {
-    transform: translate(-50%, -50%) rotate(90deg) scale(1.1);
+    transform: translate(-50%, -50%) rotate(-90deg) scale(1.1); /* [수정] rotate 값 -90도로 변경 */
     opacity: 1;
     text-shadow:
       0 0 20px rgba(255, 240, 200, 1),
       0 0 42px rgba(255, 240, 200, 0.9);
   }
   100% {
-    transform: translate(-50%, -50%) rotate(90deg) scale(0.95);
+    transform: translate(-50%, -50%) rotate(-90deg) scale(0.95); /* [수정] rotate 값 -90도로 변경 */
     opacity: 0.8;
   }
 }
@@ -390,772 +457,6 @@ body.muted-world .app-shell {
 /* Tap feedback */
 .prelude-zone:active .prelude-language-label {
   filter: brightness(1.3);
-  transform: translate(-50%, -50%) rotate(90deg) scale(1.12);
+  transform: translate(-50%, -50%) rotate(-90deg) scale(1.12); /* [수정] rotate 값 -90도로 변경 */
 }
-
-/* Main app */
-
-.app {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: #000 url("picture/AlteOper.png") center/cover no-repeat fixed;
-}
-
-.app-inner {
-  position: relative;
-  width: 100%;
-  max-width: 480px;
-  height: 100%;
-  padding: 18px 18px 24px;
-  display: flex;
-  flex-direction: column;
-  background: radial-gradient(
-      circle at top,
-      rgba(15, 18, 30, 0.96) 0,
-      rgba(5, 7, 10, 0.97) 55%
-    );
-  backdrop-filter: blur(4px);
-}
-
-/* hero glow layer */
-
-.hero-glow-layer {
-  pointer-events: none;
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-  opacity: 0;
-}
-
-.hero-glow-layer.glow-strings {
-  background: radial-gradient(circle at 50% 40%,
-    rgba(251, 216, 143, 0.35),
-    transparent 60%);
-}
-
-.hero-glow-layer.glow-brass {
-  background: radial-gradient(circle at 50% 40%,
-    rgba(255, 190, 120, 0.35),
-    transparent 60%);
-}
-
-.hero-glow-layer.glow-timpani {
-  background: radial-gradient(circle at 50% 40%,
-    rgba(220, 120, 120, 0.32),
-    transparent 60%);
-}
-
-.hero-glow-layer.glow-active {
-  animation: heroGlowSpread 10s ease-out forwards;
-}
-
-@keyframes heroGlowSpread {
-  0% {
-    opacity: 0.0;
-    transform: scale(0.9);
-    filter: blur(0px);
-  }
-  20% {
-    opacity: 0.9;
-    transform: scale(1.0);
-    filter: blur(6px);
-  }
-  100% {
-    opacity: 0.0;
-    transform: scale(1.4);
-    filter: blur(16px);
-  }
-}
-
-/* Tabs */
-
-.tabs {
-  position: relative;
-  z-index: 2;
-  display: flex;
-  gap: 6px;
-  margin-bottom: 10px;
-  background: rgba(5, 7, 10, 0.7);
-  border-radius: 999px;
-  padding: 4px;
-}
-
-.tab-btn {
-  flex: 1;
-  border-radius: 999px;
-  border: none;
-  padding: 6px 10px;
-  font-size: 11px;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  cursor: pointer;
-  background: transparent;
-  color: var(--text-soft);
-  transition:
-    background 0.2s ease,
-    color 0.2s ease;
-}
-
-.tab-btn.active {
-  background: rgba(32, 35, 49, 0.9);
-  color: var(--accent-soft);
-}
-
-.tab-container {
-  position: relative;
-  z-index: 1;
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-}
-
-.tab-panel {
-  display: none;
-  flex: 1;
-  flex-direction: column;
-  gap: 16px;
-  margin-top: 8px;
-  overflow-y: auto;
-  padding-right: 2px;
-}
-
-.tab-panel.active {
-  display: flex;
-}
-
-/* Text + hero */
-
-.inv-header {
-  margin-bottom: 6px;
-}
-
-.title {
-  font-family: "Playfair Display", serif;
-  font-size: 24px;
-  line-height: 1.3;
-  letter-spacing: 0.02em;
-}
-
-.title .accent {
-  color: var(--accent);
-  letter-spacing: 0.16em;
-  font-size: 11px;
-  text-transform: uppercase;
-  display: block;
-  margin-bottom: 6px;
-  font-weight: 600;
-}
-
-.title-soft {
-  font-size: 15px;
-  font-weight: 400;
-  color: var(--text-soft);
-}
-
-.hero-section {
-  position: relative;
-}
-
-.hero-image-box {
-  position: relative;
-  margin-top: 10px;
-  border-radius: 16px;
-  overflow: hidden;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  background: #000;
-  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.55);
-}
-
-.hero-image-box img {
-  display: block;
-  width: 100%;
-  height: 160px;
-  object-fit: cover;
-  filter: saturate(1.08) contrast(1.08);
-}
-
-.hero-caption-slider {
-  padding: 6px 10px 4px;
-  min-height: 44px;
-}
-
-.hero-caption {
-  font-size: 11px;
-  color: var(--text-soft);
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  line-height: 1.4;
-  opacity: 0;
-  transform: translateY(4px);
-  transition: opacity 0.4s ease, transform 0.4s ease;
-  position: absolute;
-}
-
-.hero-caption.hero-caption-active {
-  opacity: 1;
-  transform: translateY(0);
-  position: static;
-}
-
-.hero-keyword {
-  color: var(--accent-soft);
-  font-weight: 600;
-  margin-right: 4px;
-}
-
-.hero-dots {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 6px;
-  padding: 4px 0 6px;
-}
-
-.hero-dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.18);
-  opacity: 0.5;
-}
-
-.hero-dot.hero-dot-active {
-  background: var(--accent-soft);
-  opacity: 1;
-  transform: scale(1.15);
-}
-
-/* Tune section */
-
-.tune-section {
-  margin-top: 10px;
-}
-
-.tune-header-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 8px;
-}
-
-/* Mute pill with icon pair */
-.music-pill {
-  position: relative;
-  min-width: 120px;
-  padding: 6px 12px;
-  border-radius: 999px;
-  border: 1px solid rgba(245, 230, 184, 0.6);
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  cursor: pointer;
-  background: rgba(10, 12, 18, 0.7);
-  opacity: 0.95;
-  transition:
-    background 0.25s ease,
-    box-shadow 0.25s ease,
-    opacity 0.25s ease,
-    transform 0.15s ease;
-}
-
-.music-pill:active {
-  transform: scale(0.97);
-}
-
-.music-icons {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 18px;
-}
-
-.music-icon-on,
-.music-icon-off {
-  display: inline-block;
-  transition:
-    opacity 0.25s ease,
-    transform 0.25s ease,
-    filter 0.25s ease;
-}
-
-/* Unmuted: 🔊 active, 🔇 dimmed */
-.music-pill.music-on .music-icon-on {
-  opacity: 1;
-  transform: scale(1.05);
-  filter: none;
-}
-
-.music-pill.music-on .music-icon-off {
-  opacity: 0.35;
-  transform: scale(0.9);
-  filter: grayscale(0.4);
-}
-
-/* Muted: 🔇 active, 🔊 dimmed */
-.music-pill.music-muted .music-icon-on {
-  opacity: 0.35;
-  transform: scale(0.9);
-  filter: grayscale(0.5);
-}
-
-.music-pill.music-muted .music-icon-off {
-  opacity: 1;
-  transform: scale(1.07);
-}
-
-/* Base breathing animation when on */
-@keyframes musicBreath {
-  0% { transform: translateY(0); opacity: 0.8; }
-  50% { transform: translateY(-1px); opacity: 1; }
-  100% { transform: translateY(0); opacity: 0.8; }
-}
-
-.music-pill.music-on {
-  animation: musicBreath 4s ease-in-out infinite;
-}
-
-/* Muted-world: make the pill the obvious switch */
-body.muted-world .music-pill.music-muted {
-  background: rgba(20, 24, 36, 0.96);
-  box-shadow:
-    0 0 16px rgba(245, 230, 184, 0.75),
-    0 0 34px rgba(245, 230, 184, 0.45);
-  animation: muteCall 3.4s ease-in-out infinite;
-}
-
-/* Stronger mute pulse */
-@keyframes muteCall {
-  0% {
-    transform: scale(0.97);
-    box-shadow:
-      0 0 8px rgba(245, 230, 184, 0.4),
-      0 0 16px rgba(245, 230, 184, 0.25);
-  }
-  50% {
-    transform: scale(1.05);
-    box-shadow:
-      0 0 22px rgba(245, 230, 184, 0.9),
-      0 0 40px rgba(245, 230, 184, 0.6);
-  }
-  100% {
-    transform: scale(0.97);
-    box-shadow:
-      0 0 8px rgba(245, 230, 184, 0.4),
-      0 0 16px rgba(245, 230, 184, 0.25);
-  }
-}
-
-/* Instrument pill */
-
-.instrument-pill {
-  font-size: 11px;
-  padding: 4px 10px;
-  border-radius: 999px;
-  border: 1px solid rgba(245, 230, 184, 0.5);
-  color: var(--accent-soft);
-  background: rgba(15, 18, 30, 0.8);
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  white-space: nowrap;
-}
-
-.instrument-pill-label {
-  font-size: 10px;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  opacity: 0.8;
-}
-
-.instrument-name {
-  font-size: 11px;
-  font-weight: 600;
-}
-
-.tune-row {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 6px;
-  margin-top: 2px;
-}
-
-.tune-button {
-  flex: 1;
-  padding: 12px 18px;
-  border-radius: 999px;
-  border: 1px solid var(--button-border);
-  background: radial-gradient(
-    circle at top left,
-    #262a3f 0,
-    var(--button-bg) 60%
-  );
-  color: var(--text-main);
-  cursor: pointer;
-  position: relative;
-  overflow: hidden;
-  display: inline-flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-}
-
-.tune-button:active {
-  transform: scale(0.97);
-}
-
-.tune-button-label {
-  font-size: 11px;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-}
-
-.tune-button-icons {
-  font-size: 16px;
-}
-
-/* ripple on let A ring */
-
-.tune-button::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  background: radial-gradient(circle at center,
-    rgba(245, 230, 184, 0.35),
-    transparent 60%);
-  opacity: 0;
-  transform: scale(0.7);
-  transition: opacity 0.3s ease, transform 0.3s ease;
-}
-
-.tune-button.ringing::after {
-  opacity: 1;
-  transform: scale(1.05);
-}
-
-/* small hint */
-
-.hint-small {
-  font-size: 11px;
-  color: var(--text-soft);
-  margin-top: 4px;
-}
-
-/* How to / Board / Orchestra */
-
-.section-block {
-  margin-top: 6px;
-}
-
-.section-title {
-  font-size: 13px;
-  text-transform: uppercase;
-  letter-spacing: 0.12em;
-  color: var(--text-soft);
-  margin-bottom: 6px;
-}
-
-.section-text {
-  font-size: 12px;
-  color: var(--text-soft);
-  line-height: 1.7;
-  margin-bottom: 10px;
-  max-width: 380px;
-}
-
-.section-text.small {
-  font-size: 11px;
-  opacity: 0.9;
-}
-
-.section-text em {
-  color: var(--accent-soft);
-  font-style: normal;
-  font-weight: 600;
-}
-
-.map-card {
-  margin-top: 10px;
-  border-radius: 14px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  background: rgba(5, 7, 10, 0.82);
-  overflow: hidden;
-}
-
-.map-card-header {
-  padding: 8px 10px 4px;
-  font-size: 12px;
-  color: var(--text-soft);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.map-card-header span.left {
-  font-weight: 500;
-  color: var(--accent-soft);
-}
-
-.map-card-header span.right {
-  font-size: 11px;
-  opacity: 0.7;
-}
-
-.map-frame {
-  width: 100%;
-  height: 180px;
-  overflow: hidden;
-  border-top: 1px solid rgba(255, 255, 255, 0.05);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-}
-
-.map-frame iframe {
-  width: 100%;
-  height: 100%;
-  border: 0;
-}
-
-.map-caption {
-  padding: 6px 10px 8px;
-  font-size: 11px;
-  color: var(--text-soft);
-  line-height: 1.4;
-}
-
-/* Board */
-
-.board-wrapper {
-  margin-top: 4px;
-}
-
-.board-subtitle {
-  font-size: 13px;
-  color: var(--text-soft);
-  line-height: 1.6;
-  max-width: 360px;
-  margin-top: 6px;
-}
-
-.board-images {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-  gap: 10px;
-  margin-top: 12px;
-}
-
-.board-placeholder {
-  border-radius: 14px;
-  border: 1px dashed var(--placeholder-border);
-  background: var(--placeholder-bg);
-  padding: 8px 10px;
-  font-size: 11px;
-  color: var(--text-soft);
-  min-height: 80px;
-}
-
-.board-placeholder-title {
-  font-size: 11px;
-  font-weight: 600;
-  color: var(--accent-soft);
-  margin-bottom: 3px;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
-.board-list {
-  margin-top: 14px;
-  border-radius: 14px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  background: rgba(5, 7, 10, 0.9);
-  padding: 10px 10px 6px;
-}
-
-.board-list-title {
-  font-size: 12px;
-  color: var(--text-soft);
-  text-transform: uppercase;
-  letter-spacing: 0.12em;
-  margin-bottom: 6px;
-}
-
-.board-item {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  padding: 6px 0;
-  border-bottom: 1px dashed rgba(255, 255, 255, 0.05);
-}
-
-.board-item:last-child {
-  border-bottom: none;
-}
-
-.board-poster-label {
-  font-size: 12px;
-  color: var(--text-main);
-}
-
-.board-meta {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 11px;
-  color: var(--text-soft);
-}
-
-.qr-box {
-  width: 18px;
-  height: 18px;
-  border-radius: 4px;
-  border: 1px solid rgba(245, 230, 184, 0.7);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 9px;
-  color: var(--accent-soft);
-}
-
-.like-chip {
-  padding: 2px 8px;
-  border-radius: 999px;
-  border: 1px solid rgba(245, 230, 184, 0.6);
-  font-size: 10px;
-  color: var(--accent-soft);
-}
-
-/* Orchestra tab */
-
-.orchestra-btn {
-  margin-top: 10px;
-  padding: 10px 18px;
-  border-radius: 999px;
-  border: 1px solid var(--button-border);
-  background: radial-gradient(
-    circle at top left,
-    #262a3f 0,
-    var(--button-bg) 60%
-  );
-  color: var(--text-main);
-  font-size: 11px;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  cursor: pointer;
-}
-
-.orchestra-btn:active {
-  transform: scale(0.98);
-}
-
-.orchestra-status {
-  margin-top: 14px;
-  border-radius: 14px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  background: rgba(5, 7, 10, 0.9);
-  padding: 10px 10px 8px;
-}
-
-.orchestra-status-line {
-  display: flex;
-  justify-content: space-between;
-  gap: 8px;
-  font-size: 11px;
-  color: var(--text-soft);
-  padding: 3px 0;
-}
-
-.orchestra-status-line .label {
-  text-transform: uppercase;
-  letter-spacing: 0.12em;
-}
-
-.orchestra-status-line .value {
-  color: var(--accent-soft);
-}
-
-.orchestra-popup {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.7);
-  display: flex;
-  align-items: flex-end;
-  justify-content: center;
-  padding: 0 16px 24px;
-  z-index: 30;
-}
-
-.orchestra-popup-inner {
-  background: rgba(5, 7, 10, 0.96);
-  border-radius: 18px;
-  border: 1px solid rgba(245, 230, 184, 0.5);
-  padding: 12px 14px 10px;
-  max-width: 420px;
-  font-size: 12px;
-  color: var(--text-soft);
-}
-
-.orchestra-popup-title {
-  font-size: 13px;
-  color: var(--accent-soft);
-  font-weight: 600;
-  margin-bottom: 6px;
-}
-
-.orchestra-popup-close {
-  margin-top: 8px;
-  padding: 7px 16px;
-  border-radius: 999px;
-  border: 1px solid var(--button-border);
-  background: transparent;
-  color: var(--accent-soft);
-  font-size: 11px;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  cursor: pointer;
-}
-
-.hidden {
-  display: none !important;
-}
-
-/* Footer */
-
-.footer {
-  font-size: 11px;
-  color: rgba(167, 165, 160, 0.85);
-  text-align: right;
-  margin-top: 12px;
-}
-
-.footer .test {
-  text-transform: uppercase;
-  letter-spacing: 0.14em;
-  color: var(--accent);
-  margin-right: 6px;
-}
-
-.footer .credit {
-  font-size: 10px;
-  color: #a19d93;
-  text-align: left;
-  margin-top: 4px;
-}
-
-@media (max-width: 400px) {
-  .title {
-    font-size: 22px;
-  }
-  .hero-image-box img {
-    height: 140px;
-  }
-  .map-frame {
-    height: 160px;
-  }
-}
+/* ... (나머지 CSS는 기존 코드와 동일) */

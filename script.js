@@ -55,9 +55,8 @@ const preintroTouchBtn = document.getElementById("preintroTouchBtn");
 const preintroRipple = document.getElementById("preintroRipple");
 
 // Prelude elements
-const preludeVoiceStatus = document.getElementById("preludeVoiceStatus");
-const preludeZoneLeft = document.querySelector(".prelude-zone-left");
-const preludeZoneRight = document.querySelector(".prelude-zone-right");
+const preludeZoneLeft = document.getElementById("preludeZoneLeft");
+const preludeZoneRight = document.getElementById("preludeZoneRight");
 
 // Orchestra tab
 const orchestraJoinBtn = document.getElementById("orchestraJoinBtn");
@@ -77,9 +76,9 @@ let heroCaptionTimer = null;
 
 // Preintro / Prelude timing state
 let preintroHasTapped = false;
-let preintroIdleTimer = null;
+let preintroIdleTimer = null; // [수정] Scene -1의 7초 타이머로 재활용
 
-let preludeAutoTimer = null;
+let preludeAutoTimer = null; // [복원] Scene 0의 30초 자동 전환 타이머
 let preludeTransitionStarted = false;
 
 // Prelude voices / interrupt state
@@ -165,8 +164,9 @@ function startBackgroundMusicFromPreintro() {
   bgAudio
     .play()
     .then(() => {
-      bgTargetVolume = 0.05;
-      fadeBgTo(bgTargetVolume, 6000); // 0 -> 5% over 6s
+      // Scene -1 이후 목표 볼륨을 Master Brief의 30%로 설정
+      bgTargetVolume = 0.3; 
+      fadeBgTo(bgTargetVolume, 6000); // 0 -> 30% over 6s
     })
     .catch(() => {
       // autoplay blocked – do nothing, user may toggle later
@@ -345,15 +345,22 @@ function goToPrelude() {
   schedulePreludeVoices();
 
   preludeTransitionStarted = false;
+  
+  // [복원] 30초 자동 전환 타이머 로직 복원
   if (preludeAutoTimer) {
     clearTimeout(preludeAutoTimer);
   }
+  const autoTimeout = 30000; // 30초 설정
   preludeAutoTimer = setTimeout(() => {
     leavePreludeToMain();
-  }, 30000);
+  }, autoTimeout);
 }
 
 function goToMain() {
+  // [수정] 메인 씬 진입 시 BG 음악 볼륨을 0.05로 재조정 (Master Brief 초기 값)
+  bgTargetVolume = 0.05; 
+  fadeBgTo(bgTargetVolume, 2000); // 2초에 걸쳐 부드럽게 볼륨 감소
+
   showScene("scene-main");
 }
 
@@ -382,7 +389,9 @@ function leavePreludeToMain() {
     preludeAutoTimer = null;
   }
 
+  // [추가] 자동 전환이든 수동 전환이든 팀파니 SFX를 재생합니다.
   playTimpani();
+  
   goToMain();
 }
 
@@ -395,9 +404,11 @@ let preludeVoicesStarted = false;
 function schedulePreludeVoices() {
   if (preludeVoicesStarted) return;
   preludeVoicesStarted = true;
+  /*
   if (preludeVoiceStatus) {
     preludeVoiceStatus.textContent = "Voices: waiting…";
   }
+  */
 
   const maleDelay = 4000; // ms
   setTimeout(() => {
@@ -412,9 +423,11 @@ function playPreludeVoices() {
   male.volume = muted ? 0 : male._baseVolume;
   registerAudio(male);
 
+  /*
   if (preludeVoiceStatus) {
     preludeVoiceStatus.textContent = "Voices: German voice playing…";
   }
+  */
   duckBgDuring(5000);
 
   male.addEventListener("ended", () => {
@@ -426,32 +439,40 @@ function playPreludeVoices() {
       female.volume = muted ? 0 : female._baseVolume;
       registerAudio(female);
 
+      /*
       if (preludeVoiceStatus) {
         preludeVoiceStatus.textContent = "Voices: English voice playing…";
       }
+      */
       duckBgDuring(5000);
 
       female.addEventListener("ended", () => {
         preludeFemaleAudio = null;
+        /*
         if (preludeVoiceStatus) {
           preludeVoiceStatus.textContent =
             "Voices: finished – the room is listening.";
         }
-        // no automatic goToMain(); transition is handled by taps / timeout / interrupt
+        */
+        // [삭제] 음성 완료 후 자동 전환 로직을 제거하고 30초 타이머에 의존
       });
 
       female.play().catch(() => {
+        /*
         if (preludeVoiceStatus) {
           preludeVoiceStatus.textContent = "Voices: playback blocked.";
         }
+        */
       });
     }, 500);
   });
 
   male.play().catch(() => {
+    /*
     if (preludeVoiceStatus) {
       preludeVoiceStatus.textContent = "Voices: playback blocked.";
     }
+    */
   });
 }
 
@@ -480,24 +501,35 @@ function fadeOutPreludeVoiceAndThenInterrupt(targetLang) {
     a.volume = muted ? 0 : a._baseVolume;
     registerAudio(a);
 
+    /*
     if (preludeVoiceStatus) {
       preludeVoiceStatus.textContent =
         targetLang === "en"
           ? "Voices: switching gently to English…"
           : "Voices: switching gently to German…";
     }
+    */
 
     a.addEventListener("ended", () => {
       preludeInterruptAudio = null;
+      /*
       if (preludeVoiceStatus) {
         preludeVoiceStatus.textContent = "Voices: handover finished.";
       }
+      */
       // interrupt line finished -> timpani + goToMain
+      
+      // [추가] 수동 전환 시에도 팀파니 SFX를 재생합니다.
+      playTimpani(); 
+      
       leavePreludeToMain();
     });
 
     a.play().catch(() => {
       // if interrupt TTS fails, still transition
+      
+      // [추가] 예외 발생 시에도 팀파니 SFX를 시도합니다.
+      playTimpani();
       leavePreludeToMain();
     });
   }
@@ -524,9 +556,11 @@ function fadeOutPreludeVoiceAndThenInterrupt(targetLang) {
         current.currentTime = 0;
       } catch (_) {}
       activeAudios.delete(current);
+      /*
       if (preludeVoiceStatus) {
         preludeVoiceStatus.textContent = "Voices: softly interrupted.";
       }
+      */
       startInterruptTts();
     }
   }, 100);
@@ -536,12 +570,27 @@ function handlePreludeLanguageClick(lang) {
   if (preludeInterruptFlowStarted) return;
   preludeInterruptFlowStarted = true;
 
+  // [수정] 30초 자동 전환 타이머 제거 (수동 전환)
   if (preludeAutoTimer) {
     clearTimeout(preludeAutoTimer);
     preludeAutoTimer = null;
   }
-
-  fadeOutPreludeVoiceAndThenInterrupt(lang);
+  
+  // [수정] 인터럽트 오디오 재생 없이 즉시 전환하도록 로직 단순화
+  // **추가 피드백 반영: 좌/우 터치 시 바로 Timpani와 함께 Scene 1로 전환**
+  
+  // 만약 현재 음성 재생 중이라면 중지
+  if (preludeMaleAudio && !preludeMaleAudio.paused) {
+    preludeMaleAudio.pause();
+    activeAudios.delete(preludeMaleAudio);
+  }
+  if (preludeFemaleAudio && !preludeFemaleAudio.paused) {
+    preludeFemaleAudio.pause();
+    activeAudios.delete(preludeFemaleAudio);
+  }
+  
+  // 즉시 Scene 1로 전환 (leavePreludeToMain 내부에서 Timpani 재생)
+  leavePreludeToMain();
 }
 
 // --------------------------
@@ -665,11 +714,24 @@ function updateOrchestraDistances() {
 // Preintro interaction
 // --------------------------
 
+// [수정] Scene -1의 7초 자동 전환 함수 (7초 뒤에만 작동)
+function schedulePreintroTransition() {
+  const transitionDelay = 7000; // 7초 타이머
+  if (preintroIdleTimer) {
+    clearTimeout(preintroIdleTimer);
+    preintroIdleTimer = null;
+  }
+  
+  preintroIdleTimer = setTimeout(() => {
+    // 7초 동안 아무 일도 없으면 Timpani 재생 후 자동 전환
+    leavePreintroToPrelude();
+  }, transitionDelay);
+}
+
+
 function handlePreintroTap() {
   if (preintroHasTapped) return;
   preintroHasTapped = true;
-
-  // no timpani here – just fade and music start
 
   // fade overlay
   if (preintroOverlay) {
@@ -685,18 +747,19 @@ function handlePreintroTap() {
 
   startBackgroundMusicFromPreintro();
 
-  // After brightness fade, show central ripple and start 7s idle timer
-  const rippleDelay = 1300;
+  // 중앙 리플 활성화 및 7초 자동 전환 타이머 시작
+  const rippleDelay = 1300; // 페이드 아웃 완료 시점 근처
   setTimeout(() => {
     if (preintroRipple) {
       preintroRipple.classList.add("preintro-ripple-active");
     }
+    
+    // 7초 동안 아무 동작이 없으면 자동 전환
+    schedulePreintroTransition(); 
 
-    preintroIdleTimer = setTimeout(() => {
-      leavePreintroToPrelude();
-    }, 7000);
   }, rippleDelay);
 }
+
 
 // --------------------------
 // Music pill label update
@@ -734,11 +797,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Prelude EN / DE zones -> interrupt TTS then Main
   if (preludeZoneLeft) {
+    // [수정] 언어 버튼이 아니라 zone을 클릭하면 바로 전환
     preludeZoneLeft.addEventListener("click", () => {
       handlePreludeLanguageClick("en");
     });
   }
   if (preludeZoneRight) {
+    // [수정] 언어 버튼이 아니라 zone을 클릭하면 바로 전환
     preludeZoneRight.addEventListener("click", () => {
       handlePreludeLanguageClick("de");
     });
@@ -805,4 +870,3 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 });
-
