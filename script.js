@@ -30,6 +30,7 @@ document.addEventListener("DOMContentLoaded", () => {
   let isMozart = false;
   
   const activeAudios = new Set();
+  let preludeClickSpam = 0;
 
   /* --- Utils --- */
   const playSfx = (path, vol = 1.0) => {
@@ -149,10 +150,30 @@ document.addEventListener("DOMContentLoaded", () => {
   const zones = document.querySelectorAll(".prelude-language-btn");
   const dimLayer = document.getElementById("preludeDimLayer");
   const statusText = document.getElementById("preludeStatus");
+  const fakeError = document.getElementById("preludeError");
   let isInterrupting = false; 
+  let isErrorActive = false;
 
   zones.forEach(btn => {
     btn.addEventListener("click", (e) => {
+      if (isErrorActive) return; 
+
+      // Dizzy Conductor Effect
+      preludeClickSpam++;
+      if (preludeClickSpam > 5) {
+        isErrorActive = true;
+        fakeError.classList.add("show"); 
+        document.body.classList.add("earthquake"); // [NEW] Body Shake
+        
+        setTimeout(() => {
+          fakeError.classList.remove("show");
+          document.body.classList.remove("earthquake");
+          isErrorActive = false;
+          preludeClickSpam = 0;
+        }, 3000);
+        return;
+      }
+
       if (isInterrupting) return; 
 
       const lang = btn.dataset.lang;
@@ -323,7 +344,6 @@ document.addEventListener("DOMContentLoaded", () => {
   const tabPanels = document.querySelectorAll(".tab-panel");
   tabBtns.forEach(btn => {
     btn.addEventListener("click", () => {
-      // [수정] 오케스트라 탭 토스트 5초
       if (btn.dataset.tab === "orchestra") {
         const toast = document.getElementById("orchestraToast");
         toast.classList.add("show");

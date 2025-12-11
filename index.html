@@ -15,6 +15,7 @@
   <div class="app-shell">
     
     <div id="muteOverlay" class="mute-overlay"></div>
+    <div id="popupBackdrop" class="popup-backdrop"></div>
 
     <section id="scene-preintro" class="scene scene-visible">
       <video id="preintroVideo" class="scene-video dark-filter" autoplay muted playsinline loop>
@@ -37,6 +38,15 @@
         </video>
       </div>
       <div class="prelude-dim-layer" id="preludeDimLayer"></div>
+      
+      <div id="preludeError" class="prelude-error-screen">
+        <div class="error-content">
+          <div class="error-icon">⚠️</div>
+          <div class="error-title">SYSTEM OVERLOAD</div>
+          <div class="error-desc">Too many requests.<br>Conductor is dizzy @.@</div>
+        </div>
+      </div>
+
       <div class="prelude-overlay">
         <div class="prelude-header">
           <div class="prelude-tag">Dress the page in a language</div>
@@ -115,20 +125,16 @@
                 <h1 class="orch-title">The Evening</h1>
                 <div class="timeline">
                   <div class="timeline-item">
-                    <span class="time">19:30</span>
-                    <span class="event">Gathering at Alte Oper</span>
+                    <span class="time">19:30</span><span class="event">Gathering at Alte Oper</span>
                   </div>
                   <div class="timeline-item">
-                    <span class="time">20:00</span>
-                    <span class="event">The First Note (A)</span>
+                    <span class="time">20:00</span><span class="event">The First Note (A)</span>
                   </div>
                   <div class="timeline-item">
-                    <span class="time">20:30</span>
-                    <span class="event">Ensemble Walk</span>
+                    <span class="time">20:30</span><span class="event">Ensemble Walk</span>
                   </div>
                   <div class="timeline-item">
-                    <span class="time">21:00</span>
-                    <span class="event">Secret Dinner</span>
+                    <span class="time">21:00</span><span class="event">Secret Dinner</span>
                   </div>
                 </div>
               </div>
@@ -138,18 +144,17 @@
                <div id="orchestraToast" class="coming-soon-toast">
                  <span class="typing-text">Coming Online Soon...</span>
                </div>
+               
                <div class="orchestra-wrapper">
                  <h1 class="orch-title">Ensemble Radar</h1>
                  <p class="orch-desc">Collect instruments (5m)</p>
                  <div id="map" class="radar-map"></div>
                  <div class="orchestra-status-box">
                    <div class="status-row">
-                     <span class="lbl">GPS</span>
-                     <span class="val" id="gpsStatus">Waiting...</span>
+                     <span class="lbl">GPS</span><span class="val" id="gpsStatus">Waiting...</span>
                    </div>
                    <div class="status-row">
-                     <span class="lbl">Harmony</span>
-                     <span class="val" id="harmonicsStatus">Solo</span>
+                     <span class="lbl">Harmony</span><span class="val" id="harmonicsStatus">Solo</span>
                    </div>
                  </div>
                  <button id="orchestraJoinBtn" class="orchestra-btn">Allow Location Magic ✨</button>
@@ -171,7 +176,7 @@
           </div>
           <div class="slide">
             <span class="slide-icon">🎼</span>
-            <p class="slide-text">Orchestras always tune<br>to the note 'A'.</p>
+            <p class="slide-text">Orchestras always tune to 'A'.<br>It's mesmerizing.</p>
           </div>
           <div class="slide">
             <span class="slide-icon">🙌</span>
