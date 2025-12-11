@@ -3,8 +3,8 @@ document.addEventListener("DOMContentLoaded", () => {
   let bgAudio = null;
   let isMuted = false;
   let currentVoiceAudio = null; 
-  let duckTimer = null; // 오디오 덕킹용 타이머
-  let activeAudios = new Set(); // 활성 오디오 추적용
+  let duckTimer = null; 
+  let activeAudios = new Set(); 
 
   const roles = [
     { id: "cellos", name: "Cellos", icon: "🎻" },
@@ -37,11 +37,8 @@ document.addEventListener("DOMContentLoaded", () => {
     const a = new Audio(path);
     a.volume = vol;
     a.play().catch(e => console.log("Audio play error:", e));
-    
-    // Mute 추적을 위해 Set에 추가
     activeAudios.add(a);
     a.onended = () => activeAudios.delete(a);
-    
     return a;
   };
 
@@ -62,20 +59,14 @@ document.addEventListener("DOMContentLoaded", () => {
     }).catch(e => console.log("BG play error:", e));
   };
 
-  // [수정] 오디오 덕킹 로직 개선 (겹침 방지)
   const duckBgDuring = (duration = 3000) => {
     if (!bgAudio || isMuted) return;
-    
-    // 기존 타이머 취소
     if (duckTimer) clearTimeout(duckTimer);
     
-    // 즉시 줄임
     bgAudio.volume = 0.05;
     
-    // 일정 시간 후 복구
     duckTimer = setTimeout(() => {
       if (!isMuted) {
-        // 부드럽게 복구
         let v = 0.05;
         const fade = setInterval(() => {
           if (isMuted) { clearInterval(fade); return; }
@@ -113,35 +104,27 @@ document.addEventListener("DOMContentLoaded", () => {
     playSfx(sounds.timpani_sfx);
     playBgMusic();
     
-    // 버튼에 페이드 아웃 클래스 추가
     btnTouch.classList.add("fade-out-btn");
     
-    // 1초 뒤 사라지고 리플 등장
     setTimeout(() => {
       document.getElementById("preintroUi").style.display = "none";
       btnRipple.style.display = "block";
-      // 리플 서서히 등장
       requestAnimationFrame(() => btnRipple.classList.add("visible"));
     }, 1000);
   });
 
   btnRipple.addEventListener("click", () => {
     playSfx(sounds.timpani_sfx);
-    
-    // 리플 서서히 사라짐
     btnRipple.classList.remove("visible");
     btnRipple.classList.add("fading-out");
     
-    // 1초 뒤 리플 완전히 제거 및 화면 밝아짐 시작
     setTimeout(() => {
       btnRipple.classList.add("hidden"); 
       
-      // 비디오 밝아짐 & 오버레이 제거
       videoPre.classList.remove("dark-filter"); 
       videoPre.classList.add("video-bright");
       overlay.classList.add("preintro-overlay-clear");
       
-      // 3초 뒤 씬 전환
       setTimeout(() => {
         switchScene("scene-preintro", "scene-prelude");
       }, 3000);
@@ -151,6 +134,7 @@ document.addEventListener("DOMContentLoaded", () => {
   /* --- Scene 0: Prelude --- */
   const zones = document.querySelectorAll(".prelude-language-btn");
   const dimLayer = document.getElementById("preludeDimLayer");
+  const msgBox = document.getElementById("preludeMessage");
   let isInterrupting = false; 
 
   zones.forEach(btn => {
@@ -167,6 +151,10 @@ document.addEventListener("DOMContentLoaded", () => {
         const intFile = lang === "en" ? sounds.int_en : sounds.int_de;
         const intAudio = playSfx(intFile, 1.0);
         
+        // Hide message on interrupt
+        msgBox.classList.remove("show");
+        msgBox.classList.add("hidden");
+
         if (intAudio) {
           intAudio.onended = () => { setTimeout(() => switchScene("scene-prelude", "scene-main"), 1000); initMain(); };
         } else {
@@ -184,6 +172,10 @@ document.addEventListener("DOMContentLoaded", () => {
         document.querySelector('[data-lang="en"]').classList.add("fade-out");
       }
 
+      // [추가] 안내 메시지 표시
+      msgBox.classList.remove("hidden");
+      msgBox.classList.add("show");
+
       if (bgAudio) bgAudio.volume = 0.05;
 
       const voiceFile = lang === "en" ? sounds.voice_en : sounds.voice_de;
@@ -191,6 +183,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
       if (currentVoiceAudio) {
         currentVoiceAudio.onended = () => {
+          // Hide message when voice ends
+          msgBox.classList.remove("show");
+          msgBox.classList.add("hidden");
+
           if (bgAudio && !isMuted) bgAudio.volume = 0.3;
           setTimeout(() => switchScene("scene-prelude", "scene-main"), 2000); 
           initMain();
@@ -245,7 +241,6 @@ document.addEventListener("DOMContentLoaded", () => {
     
     if (isMuted) {
       if (bgAudio) bgAudio.volume = 0;
-      // 재생 중인 모든 효과음 즉시 정지
       activeAudios.forEach(audio => {
         audio.pause();
         audio.currentTime = 0;
@@ -262,14 +257,13 @@ document.addEventListener("DOMContentLoaded", () => {
     if (isMuted) return;
 
     clickCount++;
-    duckBgDuring(3000); // 3초간 배경음악 줄임
+    duckBgDuring(3000); 
 
     if (clickCount === 10 && !isMozart) {
       isMozart = true;
       lblId.style.opacity = "0"; 
       playSfx(sounds.timpani, 1.0); 
       
-      // 3초 대기 후 텍스트 변경
       setTimeout(() => {
         lblRole.textContent = "MOZART";
         lblRole.classList.add("mozart");
