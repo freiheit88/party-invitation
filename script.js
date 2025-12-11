@@ -4,7 +4,6 @@ document.addEventListener("DOMContentLoaded", () => {
   let isMuted = false;
   let currentVoiceAudio = null; 
   
-  // 악기 정의 (순서대로 슬롯에 표시됨)
   const roles = [
     { id: "cellos", name: "Cellos", icon: "🎻" },
     { id: "trumpets", name: "Trumpets", icon: "🎺" },
@@ -31,8 +30,8 @@ document.addEventListener("DOMContentLoaded", () => {
   let isMozart = false;
 
   /* --- Utils --- */
+  // [수정] Mute Check First
   const playSfx = (path, vol = 1.0) => {
-    // [중요] Mute 상태면 오디오 생성조차 안 함
     if (isMuted) return null;
     const a = new Audio(path);
     a.volume = vol;
@@ -79,9 +78,14 @@ document.addEventListener("DOMContentLoaded", () => {
     if (toId === "scene-main") {
       setTimeout(() => {
         if(map) map.invalidateSize();
-        initParallax(); // 자이로스코프 시작
-        resetIdleTimer(); // 숨쉬기 시작
-        initShakeDetection(); // 지휘자 모드 시작
+        initParallax(); 
+        resetIdleTimer(); 
+        initShakeDetection(); 
+        
+        // [추가] 메인 진입 1초 후 팝업 표시
+        setTimeout(() => {
+          document.getElementById("infoToast").classList.add("show");
+        }, 1000);
       }, 100);
     }
   };
@@ -104,14 +108,10 @@ document.addEventListener("DOMContentLoaded", () => {
     playSfx(sounds.timpani_sfx);
     btnRipple.classList.remove("active");
     btnRipple.classList.add("hidden"); 
-    
     videoPre.classList.remove("dark-filter"); 
     videoPre.classList.add("video-bright");
     overlay.classList.add("preintro-overlay-clear");
-    
-    setTimeout(() => {
-      switchScene("scene-preintro", "scene-prelude");
-    }, 3000);
+    setTimeout(() => switchScene("scene-preintro", "scene-prelude"), 3000);
   });
 
   /* --- Scene 0: Prelude --- */
@@ -127,31 +127,36 @@ document.addEventListener("DOMContentLoaded", () => {
       const lang = btn.dataset.lang;
       playSfx(sounds.timpani_sfx, 0.5);
 
-      // 안내 문구 (Listening...)
-      statusText.textContent = lang === "en" ? "Listening..." : "Zuhören...";
+      statusText.textContent = lang === "en" ? "Tuning..." : "Stimmen...";
       statusText.classList.add("show");
 
       if (currentVoiceAudio && !currentVoiceAudio.paused) {
         isInterrupting = true;
         currentVoiceAudio.pause(); 
         
-        // 재치 있는 인터럽트 문구 & 효과
+        // Interrupt Effect
         statusText.textContent = "Oops! Tuning the other ear...";
-        statusText.classList.add("glitch");
+        statusText.classList.remove("status-talk");
+        statusText.classList.add("status-panic"); // 2s fast shake
         
         const intFile = lang === "en" ? sounds.int_en : sounds.int_de;
         const intAudio = playSfx(intFile, 1.0);
         
+        // 2초 후 진정 (Slow Talk)
+        setTimeout(() => {
+           statusText.classList.remove("status-panic");
+           statusText.classList.add("status-talk");
+        }, 2000);
+
         if (intAudio) {
           intAudio.onended = () => { setTimeout(() => switchScene("scene-prelude", "scene-main"), 1000); initMain(); };
         } else {
-          setTimeout(() => switchScene("scene-prelude", "scene-main"), 2000);
+          setTimeout(() => switchScene("scene-prelude", "scene-main"), 4000);
           initMain();
         }
         return;
       }
 
-      // Normal Play
       if (lang === "en") {
         dimLayer.classList.add("dim-right"); 
         document.querySelector('[data-lang="de"]').classList.add("fade-out");
@@ -185,16 +190,13 @@ document.addEventListener("DOMContentLoaded", () => {
   const lblRole = document.getElementById("instrumentLabel");
   const lblId = document.getElementById("idLabel");
   const tuneIconsContainer = document.getElementById("tuneIcons");
-  const appBgLayer = document.getElementById("appBgLayer");
   
   const initMain = () => {
-    // Random Role
     myRole = roles[Math.floor(Math.random() * roles.length)];
     lblRole.textContent = myRole.name;
     ownedInstruments = [myRole.id]; 
     renderIcons();
     
-    // Captions slider
     let capIdx = 0;
     const caps = document.querySelectorAll(".hero-caption");
     const dots = document.querySelectorAll(".hero-dot");
@@ -207,7 +209,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }, 5000);
   };
 
-  // [수정] 악기 슬롯 렌더링 (보유: 컬러 / 미보유: 실루엣)
   const renderIcons = () => {
     tuneIconsContainer.innerHTML = "";
     roles.forEach(role => {
@@ -224,49 +225,60 @@ document.addEventListener("DOMContentLoaded", () => {
   btnMute.addEventListener("click", () => {
     isMuted = !isMuted;
     btnMute.classList.toggle("muted", isMuted);
-    
-    // 배경 레이어에만 흑백 필터 적용
-    appBgLayer.classList.toggle("muted", isMuted);
+    document.body.classList.toggle("muted-world", isMuted);
     
     if (bgAudio) bgAudio.volume = isMuted ? 0 : 0.3;
   });
 
-  // Let A Ring Logic
+  // Let A Ring
   const btnTune = document.getElementById("tuneButton");
   btnTune.addEventListener("click", () => {
-    if (isMuted) return; // Mute 확인
+    if (isMuted) return; 
 
     clickCount++;
     triggerHaptic(); 
     
-    // Mozart Egg
+    // [복구] Mozart Effect (Shake -> Type -> Change)
     if (clickCount === 10 && !isMozart) {
       isMozart = true;
-      lblRole.textContent = "MOZART";
-      lblRole.classList.add("mozart");
-      lblId.style.opacity = "0"; 
-      playSfx(sounds.timpani, 1.0); 
+      
+      // 1. Shake for 3s
+      lblRole.classList.add("shaking");
+      
+      // 2. Typing Effect after 3s
+      setTimeout(() => {
+        lblRole.classList.remove("shaking");
+        lblRole.textContent = "";
+        lblRole.classList.add("mozart");
+        
+        const target = "MOZART";
+        let i = 0;
+        const typer = setInterval(() => {
+          lblRole.textContent += target.charAt(i);
+          i++;
+          if(i >= target.length) clearInterval(typer);
+        }, 200); // Typing speed
+        
+        lblId.style.opacity = "0"; 
+        playSfx(sounds.timpani, 1.0); 
+      }, 3000);
     }
 
     if (isMozart) {
-      // Play Random
       const keys = ["cellos", "trumpets", "violins2", "timpani"];
-      const randomKey = keys[Math.floor(Math.random() * keys.length)];
-      playSfx(sounds[randomKey]);
+      const rKey = keys[Math.floor(Math.random() * keys.length)];
+      playSfx(sounds[rKey]);
       
-      // 모차르트는 랜덤 악기 획득
-      if(!ownedInstruments.includes(randomKey)) {
-         ownedInstruments.push(randomKey);
+      if(!ownedInstruments.includes(rKey)) {
+         ownedInstruments.push(rKey); 
          renderIcons();
       }
     } else {
-      // Play All Owned
       ownedInstruments.forEach(id => {
         playSfx(sounds[id]);
       });
     }
 
-    // Glow Effect
     heroImgWrapper.classList.add("glowing");
     screenGlow.classList.add("screen-glow-active");
     setTimeout(() => {
@@ -287,15 +299,18 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 
+  // Toast Close
+  document.getElementById("closeToast").addEventListener("click", () => {
+    document.getElementById("infoToast").classList.remove("show");
+  });
+
   /* --- Genius Interactions --- */
-  // 1. Gyroscope Parallax
   const initParallax = () => {
     if (window.DeviceOrientationEvent) {
       window.addEventListener("deviceorientation", (event) => {
         if (!heroImgWrapper) return;
         const tiltX = event.gamma; 
         const tiltY = event.beta;  
-        // 움직임 강조 (x2)
         const moveX = tiltX * 2;
         const moveY = tiltY * 2;
         heroImgWrapper.style.transform = `translate(${moveX}px, ${moveY}px)`;
@@ -303,7 +318,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   };
 
-  // 2. Breathing Light
   let idleTimer;
   const breathingLayer = document.getElementById("breathingLayer");
   const resetIdleTimer = () => {
@@ -317,29 +331,22 @@ document.addEventListener("DOMContentLoaded", () => {
     document.addEventListener(evt, resetIdleTimer);
   });
 
-  // 3. Conducting Mode (Shake to Play)
   const initShakeDetection = () => {
     let lastX = 0, lastY = 0, lastZ = 0;
     window.addEventListener('devicemotion', (event) => {
-      // 악기가 2개 이상이고 Mute가 아닐 때만
       if (ownedInstruments.length < 2 || isMuted) return;
-
       const acc = event.accelerationIncludingGravity;
       if (!acc) return;
-
       const deltaX = Math.abs(acc.x - lastX);
       const deltaY = Math.abs(acc.y - lastY);
       const deltaZ = Math.abs(acc.z - lastZ);
 
-      // 강하게 흔들면 (Threshold 25)
-      if (deltaX + deltaY + deltaZ > 25) {
+      if (deltaX + deltaY + deltaZ > 30) { // Shake Threshold
         triggerHaptic();
-        // Play All Owned Sounds (Tutti!)
         ownedInstruments.forEach(id => playSfx(sounds[id]));
         screenGlow.classList.add("screen-glow-active");
         setTimeout(() => screenGlow.classList.remove("screen-glow-active"), 2000);
       }
-
       lastX = acc.x; lastY = acc.y; lastZ = acc.z;
     });
   };
@@ -387,7 +394,6 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
     btnOrch.textContent = "Scanning...";
-    
     navigator.geolocation.watchPosition((position) => {
       const lat = position.coords.latitude;
       const lng = position.coords.longitude;
@@ -414,7 +420,6 @@ document.addEventListener("DOMContentLoaded", () => {
         generateGhosts(lat, lng);
         
         ghosts.forEach((g, idx) => {
-          // 유령은 처음엔 물음표나 유령 아이콘
           const roleIcon = roles.find(r => r.id === g.roleId).icon;
           const ghostIcon = L.divIcon({
             className: 'custom-pin',
@@ -436,7 +441,6 @@ document.addEventListener("DOMContentLoaded", () => {
         
         if (dist < 5 && !g.collected) {
           g.collected = true;
-          // [수정] 중복 체크 후 악기 추가
           if(!ownedInstruments.includes(g.roleId)) {
              ownedInstruments.push(g.roleId); 
              renderIcons();
@@ -445,7 +449,6 @@ document.addEventListener("DOMContentLoaded", () => {
           playSfx(sounds.timpani_sfx);
           triggerHaptic(); 
           
-          // 유령 아이콘을 해당 악기로 변경
           const roleIcon = roles.find(r => r.id === g.roleId).icon;
           ghostMarkers[idx].setIcon(L.divIcon({
             className: 'custom-pin',
@@ -454,12 +457,9 @@ document.addEventListener("DOMContentLoaded", () => {
             iconAnchor: [10, 10]
           }));
         }
-        
         if (g.collected) nearbyCount++;
       });
-      
       orchStatus.textContent = `Ensemble: ${nearbyCount + 1} players`;
-
     }, (error) => {
       console.log("Geo error:", error);
       gpsStatus.textContent = "Error";

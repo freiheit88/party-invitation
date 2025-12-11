@@ -14,6 +14,8 @@
 <body>
   <div class="app-shell">
     
+    <div id="muteOverlay" class="mute-overlay"></div>
+
     <section id="scene-preintro" class="scene scene-visible">
       <video id="preintroVideo" class="scene-video dark-filter" autoplay muted playsinline loop>
         <source src="media/preintro_glass_fog.mp4" type="video/mp4" />
@@ -148,9 +150,6 @@
                    </div>
                  </div>
                  <button id="orchestraJoinBtn" class="orchestra-btn">Start Radar</button>
-                 <p class="hint-text" style="margin-top:10px; font-size: 0.7rem; color: #666;">
-                   Tip: Shake your phone to conduct!
-                 </p>
                </div>
             </section>
           </main>
@@ -159,6 +158,18 @@
         </div>
       </div>
     </section>
+
+    <div id="infoToast" class="info-toast">
+      <div class="toast-content">
+        <span class="toast-icon">🎻</span>
+        <div class="toast-text">
+          <p class="toast-title">Did you know?</p>
+          <p class="toast-desc">Orchestras always tune to 'A'. The sound of various instruments finding their pitch is mesmerizing. Let's gather and tune together!</p>
+        </div>
+        <button id="closeToast" class="toast-close">×</button>
+      </div>
+    </div>
+
   </div>
   
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
