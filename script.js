@@ -29,13 +29,11 @@ document.addEventListener("DOMContentLoaded", () => {
   let clickCount = 0;
   let isMozart = false;
   
-  // Audio 객체를 저장할 Set
   const activeAudios = new Set();
 
   /* --- Utils --- */
-  // [수정] 오디오 재생 시 activeAudios에 추가하고 관리
   const playSfx = (path, vol = 1.0) => {
-    if (isMuted) return null; // Mute 확인
+    if (isMuted) return null;
     const a = new Audio(path);
     a.volume = vol;
     a.play().catch(e => console.log("Audio play error:", e));
@@ -87,7 +85,7 @@ document.addEventListener("DOMContentLoaded", () => {
         initParallax(); 
         resetIdleTimer(); 
         initShakeDetection(); 
-        startIntroSlider(); // [NEW] 슬라이더 시작
+        startIntroSlider(); 
       }, 100);
     }
   };
@@ -99,28 +97,26 @@ document.addEventListener("DOMContentLoaded", () => {
     const dots = document.querySelectorAll(".dot");
     const closeBtn = document.getElementById("closeSlider");
     
-    // Show Popup
     setTimeout(() => popup.classList.add("show"), 500);
 
     let slideIndex = 0;
     const totalSlides = 3;
+    let sliderTimer = null;
     
     const nextSlide = () => {
-      slideIndex++;
-      if (slideIndex < totalSlides) {
-        track.style.transform = `translateX(-${slideIndex * 33.33}%)`; // Track width 300%
-        dots.forEach((d, i) => d.classList.toggle("active", i === slideIndex));
-        setTimeout(nextSlide, 2500); // 2.5초 대기
-      } else {
-        // 끝남: X 버튼 표시
-        closeBtn.classList.add("visible");
-      }
+      slideIndex = (slideIndex + 1) % totalSlides; // 무한 루프
+      track.style.transform = `translateX(-${slideIndex * 33.33}%)`;
+      dots.forEach((d, i) => d.classList.toggle("active", i === slideIndex));
+      
+      // X 버튼은 한 바퀴 돌면 표시
+      if (slideIndex === 0) closeBtn.classList.add("visible");
     };
 
-    setTimeout(nextSlide, 2500); // 첫 슬라이드 2.5초 대기
+    sliderTimer = setInterval(nextSlide, 4000); // 4초 간격
 
     closeBtn.addEventListener("click", () => {
       popup.classList.remove("show");
+      clearInterval(sliderTimer);
     });
   };
 
@@ -168,7 +164,8 @@ document.addEventListener("DOMContentLoaded", () => {
         isInterrupting = true;
         currentVoiceAudio.pause(); 
         
-        statusText.textContent = "Whoops! Changing outfit!";
+        // [수정] 줄바꿈 추가 (innerHTML 사용)
+        statusText.innerHTML = "Whoops!<br>Tuning the other ear...";
         statusText.classList.remove("status-talk");
         statusText.classList.add("status-panic"); 
         
@@ -252,7 +249,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   };
 
-  // [수정] Mute Logic: 모든 소리 0 + 클릭 차단 해제
+  // Mute Logic
   const btnMute = document.getElementById("musicToggle");
   btnMute.addEventListener("click", () => {
     isMuted = !isMuted;
@@ -261,7 +258,7 @@ document.addEventListener("DOMContentLoaded", () => {
     
     if (isMuted) {
       if (bgAudio) bgAudio.volume = 0;
-      activeAudios.forEach(a => a.volume = 0); // 즉시 모든 소리 0
+      activeAudios.forEach(a => a.volume = 0); 
     } else {
       if (bgAudio) bgAudio.volume = 0.3;
       activeAudios.forEach(a => a.volume = 1.0);
@@ -294,7 +291,8 @@ document.addEventListener("DOMContentLoaded", () => {
           if(i >= target.length) clearInterval(typer);
         }, 200); 
         
-        lblId.style.opacity = "0"; 
+        // [수정] YOU ARE 문구 유지 및 색상 변경 (CSS에서 처리됨)
+        // lblId.style.opacity = "0"; // 삭제
         playSfx(sounds.timpani, 1.0); 
       }, 3000);
     }
@@ -341,8 +339,9 @@ document.addEventListener("DOMContentLoaded", () => {
         if (!heroImgWrapper) return;
         const tiltX = event.gamma; 
         const tiltY = event.beta;  
-        const moveX = tiltX * 2;
-        const moveY = tiltY * 2;
+        // [수정] 약한 자이로 (0.25배)
+        const moveX = tiltX / 4;
+        const moveY = tiltY / 4;
         heroImgWrapper.style.transform = `translate(${moveX}px, ${moveY}px)`;
       }, true);
     }
