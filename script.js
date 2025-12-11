@@ -172,7 +172,7 @@ function startBackgroundMusicFromPreintro() {
     .play()
     .then(() => {
       bgTargetVolume = 0.3; 
-      // [최종] BG 음악 페이드인 시간을 5초로 조정
+      // [수정] BG 음악 페이드인 시간을 5초로 조정
       fadeBgTo(bgTargetVolume, 5000); 
     })
     .catch(() => {
@@ -185,7 +185,7 @@ function duckBgDuring(sampleDurationMs) {
   if (!bgAudio) return;
   fadeBgTo(0, 300);
   setTimeout(() => {
-    // [최종] 오디오 덕킹 시간을 7초로 늘려 안정화
+    // [수정] 오디오 덕킹 시간을 7초로 늘려 안정화
     fadeBgTo(bgTargetVolume, 7000); 
   }, sampleDurationMs + 300);
 }
@@ -203,7 +203,7 @@ function playTimpani() {
   audio.play().catch(() => {});
 }
 
-// [최종] 터치 시 Timpani 재생을 처리하는 범용 함수
+// [추가] 터치 시 Timpani 재생을 처리하는 범용 함수
 function handleTimpaniTouch() {
   const now = Date.now();
   if (now - timpaniLastPlayedTime < 200) return; 
@@ -265,7 +265,7 @@ function updateOwnedInstrumentsHint() {
   }
 }
 
-// [최종] 모차르트 모드 활성화 및 UI 효과
+// [수정] 모차르트 모드 활성화 및 UI 효과
 function activateMozartMode() {
   if (mozartMode) return;
   mozartMode = true;
@@ -458,7 +458,7 @@ function leavePreintroToPrelude() {
     preintroRipple.classList.add("preintro-ripple-leaving");
   }
   
-  // Scene 전환 시 Timpani 중복 재생 방지 (다른 터치/클릭에서 이미 재생됨)
+  // Scene 전환 시 Timpani 중복 재생 방지
   // playTimpani(); // 제거
 
   setTimeout(() => {
@@ -792,6 +792,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // Scene -1의 두 번째 단계: Ripple 클릭 핸들러
   if (preintroRipple) {
       preintroRipple.addEventListener("click", () => {
+          // [수정] 플래그를 사용하여 중복 호출 방지 및 안정화
           if (preintroRipple.classList.contains("preintro-ripple-active") && !preintroTransitionStarted) {
               preintroTransitionStarted = true; 
               
