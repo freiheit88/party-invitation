@@ -3,7 +3,9 @@ document.addEventListener("DOMContentLoaded", () => {
   let bgAudio = null;
   let isMuted = false;
   let currentVoiceAudio = null; 
-  
+  let duckTimer = null; // 오디오 덕킹용 타이머
+  let activeAudios = new Set(); // 활성 오디오 추적용
+
   const roles = [
     { id: "cellos", name: "Cellos", icon: "🎻" },
     { id: "trumpets", name: "Trumpets", icon: "🎺" },
@@ -28,19 +30,15 @@ document.addEventListener("DOMContentLoaded", () => {
   let ownedInstruments = [];
   let clickCount = 0;
   let isMozart = false;
-  let activeAudios = new Set(); // 현재 재생 중인 오디오 추적
 
   /* --- Utils --- */
-  
   const playSfx = (path, vol = 1.0) => {
-    // Mute 상태면 아예 재생하지 않음
     if (isMuted) return null;
-    
     const a = new Audio(path);
     a.volume = vol;
     a.play().catch(e => console.log("Audio play error:", e));
     
-    // 활성 오디오 목록에 추가 (나중에 Mute 누르면 끄기 위해)
+    // Mute 추적을 위해 Set에 추가
     activeAudios.add(a);
     a.onended = () => activeAudios.delete(a);
     
@@ -62,6 +60,31 @@ document.addEventListener("DOMContentLoaded", () => {
         bgAudio.volume = v;
       }, 100);
     }).catch(e => console.log("BG play error:", e));
+  };
+
+  // [수정] 오디오 덕킹 로직 개선 (겹침 방지)
+  const duckBgDuring = (duration = 3000) => {
+    if (!bgAudio || isMuted) return;
+    
+    // 기존 타이머 취소
+    if (duckTimer) clearTimeout(duckTimer);
+    
+    // 즉시 줄임
+    bgAudio.volume = 0.05;
+    
+    // 일정 시간 후 복구
+    duckTimer = setTimeout(() => {
+      if (!isMuted) {
+        // 부드럽게 복구
+        let v = 0.05;
+        const fade = setInterval(() => {
+          if (isMuted) { clearInterval(fade); return; }
+          v += 0.02;
+          if (v >= 0.3) { v = 0.3; clearInterval(fade); }
+          bgAudio.volume = v;
+        }, 100);
+      }
+    }, duration);
   };
 
   /* --- Scene Transition Logic --- */
@@ -90,24 +113,39 @@ document.addEventListener("DOMContentLoaded", () => {
     playSfx(sounds.timpani_sfx);
     playBgMusic();
     
-    document.getElementById("preintroUi").style.display = "none";
+    // 버튼에 페이드 아웃 클래스 추가
+    btnTouch.classList.add("fade-out-btn");
     
-    btnRipple.style.display = "block";
-    setTimeout(() => btnRipple.classList.add("active"), 100);
+    // 1초 뒤 사라지고 리플 등장
+    setTimeout(() => {
+      document.getElementById("preintroUi").style.display = "none";
+      btnRipple.style.display = "block";
+      // 리플 서서히 등장
+      requestAnimationFrame(() => btnRipple.classList.add("visible"));
+    }, 1000);
   });
 
   btnRipple.addEventListener("click", () => {
     playSfx(sounds.timpani_sfx);
-    btnRipple.classList.remove("active");
-    btnRipple.classList.add("hidden"); 
     
-    videoPre.classList.remove("dark-filter"); 
-    videoPre.classList.add("video-bright");
-    overlay.classList.add("preintro-overlay-clear");
+    // 리플 서서히 사라짐
+    btnRipple.classList.remove("visible");
+    btnRipple.classList.add("fading-out");
     
+    // 1초 뒤 리플 완전히 제거 및 화면 밝아짐 시작
     setTimeout(() => {
-      switchScene("scene-preintro", "scene-prelude");
-    }, 3000);
+      btnRipple.classList.add("hidden"); 
+      
+      // 비디오 밝아짐 & 오버레이 제거
+      videoPre.classList.remove("dark-filter"); 
+      videoPre.classList.add("video-bright");
+      overlay.classList.add("preintro-overlay-clear");
+      
+      // 3초 뒤 씬 전환
+      setTimeout(() => {
+        switchScene("scene-preintro", "scene-prelude");
+      }, 3000);
+    }, 1000);
   });
 
   /* --- Scene 0: Prelude --- */
@@ -198,7 +236,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   };
 
-  // Mute Logic (Updated to kill all sound immediately)
+  // Mute Logic
   const btnMute = document.getElementById("musicToggle");
   btnMute.addEventListener("click", () => {
     isMuted = !isMuted;
@@ -224,10 +262,10 @@ document.addEventListener("DOMContentLoaded", () => {
     if (isMuted) return;
 
     clickCount++;
-    
+    duckBgDuring(3000); // 3초간 배경음악 줄임
+
     if (clickCount === 10 && !isMozart) {
       isMozart = true;
-      // "You are" 라벨 흐리게 처리
       lblId.style.opacity = "0"; 
       playSfx(sounds.timpani, 1.0); 
       
