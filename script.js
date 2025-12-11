@@ -2,7 +2,7 @@ document.addEventListener("DOMContentLoaded", () => {
   /* --- Global State --- */
   let bgAudio = null;
   let isMuted = false;
-  let currentVoiceAudio = null; // 현재 재생 중인 음성 추적
+  let currentVoiceAudio = null; 
   
   // Instrument Setup
   const roles = [
@@ -56,29 +56,31 @@ document.addEventListener("DOMContentLoaded", () => {
     }).catch(e => console.log("BG play error:", e));
   };
 
-  /* --- Scene Transition Logic (검은 화면 버그 수정 핵심) --- */
+  /* --- Scene Transition Logic --- */
+  // 이 함수가 핵심입니다. 기존 CSS 클래스 의존도를 낮추고 직접 스타일을 제어합니다.
   const switchScene = (fromId, toId) => {
     const fromEl = document.getElementById(fromId);
     const toEl = document.getElementById(toId);
 
-    // 1. 현재 씬 숨기기 (opacity 0 -> display none)
+    // 1. 현재 씬 숨기기
+    fromEl.style.display = "none";
     fromEl.classList.remove("scene-visible");
-    setTimeout(() => {
-      fromEl.style.display = "none";
-      
-      // 2. 다음 씬 준비 (display block -> opacity 1)
-      toEl.style.display = "block";
-      // 브라우저가 display:block을 인식할 시간을 아주 잠깐 줌
-      requestAnimationFrame(() => {
-        toEl.classList.add("scene-visible");
-      });
-    }, 1000); // 1초 뒤 완전히 교체
+
+    // 2. 다음 씬 보이기
+    toEl.style.display = "block";
+    
+    // 3. Prelude인 경우 5초 페이드인 효과 적용
+    if (toId === "scene-prelude") {
+      toEl.classList.add("fade-in-slow"); // CSS 애니메이션 적용
+    } else {
+      toEl.classList.add("scene-visible");
+    }
   };
 
   /* --- Scene -1: Pre-intro --- */
   const btnTouch = document.getElementById("preintroTouchBtn");
   const btnRipple = document.getElementById("preintroRipple");
-  const overlay = document.getElementById("preintroOverlay");
+  const videoPre = document.getElementById("preintroVideo");
   
   btnTouch.addEventListener("click", () => {
     playSfx(sounds.timpani_sfx);
@@ -94,8 +96,9 @@ document.addEventListener("DOMContentLoaded", () => {
     playSfx(sounds.timpani_sfx);
     btnRipple.classList.remove("active");
     
-    // 오버레이 밝아짐 (3초)
-    overlay.classList.add("preintro-overlay-clear"); 
+    // 비디오 필터를 제거해서 밝게 만듦 (3초 트랜지션)
+    videoPre.classList.remove("dark-filter"); 
+    videoPre.classList.add("video-bright");
     
     // 3초 뒤 씬 전환 (Pre-intro -> Prelude)
     setTimeout(() => {

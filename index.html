@@ -4,8 +4,6 @@
   <meta charset="UTF-8" />
   <title>Sean’s Party Invitation</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;700&family=Manrope:wght@300;400;600&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="style.css" />
 </head>
@@ -13,11 +11,9 @@
   <div class="app-shell">
     
     <section id="scene-preintro" class="scene scene-visible">
-      <video id="preintroVideo" class="scene-video" autoplay muted playsinline loop>
+      <video id="preintroVideo" class="scene-video dark-filter" autoplay muted playsinline loop>
         <source src="media/preintro_glass_fog.mp4" type="video/mp4" />
       </video>
-
-      <div class="scene-overlay scene-overlay-dark" id="preintroOverlay"></div>
 
       <div class="preintro-ui" id="preintroUi">
         <button class="preintro-btn" id="preintroTouchBtn" type="button">
