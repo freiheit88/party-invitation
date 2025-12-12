@@ -1,318 +1,198 @@
-:root {
-  --bg: #05070a;
-  --accent: #f5e6b8;
-  --accent-glow: rgba(245, 230, 184, 0.6);
-  --text-main: #f8f7f4;
-  --text-soft: #a7a5a0;
-  --glass-bg: rgba(20, 20, 25, 0.6);
-  --glass-border: rgba(255, 255, 255, 0.15);
-  --button-bg: #202331;
-  --button-border: rgba(245, 230, 184, 0.7);
-}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Sean’s Party Invitation</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;700&family=Manrope:wght@300;400;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="app-shell">
+    
+    <div id="muteOverlay" class="mute-overlay"></div>
+    <div id="popupBackdrop" class="popup-backdrop"></div>
 
-*, *::before, *::after { box-sizing: border-box; }
-html, body { margin: 0; padding: 0; height: 100%; width: 100%; overflow: hidden; }
-body { font-family: "Manrope", sans-serif; background: #000; color: var(--text-main); }
+    <section id="scene-preintro" class="scene scene-visible">
+      <video id="preintroVideo" class="scene-video dark-filter" autoplay muted playsinline loop>
+        <source src="media/preintro_glass_fog.mp4" type="video/mp4" />
+      </video>
+      <div class="scene-overlay scene-overlay-dark" id="preintroOverlay"></div>
+      <div class="preintro-ui" id="preintroUi">
+        <button class="preintro-btn" id="preintroTouchBtn" type="button">
+          <span class="preintro-line preintro-line-main">Touch here!</span>
+          <span class="preintro-line preintro-line-soft">Volume UP 🎧🔊</span>
+        </button>
+      </div>
+      <button class="preintro-ripple" id="preintroRipple" type="button" aria-label="Continue"></button>
+    </section>
 
-/* Earthquake Effect (Body Shake) */
-@keyframes earthquake {
-  0% { transform: translate(1px, 1px) rotate(0deg); }
-  10% { transform: translate(-1px, -2px) rotate(-1deg); }
-  20% { transform: translate(-3px, 0px) rotate(1deg); }
-  30% { transform: translate(3px, 2px) rotate(0deg); }
-  40% { transform: translate(1px, -1px) rotate(1deg); }
-  50% { transform: translate(-1px, 2px) rotate(-1deg); }
-  60% { transform: translate(-3px, 1px) rotate(0deg); }
-  70% { transform: translate(3px, 1px) rotate(-1deg); }
-  80% { transform: translate(-1px, -1px) rotate(1deg); }
-  90% { transform: translate(1px, 2px) rotate(0deg); }
-  100% { transform: translate(1px, -2px) rotate(-1deg); }
-}
-body.earthquake .app-shell {
-  animation: earthquake 0.5s cubic-bezier(.36,.07,.19,.97) both infinite;
-}
+    <section id="scene-prelude" class="scene">
+      <div class="prelude-video-frame">
+        <video id="preludeVideo" class="prelude-video-rotated" autoplay muted playsinline loop>
+          <source src="media/prelude_study_sideways.mp4" type="video/mp4" />
+        </video>
+      </div>
+      <div class="prelude-dim-layer" id="preludeDimLayer"></div>
+      
+      <div id="preludeError" class="prelude-error-screen">
+        <div class="error-content">
+          <div class="error-icon">⚠️</div>
+          <div class="error-title">SYSTEM OVERLOAD</div>
+          <div class="error-desc">Too many requests.<br>Conductor is dizzy @.@</div>
+        </div>
+      </div>
 
-.app-shell { position: relative; width: 100%; height: 100%; overflow: hidden; }
+      <div class="prelude-overlay">
+        <div class="prelude-header">
+          <div class="prelude-tag">Dress the page in a language</div>
+          <div class="prelude-status" id="preludeStatus"></div>
+        </div>
+      </div>
+      <div class="prelude-zones">
+        <div class="prelude-zone prelude-zone-left" id="preludeZoneLeft">
+          <button class="prelude-language-btn" data-lang="en" type="button">
+            <span class="flag-icon">🇬🇧</span><span class="lang-text">EN</span>
+          </button>
+        </div>
+        <div class="prelude-zone prelude-zone-right" id="preludeZoneRight">
+          <button class="prelude-language-btn" data-lang="de" type="button">
+            <span class="flag-icon">🇩🇪</span><span class="lang-text">DE</span>
+          </button>
+        </div>
+      </div>
+    </section>
 
-.mute-overlay {
-  position: absolute; inset: 0; pointer-events: none; z-index: 900;
-  background: rgba(0,0,0,0.6); backdrop-filter: grayscale(1) saturate(0);
-  opacity: 0; transition: opacity 0.5s ease;
-}
-body.muted-world .mute-overlay { opacity: 1; }
+    <section id="scene-main" class="scene">
+      <div class="app">
+        <div class="app-background-layer" id="appBgLayer">
+          <div class="breathing-layer" id="breathingLayer"></div>
+          <div class="screen-glow-layer" id="screenGlow"></div>
+        </div>
 
-.popup-backdrop {
-  position: absolute; inset: 0; z-index: 1900; pointer-events: none;
-  background: rgba(0,0,0,0.4); backdrop-filter: blur(8px);
-  opacity: 0; transition: opacity 0.5s ease;
-}
-.popup-backdrop.visible { opacity: 1; pointer-events: auto; }
+        <div class="app-ui-layer">
+          <div class="tabs">
+            <button class="tab-btn active" data-tab="invitation">Invitation</button>
+            <button class="tab-btn" data-tab="program">Program</button>
+            <button class="tab-btn" data-tab="orchestra">Orchestra</button>
+          </div>
 
-.scene { position: absolute; inset: 0; display: none; }
-.scene-visible { display: block; }
-.scene-video { width: 100%; height: 100%; object-fit: cover; }
+          <main class="tab-container">
+            <section id="tab-invitation" class="tab-panel active">
+              <div class="cinematic-stage">
+                <div class="stage-image-wrapper" id="heroImageWrapper">
+                  <img src="picture/AlteOper.png" alt="Frankfurt Alte Oper" class="stage-image" />
+                  
+                  <div class="stage-overlay-ui">
+                    <div class="stage-top-row">
+                      <button id="musicToggle" class="icon-btn" aria-label="Mute Toggle">
+                        <span class="icon-on">🔊</span><span class="icon-off">🔇</span>
+                      </button>
+                      <div class="user-identity">
+                        <span class="id-label" id="idLabel">You are</span>
+                        <span class="id-value" id="instrumentLabel">...</span>
+                      </div>
+                    </div>
 
-/* Pre-intro */
-#scene-preintro .scene-video.dark-filter { filter: brightness(0.1); transition: filter 3s ease; }
-.video-bright { filter: brightness(1.0) !important; }
+                    <div class="stage-bottom-row">
+                      <button id="tuneButton" class="action-btn">
+                        <span class="btn-text">Let A Ring</span>
+                        <div class="instrument-slots" id="tuneIcons"></div>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+                
+                <div class="stage-caption-area">
+                  <div class="hero-caption-slider">
+                    <div class="hero-caption hero-caption-active">One square, one note, one evening in Frankfurt.</div>
+                    <div class="hero-caption">Saturday, 14 June 2025 · 19:30</div>
+                  </div>
+                  <div class="hero-dots" id="heroDots">
+                    <span class="hero-dot hero-dot-active"></span>
+                    <span class="hero-dot"></span>
+                  </div>
+                </div>
+              </div>
+            </section>
+            
+            <section id="tab-program" class="tab-panel">
+              <div class="program-wrapper">
+                <h1 class="orch-title">The Evening</h1>
+                <div class="timeline">
+                  <div class="timeline-item">
+                    <span class="time">19:30</span><span class="event">Gathering at Alte Oper</span>
+                  </div>
+                  <div class="timeline-item">
+                    <span class="time">20:00</span><span class="event">The First Note (A)</span>
+                  </div>
+                  <div class="timeline-item">
+                    <span class="time">20:30</span><span class="event">Ensemble Walk</span>
+                  </div>
+                  <div class="timeline-item">
+                    <span class="time">21:00</span><span class="event">Secret Dinner</span>
+                  </div>
+                </div>
+              </div>
+            </section>
 
-.scene-overlay-dark {
-  background-color: rgba(0, 0, 0, 0.85); transition: opacity 3s ease;
-  opacity: 1; position: absolute; inset: 0; pointer-events: none; z-index: 10;
-}
-.preintro-overlay-clear { opacity: 0; }
+            <section id="tab-orchestra" class="tab-panel">
+               <div id="orchestraToast" class="coming-soon-toast">
+                 <span class="typing-text">Coming Online Soon...</span>
+               </div>
+               
+               <div class="orchestra-wrapper">
+                 <h1 class="orch-title">Ensemble Radar</h1>
+                 <p class="orch-desc">Collect instruments (5m)</p>
+                 <div id="map" class="radar-map"></div>
+                 <div class="orchestra-status-box">
+                   <div class="status-row">
+                     <span class="lbl">GPS</span><span class="val" id="gpsStatus">Waiting...</span>
+                   </div>
+                   <div class="status-row">
+                     <span class="lbl">Harmony</span><span class="val" id="harmonicsStatus">Solo</span>
+                   </div>
+                 </div>
+                 <button id="orchestraJoinBtn" class="orchestra-btn">Allow Location Magic ✨</button>
+               </div>
+            </section>
+          </main>
+          
+          <footer class="footer">Sean’s party · tuned in A</footer>
+        </div>
+      </div>
+    </section>
 
-.preintro-ui { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; z-index: 20; pointer-events: none; }
+    <div id="introSlider" class="intro-slider-popup">
+      <div class="slider-content">
+        <div class="slider-track" id="sliderTrack">
+          <div class="slide">
+            <span class="slide-icon">🎻</span>
+            <p class="slide-text">Did you know?<br><br>Every orchestra tunes<br>to a single note: <strong>'A'</strong>.</p>
+          </div>
+          <div class="slide">
+            <span class="slide-icon">🎼</span>
+            <p class="slide-text">That moment when various<br>instruments gather to find<br>perfect pitch is mesmerizing.</p>
+          </div>
+          <div class="slide">
+            <span class="slide-icon">✨</span>
+            <p class="slide-text">Let's gather your own ensemble!<br><br>Tap <span class="highlight-text">'Let A Ring'</span><br>to start tuning together.</p>
+          </div>
+        </div>
+      </div>
+      <div class="slider-dots" id="sliderDots">
+        <span class="dot active"></span><span class="dot"></span><span class="dot"></span>
+      </div>
+      <button id="closeSlider" class="slider-close-btn hidden">✕</button>
+    </div>
 
-.preintro-btn {
-  pointer-events: auto; cursor: pointer; display: inline-block; margin: 0; padding: 20px 40px;
-  border-radius: 999px; border: 1px solid rgba(245, 230, 184, 0.5); background: rgba(10, 12, 18, 0.8);
-  color: var(--accent); text-align: center; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8);
-  animation: breathe 2s ease-in-out infinite; backdrop-filter: blur(5px);
-}
-.preintro-line-main { font-family: "Playfair Display", serif; font-size: 2.5rem; color: var(--accent); text-shadow: 0 0 20px var(--accent-glow); font-weight: 700; display: block; }
-.preintro-line-soft { font-size: 1rem; color: #fff; opacity: 0.6; margin-top: 10px; font-weight: 300; letter-spacing: 0.1em; display: block; }
-@keyframes breathe { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.03); } }
-
-.preintro-ripple {
-  position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 140px; height: 140px;
-  border-radius: 50%; background: rgba(255,255,255,0.05); border: 1px solid var(--accent);
-  display: none; z-index: 30; cursor: pointer; pointer-events: auto; transition: opacity 0.3s;
-}
-.preintro-ripple.hidden { display: none !important; } 
-.preintro-ripple::after {
-  content: "Click Again!"; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-  color: var(--accent); font-size: 1.1rem; font-weight: 700; letter-spacing: 0.1em; white-space: nowrap;
-}
-.preintro-ripple.active { animation: ripplePulse 1.5s infinite; }
-@keyframes ripplePulse { 0% { box-shadow: 0 0 0 0 rgba(245, 230, 184, 0.4); } 70% { box-shadow: 0 0 0 30px rgba(245, 230, 184, 0); } }
-
-/* Prelude */
-.fade-in-slow { animation: fadeIn 5s ease-in-out forwards; }
-@keyframes fadeIn { from { opacity: 0; filter: brightness(0); } to { opacity: 1; filter: brightness(1); } }
-
-.prelude-video-rotated {
-  position: absolute; top: 50%; left: 50%; width: 100vh; height: 100vw;
-  transform: translate(-50%, -50%) rotate(90deg); object-fit: cover;
-}
-
-.prelude-dim-layer {
-  position: absolute; inset: 0; z-index: 5; pointer-events: none;
-  background: transparent; transition: background 3s ease;
-}
-.dim-right { background: linear-gradient(to top, rgba(0,0,0,0.95) 50%, transparent 50%); }
-.dim-left { background: linear-gradient(to bottom, rgba(0,0,0,0.95) 50%, transparent 50%); }
-
-.prelude-overlay { position: absolute; inset: 0; z-index: 10; pointer-events: none; }
-
-/* [수정] Dress the page... 좌측 벽에 밀착, 90도 회전 (위->아래) */
-.prelude-tag {
-  position: absolute;
-  top: 50%; left: 10px; /* 좌측 가장자리에 밀착 */
-  transform: translateY(-50%) rotate(90deg); /* 위에서 아래로 읽힘 */
-  font-size: 1.1rem; color: var(--accent); letter-spacing: 0.1em;
-  background: rgba(0,0,0,0.6); padding: 10px 20px; border-radius: 20px;
-  text-align: center; white-space: nowrap;
-}
-
-.prelude-status {
-  position: absolute; top: 50%; left: 50%; 
-  transform: translate(-50%, -50%) rotate(90deg);
-  font-size: 1.3rem; color: #fff; text-shadow: 0 0 10px rgba(0,0,0,0.8); opacity: 0;
-  transition: opacity 0.3s; font-family: "Playfair Display", serif; text-align: center;
-  width: 300px;
-}
-.prelude-status.show { opacity: 1; }
-
-.status-panic { animation: panicShake 0.1s infinite; color: #ff5555; }
-.status-talk { animation: talkPulse 1.5s infinite ease-in-out; color: #ffaaaa; }
-
-@keyframes panicShake {
-  0% { transform: translate(-50%, -50%) rotate(90deg) translate(2px, 1px); }
-  50% { transform: translate(-50%, -50%) rotate(90deg) translate(-1px, -2px); }
-  100% { transform: translate(-50%, -50%) rotate(90deg) translate(-3px, 0px); }
-}
-@keyframes talkPulse {
-  0%, 100% { transform: translate(-50%, -50%) rotate(90deg) scale(1); opacity: 0.9; }
-  50% { transform: translate(-50%, -50%) rotate(90deg) scale(1.1); opacity: 1; text-shadow: 0 0 20px #fff; }
-}
-
-.prelude-error-screen {
-  position: absolute; inset: 0; z-index: 100; background: rgba(50, 0, 0, 0.9);
-  display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.2s;
-}
-.prelude-error-screen.show { opacity: 1; pointer-events: auto; }
-.error-content { transform: rotate(90deg); text-align: center; color: #ff5555; animation: glitch 0.2s infinite; }
-.error-icon { font-size: 3rem; margin-bottom: 10px; }
-.error-title { font-family: "Courier New", monospace; font-size: 1.5rem; font-weight: 700; border: 2px solid #ff5555; padding: 5px 10px; display: inline-block; margin-bottom: 10px; }
-.error-desc { font-family: "Courier New", monospace; font-size: 1rem; line-height: 1.4; color: #fff; }
-@keyframes glitch { 0% { transform: rotate(90deg) translate(2px, 0); } 50% { transform: rotate(90deg) translate(-2px, 2px); } }
-
-body.earthquake .app-shell { animation: earthquake 0.5s cubic-bezier(.36,.07,.19,.97) both infinite; }
-
-.prelude-zones { position: absolute; inset: 0; z-index: 20; display: flex; flex-direction: column; }
-.prelude-zone { flex: 1; display: flex; align-items: center; justify-content: center; }
-.prelude-language-btn {
-  background: none; border: none; cursor: pointer; transform: rotate(90deg);
-  display: flex; flex-direction: column; align-items: center; gap: 15px;
-  transition: transform 0.2s, opacity 0.5s; opacity: 1; 
-}
-.prelude-language-btn:active { transform: rotate(90deg) scale(0.9); }
-.flag-icon { font-size: 3.5rem; filter: drop-shadow(0 0 10px rgba(0,0,0,0.5)); }
-.lang-text { font-size: 1.5rem; font-weight: 700; color: #fff; letter-spacing: 0.2em; }
-.fade-out { opacity: 0.2; pointer-events: none; }
-
-/* --- Main --- */
-.app { position: absolute; inset: 0; display: flex; flex-direction: column; }
-.app-background-layer { position: absolute; inset: 0; z-index: 0; background: #000 url("picture/AlteOper.png") center/cover no-repeat fixed; }
-
-.breathing-layer {
-  position: absolute; inset: 0; pointer-events: none; z-index: 45;
-  box-shadow: inset 0 0 0 0 var(--accent-glow); transition: box-shadow 1s ease; opacity: 0;
-}
-.breathing-layer.active { opacity: 1; animation: breatheGlow 5s ease-in-out infinite alternate; }
-@keyframes breatheGlow { 0% { box-shadow: inset 0 0 20px 0 rgba(245, 230, 184, 0.1); } 100% { box-shadow: inset 0 0 100px 10px rgba(245, 230, 184, 0.4); } }
-
-.screen-glow-layer {
-  position: absolute; inset: 0; pointer-events: none; z-index: 50;
-  background: radial-gradient(circle, var(--accent-glow) 0%, transparent 0%);
-  opacity: 0; transition: opacity 0.2s, background 5s ease-out;
-}
-.screen-glow-active {
-  opacity: 1;
-  background: radial-gradient(circle, rgba(245, 230, 184, 0.6) 0%, transparent 90%);
-}
-
-.app-ui-layer { position: absolute; inset: 0; z-index: 10; display: flex; flex-direction: column; }
-
-.tabs { padding: 20px 0 10px; display: flex; justify-content: center; gap: 20px; z-index: 10; }
-.tab-btn {
-  background: none; border: none; color: var(--text-soft); font-size: 0.85rem;
-  text-transform: uppercase; letter-spacing: 0.1em; padding-bottom: 5px;
-  border-bottom: 2px solid transparent; cursor: pointer; transition: color 0.3s;
-}
-.tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
-
-.tab-container { flex: 1; position: relative; width: 100%; display: flex; justify-content: center; overflow: hidden; }
-.tab-panel { display: none; width: 100%; height: 100%; flex-direction: column; align-items: center; animation: fadeInPanel 0.6s ease; }
-.tab-panel.active { display: flex; }
-@keyframes fadeInPanel { from { opacity: 0; transform: translateY(10px); } to { transform: translateY(0); } }
-
-.cinematic-stage { position: relative; width: 90%; max-width: 400px; display: flex; flex-direction: column; gap: 20px; margin-top: 10px; }
-.stage-image-wrapper {
-  position: relative; border-radius: 12px; overflow: hidden;
-  box-shadow: 0 10px 40px rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.1);
-  transition: transform 0.1s ease-out; transform-style: preserve-3d; perspective: 1000px;
-}
-.stage-image-wrapper.glowing { border-color: var(--accent); }
-.stage-image { width: 100%; display: block; filter: brightness(0.8); transition: filter 2s; }
-
-.stage-overlay-ui { position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: space-between; padding: 15px; }
-.stage-top-row { display: flex; justify-content: space-between; align-items: start; }
-
-.icon-btn {
-  background: var(--glass-bg); backdrop-filter: blur(4px); border: 1px solid var(--glass-border); color: #fff;
-  width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; cursor: pointer;
-  transition: all 0.3s ease; position: relative; z-index: 1001;
-}
-.icon-btn.muted {
-  background-color: rgba(220, 50, 50, 0.9) !important;
-  border-color: rgba(255, 100, 100, 1);
-  box-shadow: 0 0 20px rgba(255, 50, 50, 0.8);
-  transform: scale(1.1);
-}
-.icon-off { display: none; }
-.muted .icon-on { display: none; }
-.muted .icon-off { display: inline; }
-
-.user-identity { text-align: right; text-shadow: 0 2px 4px rgba(0,0,0,0.8); }
-.id-label { display: block; font-size: 0.7rem; color: var(--accent); text-transform: uppercase; letter-spacing: 0.1em; }
-.id-value { display: block; font-size: 1.1rem; font-weight: 700; color: #fff; transition: opacity 0.3s; }
-
-.id-value.shaking { animation: geniusShake 0.1s infinite; color: var(--accent); } 
-.id-value.mozart { 
-  font-family: "Playfair Display", serif; 
-  color: #ff6b6b; font-size: 1.6rem; 
-  animation: slowPulse 2s infinite alternate;
-  text-shadow: 2px 2px 0px #00ffff, -2px -2px 0px #ff00ff;
-}
-@keyframes geniusShake { 0% { transform: translate(1px, 1px) rotate(0deg); } 100% { transform: translate(-1px, -2px) rotate(-1deg); } }
-@keyframes slowPulse { from { text-shadow: 0 0 10px #ff6b6b; transform: scale(1); } to { text-shadow: 0 0 30px #ff6b6b, 0 0 10px #fff; transform: scale(1.05); } }
-
-.stage-bottom-row { display: flex; justify-content: center; margin-bottom: 10px; }
-.action-btn {
-  background: rgba(245, 230, 184, 0.15); backdrop-filter: blur(4px);
-  border: 1px solid var(--accent); color: var(--accent); padding: 12px 30px; border-radius: 30px;
-  font-family: "Playfair Display", serif; font-size: 1.1rem; letter-spacing: 0.1em;
-  cursor: pointer; display: flex; align-items: center; gap: 10px; transition: all 0.2s;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-}
-.action-btn:active { transform: scale(0.95); background: var(--accent); color: #000; }
-
-.instrument-slots { display: flex; gap: 5px; margin-left: 10px; }
-.slot-icon { font-size: 1.2rem; filter: grayscale(1) brightness(0); opacity: 0.3; transition: all 0.5s; }
-.slot-icon.owned { filter: none; opacity: 1; text-shadow: 0 0 10px var(--accent); transform: scale(1.2); }
-
-.stage-caption-area { text-align: center; color: var(--text-soft); font-size: 0.85rem; margin-top: 5px; }
-.hero-caption { display: none; line-height: 1.4; }
-.hero-caption-active { display: block; animation: fadeIn 1s; }
-.hero-dots { margin-top: 8px; display: flex; justify-content: center; gap: 5px; }
-.hero-dot { width: 6px; height: 6px; border-radius: 50%; background: #444; }
-.hero-dot-active { background: var(--accent); }
-
-.program-wrapper { width: 100%; max-width: 350px; text-align: left; color: var(--text-soft); padding: 10px; }
-.timeline { border-left: 1px solid var(--accent); padding-left: 20px; margin-top: 20px; }
-.timeline-item { position: relative; margin-bottom: 25px; }
-.timeline-item::before { content: ''; position: absolute; left: -25px; top: 5px; width: 10px; height: 10px; background: var(--bg); border: 2px solid var(--accent); border-radius: 50%; }
-.timeline-item .time { display: block; color: var(--accent); font-weight: 700; font-size: 0.9rem; }
-.timeline-item .event { display: block; color: #fff; font-size: 1.1rem; }
-
-/* Slider Popup */
-.intro-slider-popup {
-  position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0.9);
-  width: 90%; max-width: 320px;
-  background: rgba(25, 25, 30, 0.95); backdrop-filter: blur(15px);
-  border-radius: 20px; padding: 30px 20px;
-  box-shadow: 0 20px 50px rgba(0,0,0,0.8);
-  border: 1px solid rgba(255,255,255,0.1);
-  z-index: 2000; opacity: 0; pointer-events: none;
-  transition: all 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
-  display: flex; flex-direction: column; align-items: center; text-align: center;
-}
-.intro-slider-popup.show { opacity: 1; pointer-events: auto; transform: translate(-50%, -50%) scale(1); }
-
-.slider-content { width: 100%; overflow: hidden; margin-bottom: 20px; }
-.slider-track { display: flex; transition: transform 0.6s cubic-bezier(0.25, 1, 0.5, 1); width: 300%; }
-.slide { width: 100%; flex-shrink: 0; display: flex; flex-direction: column; align-items: center; gap: 15px; }
-.slide-icon { font-size: 3rem; margin-bottom: 10px; }
-.slide-text { font-size: 1rem; color: #eee; line-height: 1.6; font-weight: 500; white-space: normal; }
-
-.slider-dots { display: flex; gap: 8px; justify-content: center; }
-.dot { width: 8px; height: 8px; border-radius: 50%; background: #555; transition: background 0.3s; }
-.dot.active { background: var(--accent); width: 20px; border-radius: 10px; }
-
-.slider-close-btn {
-  position: absolute; bottom: 15px; right: 15px;
-  background: var(--accent); color: #000; border: none;
-  width: 32px; height: 32px; border-radius: 50%; font-weight: 700;
-  cursor: pointer; opacity: 0; pointer-events: none; transition: opacity 0.5s;
-}
-.slider-close-btn.visible { opacity: 1; pointer-events: auto; }
-
-.coming-soon-toast {
-  position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-  background: rgba(0,0,0,0.8); border: 1px solid var(--accent); padding: 15px 30px; border-radius: 30px; z-index: 100; display: none;
-}
-.coming-soon-toast.show { display: block; animation: fadeUpOut 5s forwards; }
-.typing-text { font-family: "Courier New", monospace; color: var(--accent); font-weight: 700; white-space: nowrap; overflow: hidden; border-right: 2px solid var(--accent); animation: typing 1.5s steps(20); }
-@keyframes typing { from { width: 0; } to { width: 100%; } }
-@keyframes fadeUpOut { 0% { opacity: 1; transform: translate(-50%, -50%); } 80% { opacity: 1; transform: translate(-50%, -50%); } 100% { opacity: 0; transform: translate(-50%, -80%); } }
-
-.orchestra-wrapper { width: 90%; max-width: 350px; text-align: center; margin-top: 10px; }
-.radar-map { width: 100%; height: 250px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.2); margin: 15px 0; overflow: hidden; background: #111; }
-.orchestra-status-box { background: rgba(255,255,255,0.05); border-radius: 8px; padding: 10px 15px; margin-bottom: 10px; }
-.status-row { display: flex; justify-content: space-between; margin-bottom: 5px; font-size: 0.9rem; }
-.status-row .lbl { color: var(--text-soft); }
-.status-row .val { color: #fff; font-weight: 700; }
-.orchestra-btn { background: var(--button-bg); border: 1px solid var(--button-border); color: var(--accent); padding: 10px 20px; border-radius: 8px; margin-top: 5px; cursor: pointer; }
-.footer { margin-top: auto; padding: 20px; font-size: 0.7rem; color: #444; text-align: center; }
+  </div>
+  
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+  <script src="script.js"></script>
+</body>
+</html>
