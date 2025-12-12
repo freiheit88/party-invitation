@@ -14,7 +14,7 @@
 html, body { margin: 0; padding: 0; height: 100%; width: 100%; overflow: hidden; }
 body { font-family: "Manrope", sans-serif; background: #000; color: var(--text-main); }
 
-/* Earthquake Effect (Body Shake) */
+/* Earthquake Effect */
 @keyframes earthquake {
   0% { transform: translate(1px, 1px) rotate(0deg); }
   10% { transform: translate(-1px, -2px) rotate(-1deg); }
@@ -105,11 +105,12 @@ body.muted-world .mute-overlay { opacity: 1; }
 
 .prelude-overlay { position: absolute; inset: 0; z-index: 10; pointer-events: none; }
 
-/* [수정 완료] 90도 회전 (위에서 아래로) */
+/* [수정] Dress the page... 좌측 벽에 밀착 (left: 30px, translate(-50%, -50%)) */
 .prelude-tag {
   position: absolute;
-  top: 50%; left: 10px; /* 좌측 벽 밀착 */
-  transform: translateY(-50%) rotate(90deg); /* 90deg 설정 */
+  top: 50%; left: 30px; 
+  /* translate(-50%, -50%)를 줘서 중심축을 박스 가운데로 잡고 돌려야 밀리지 않음 */
+  transform: translate(-50%, -50%) rotate(90deg); 
   font-size: 1.1rem; color: var(--accent); letter-spacing: 0.1em;
   background: rgba(0,0,0,0.6); padding: 10px 20px; border-radius: 20px;
   text-align: center; white-space: nowrap;
