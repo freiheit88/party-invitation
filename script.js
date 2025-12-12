@@ -105,7 +105,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const totalSlides = 3;
     let sliderTimer = null;
     
-    // Reset position
+    // Reset position to 1st slide
     track.style.transform = `translateX(0%)`;
     dots.forEach(d => d.classList.remove("active"));
     dots[0].classList.add("active");
@@ -115,10 +115,11 @@ document.addEventListener("DOMContentLoaded", () => {
       track.style.transform = `translateX(-${slideIndex * 33.33}%)`;
       dots.forEach((d, i) => d.classList.toggle("active", i === slideIndex));
       
+      // 한 바퀴 돌고 다시 1번 슬라이드(index 0)가 되면 닫기 버튼 활성화
       if (slideIndex === 0) closeBtn.classList.add("visible");
     };
 
-    // [수정] 5초 간격으로 변경 (기존 4000 -> 5000)
+    // 5초 간격으로 자동 슬라이드
     sliderTimer = setInterval(nextSlide, 5000); 
 
     closeBtn.addEventListener("click", () => {
@@ -149,7 +150,7 @@ document.addEventListener("DOMContentLoaded", () => {
     videoPre.classList.remove("dark-filter"); 
     videoPre.classList.add("video-bright");
     overlay.classList.add("preintro-overlay-clear");
-    setTimeout(() => switchScene("scene-preintro", "scene-prelude"), 5000); // 여기서도 전환 대기 시간 맞춤 (옵션)
+    setTimeout(() => switchScene("scene-preintro", "scene-prelude"), 5000);
   });
 
   /* --- Scene 0: Prelude --- */
@@ -164,6 +165,7 @@ document.addEventListener("DOMContentLoaded", () => {
     btn.addEventListener("click", (e) => {
       if (isErrorActive) return; 
 
+      // Dizzy Conductor Effect
       preludeClickSpam++;
       if (preludeClickSpam > 5) {
         isErrorActive = true;
