@@ -4,7 +4,6 @@ document.addEventListener("DOMContentLoaded", () => {
   let isMuted = false;
   let currentVoiceAudio = null; 
   
-  // 악기 정의
   const roles = [
     { id: "cellos", name: "Cellos", icon: "🎻" },
     { id: "trumpets", name: "Trumpets", icon: "🎺" },
@@ -12,7 +11,6 @@ document.addEventListener("DOMContentLoaded", () => {
     { id: "timpani", name: "Timpani", icon: "🥁" }
   ];
   
-  // 오디오 경로
   const sounds = {
     cellos: "media/SI_Cac_fx_cellos_tuning_one_shot_imaginative.wav",
     trumpets: "media/SI_Cac_fx_trumpets_tuning_one_shot_growing.wav",
@@ -32,10 +30,9 @@ document.addEventListener("DOMContentLoaded", () => {
   let isMozart = false;
   
   const activeAudios = new Set();
-  let preludeClickSpam = 0; // 광클 감지용
+  let preludeClickSpam = 0;
 
   /* --- Utils --- */
-  // 효과음 재생 (Mute 상태면 재생 안함)
   const playSfx = (path, vol = 1.0) => {
     if (isMuted) return null;
     const a = new Audio(path);
@@ -47,7 +44,6 @@ document.addEventListener("DOMContentLoaded", () => {
     return a;
   };
 
-  // 배경음악 재생
   const playBgMusic = () => {
     if (!bgAudio) {
       bgAudio = new Audio(sounds.bg_music);
@@ -65,7 +61,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }).catch(e => console.log("BG play error:", e));
   };
 
-  // 햅틱 피드백
   const triggerHaptic = () => {
     if (navigator.vibrate) navigator.vibrate(50);
   };
@@ -85,21 +80,19 @@ document.addEventListener("DOMContentLoaded", () => {
       toEl.classList.add("scene-visible");
     }
     
-    // 메인 씬 진입 시 초기화
     if (toId === "scene-main") {
       setTimeout(() => {
         if(map) map.invalidateSize();
         initParallax(); 
         resetIdleTimer(); 
         initShakeDetection(); 
-        // 팝업 배경 블러 처리 및 슬라이더 시작
         document.getElementById("popupBackdrop").classList.add("visible");
         startIntroSlider(); 
       }, 100);
     }
   };
 
-  /* --- Intro Slider Logic (Main) --- */
+  /* --- Intro Slider Logic --- */
   const startIntroSlider = () => {
     const popup = document.getElementById("introSlider");
     const track = document.getElementById("sliderTrack");
@@ -112,7 +105,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const totalSlides = 3;
     let sliderTimer = null;
     
-    // 초기화: 첫 슬라이드 보임
+    // Reset position
     track.style.transform = `translateX(0%)`;
     dots.forEach(d => d.classList.remove("active"));
     dots[0].classList.add("active");
@@ -122,11 +115,11 @@ document.addEventListener("DOMContentLoaded", () => {
       track.style.transform = `translateX(-${slideIndex * 33.33}%)`;
       dots.forEach((d, i) => d.classList.toggle("active", i === slideIndex));
       
-      // 한 바퀴 돌고 첫 슬라이드로 돌아오면 닫기 버튼 표시
       if (slideIndex === 0) closeBtn.classList.add("visible");
     };
 
-    sliderTimer = setInterval(nextSlide, 4000); // 4초 간격
+    // [수정] 5초 간격으로 변경 (기존 4000 -> 5000)
+    sliderTimer = setInterval(nextSlide, 5000); 
 
     closeBtn.addEventListener("click", () => {
       popup.classList.remove("show");
@@ -156,7 +149,7 @@ document.addEventListener("DOMContentLoaded", () => {
     videoPre.classList.remove("dark-filter"); 
     videoPre.classList.add("video-bright");
     overlay.classList.add("preintro-overlay-clear");
-    setTimeout(() => switchScene("scene-preintro", "scene-prelude"), 3000);
+    setTimeout(() => switchScene("scene-preintro", "scene-prelude"), 5000); // 여기서도 전환 대기 시간 맞춤 (옵션)
   });
 
   /* --- Scene 0: Prelude --- */
@@ -171,7 +164,6 @@ document.addEventListener("DOMContentLoaded", () => {
     btn.addEventListener("click", (e) => {
       if (isErrorActive) return; 
 
-      // Dizzy Conductor Effect (5회 이상 광클 시)
       preludeClickSpam++;
       if (preludeClickSpam > 5) {
         isErrorActive = true;
@@ -183,7 +175,7 @@ document.addEventListener("DOMContentLoaded", () => {
           document.body.classList.remove("earthquake");
           isErrorActive = false;
           preludeClickSpam = 0;
-        }, 4000); // 4초 유지
+        }, 4000);
         return;
       }
 
@@ -195,7 +187,6 @@ document.addEventListener("DOMContentLoaded", () => {
       statusText.textContent = lang === "en" ? "Putting on English..." : "Deutsche Sprache wird angelegt...";
       statusText.classList.add("show");
 
-      // Interrupt Logic
       if (currentVoiceAudio && !currentVoiceAudio.paused) {
         isInterrupting = true;
         currentVoiceAudio.pause(); 
@@ -221,7 +212,6 @@ document.addEventListener("DOMContentLoaded", () => {
         return;
       }
 
-      // Normal Play
       if (lang === "en") {
         dimLayer.classList.add("dim-right"); 
         document.querySelector('[data-lang="de"]').classList.add("fade-out");
@@ -285,7 +275,6 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   };
 
-  // Mute Logic
   const btnMute = document.getElementById("musicToggle");
   btnMute.addEventListener("click", () => {
     isMuted = !isMuted;
@@ -294,14 +283,13 @@ document.addEventListener("DOMContentLoaded", () => {
     
     if (isMuted) {
       if (bgAudio) bgAudio.volume = 0;
-      activeAudios.forEach(a => a.volume = 0); // 모든 소리 끄기
+      activeAudios.forEach(a => a.volume = 0); 
     } else {
       if (bgAudio) bgAudio.volume = 0.3;
-      activeAudios.forEach(a => a.volume = 1.0); // 소리 복구
+      activeAudios.forEach(a => a.volume = 1.0);
     }
   });
 
-  // Let A Ring Logic
   const btnTune = document.getElementById("tuneButton");
   btnTune.addEventListener("click", () => {
     if (isMuted) return; 
@@ -309,7 +297,6 @@ document.addEventListener("DOMContentLoaded", () => {
     clickCount++;
     triggerHaptic(); 
     
-    // Mozart Effect
     if (clickCount === 10 && !isMozart) {
       isMozart = true;
       
@@ -355,12 +342,10 @@ document.addEventListener("DOMContentLoaded", () => {
     }, 5000);
   });
 
-  // Tabs
   const tabBtns = document.querySelectorAll(".tab-btn");
   const tabPanels = document.querySelectorAll(".tab-panel");
   tabBtns.forEach(btn => {
     btn.addEventListener("click", () => {
-      // Orchestra 탭 진입 시 5초 팝업
       if (btn.dataset.tab === "orchestra") {
         const toast = document.getElementById("orchestraToast");
         toast.classList.add("show");
