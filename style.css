@@ -105,11 +105,10 @@ body.muted-world .mute-overlay { opacity: 1; }
 
 .prelude-overlay { position: absolute; inset: 0; z-index: 10; pointer-events: none; }
 
-/* [수정] Dress the page... 좌측 벽에 밀착 (left: 30px, translate(-50%, -50%)) */
+/* Dress the page... 강제 좌측 고정 (translate 사용) */
 .prelude-tag {
   position: absolute;
-  top: 50%; left: 30px; 
-  /* translate(-50%, -50%)를 줘서 중심축을 박스 가운데로 잡고 돌려야 밀리지 않음 */
+  top: 50%; left: 20px; 
   transform: translate(-50%, -50%) rotate(90deg); 
   font-size: 1.1rem; color: var(--accent); letter-spacing: 0.1em;
   background: rgba(0,0,0,0.6); padding: 10px 20px; border-radius: 20px;
@@ -205,7 +204,12 @@ body.earthquake .app-shell { animation: earthquake 0.5s cubic-bezier(.36,.07,.19
   transition: transform 0.1s ease-out; transform-style: preserve-3d; perspective: 1000px;
 }
 .stage-image-wrapper.glowing { border-color: var(--accent); }
-.stage-image { width: 100%; display: block; filter: brightness(0.8); transition: filter 2s; }
+/* [수정] video 태그 스타일 적용 */
+.stage-video { 
+  width: 100%; height: 100%; 
+  object-fit: cover; display: block; 
+  filter: brightness(0.8); transition: filter 2s; 
+}
 
 .stage-overlay-ui { position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: space-between; padding: 15px; }
 .stage-top-row { display: flex; justify-content: space-between; align-items: start; }
